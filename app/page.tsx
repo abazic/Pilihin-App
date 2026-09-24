@@ -13,8 +13,6 @@ import {
   Link as LinkIcon, 
   ExternalLink, 
   Trash2,
-  Image as ImageIcon,
-  Clock,
   Copy,
   Check,
   Plus,
@@ -243,7 +241,7 @@ export default function HomePage() {
       }
     } catch (err: any) {
       alert('Terjadi kesalahan saat mengekstrak link atau menyimpan data.');
-    } finally {
+    } font-sans finally {
       setLoading(false);
     }
   };
@@ -452,249 +450,152 @@ export default function HomePage() {
           )}
         </div>
 
-        <div className="flex flex-col xl:flex-row gap-8">
+        {/* Form Input Klien (Lebar Penuh) */}
+        <form onSubmit={handleSave} className="space-y-6">
           
-          {/* KOLOM KIRI: Form Input */}
-          <div className="flex-1 space-y-6">
-            <form onSubmit={handleSave} className="space-y-6">
-              
-              {/* Bagian 1: Informasi Klien */}
-              <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-                <h2 className="flex items-center gap-2 font-semibold text-gray-900 mb-6">
-                  <UserIcon size={18} className="text-gray-400" /> Informasi Klien
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm text-gray-700 mb-2">Nama Klien *</label>
-                    <input 
-                      type="text" 
-                      name="clientName"
-                      value={formData.clientName}
-                      onChange={handleInputChange}
-                      placeholder="Contoh: Ahmad Rizki & Keluarga"
-                      required
-                      className="w-full p-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-200 focus:border-gray-500 outline-none transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-700 mb-2">Tanggal Acara</label>
-                    <div className="relative">
-                      <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                      <input 
-                        type="date" 
-                        name="eventDate"
-                        value={formData.eventDate}
-                        onChange={handleInputChange}
-                        className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 outline-none"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Bagian 2: Pengaturan Galeri */}
-              <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-                <h2 className="flex items-center gap-2 font-semibold text-gray-900 mb-6">
-                  <LinkIcon size={18} className="text-gray-400" /> Pengaturan Galeri
-                </h2>
-                
-                <div className="mb-6">
-                  <label className="block text-sm text-gray-700 mb-2">Link Google Drive *</label>
-                  <div className="flex gap-2">
-                     <input 
-                       type="url" 
-                       name="gdriveUrl"
-                       value={formData.gdriveUrl}
-                       onChange={handleInputChange}
-                       placeholder="https://drive.google.com/drive/folders/..."
-                       required
-                       className="flex-1 p-2.5 border border-gray-300 rounded-lg text-sm text-gray-600 bg-gray-50 focus:bg-white outline-none transition-all"
-                     />
-                     <button 
-                       type="button" 
-                       onClick={() => formData.gdriveUrl && window.open(formData.gdriveUrl, '_blank')}
-                       className="p-2.5 border border-gray-300 rounded-lg text-gray-500 hover:bg-gray-50"
-                       title="Buka Drive"
-                     >
-                       <ExternalLink size={18} />
-                     </button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-2">
-                   <div>
-                      <label className="block text-sm text-gray-700 mb-2">Maksimum Foto yang Bisa Dipilih</label>
-                      <input 
-                        type="number" 
-                        name="maxPhotos"
-                        value={formData.maxPhotos}
-                        onChange={handleInputChange}
-                        placeholder="20"
-                        className="w-full p-2.5 border border-gray-300 rounded-lg text-sm outline-none"
-                      />
-                      <p className="text-[11px] text-gray-400 mt-1">Batas jumlah foto pilihan klien.</p>
-                   </div>
-                   <div>
-                      <label className="block text-sm text-gray-700 mb-2">Masa Berlaku Link</label>
-                      <div className="relative">
-                        <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                        <input 
-                          type="date" 
-                          name="expireDate"
-                          value={formData.expireDate}
-                          onChange={handleInputChange}
-                          className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 outline-none"
-                        />
-                      </div>
-                      <p className="text-[11px] text-gray-400 mt-1">Tanggal akses galeri ditutup.</p>
-                   </div>
-                </div>
-              </div>
-
-              {/* Bagian 3: Catatan */}
-              <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-                 <h2 className="flex items-center gap-2 font-semibold text-gray-900 mb-4">
-                  <FileText size={18} className="text-gray-400" /> Catatan <span className="text-gray-400 font-normal text-sm">(Opsional)</span>
-                </h2>
-                <textarea 
-                  name="notes"
-                  value={formData.notes}
+          {/* Bagian 1: Informasi Klien */}
+          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+            <h2 className="flex items-center gap-2 font-semibold text-gray-900 mb-6">
+              <UserIcon size={18} className="text-gray-400" /> Informasi Klien
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm text-gray-700 mb-2">Nama Klien *</label>
+                <input 
+                  type="text" 
+                  name="clientName"
+                  value={formData.clientName}
                   onChange={handleInputChange}
-                  maxLength={500}
-                  placeholder="Contoh: Mohon pilih foto terbaik dan hindari foto blur."
-                  rows={4}
-                  className="w-full p-3 border border-gray-300 rounded-lg text-sm text-gray-700 resize-none outline-none focus:border-gray-400"
-                ></textarea>
-                <div className="text-right text-[11px] text-gray-400 mt-1">{formData.notes.length}/500</div>
+                  placeholder="Contoh: Ahmad Rizki & Keluarga"
+                  required
+                  className="w-full p-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-200 focus:border-gray-500 outline-none transition-all"
+                />
               </div>
-
-              {/* Tombol Aksi Bawah */}
-              <div className="flex items-center justify-between pt-2">
-                 <button 
-                   type="button" 
-                   onClick={handleResetForm}
-                   className="flex items-center gap-2 px-4 py-2.5 text-red-500 bg-red-50 hover:bg-red-100 rounded-xl text-sm font-medium border border-red-100 transition-colors"
-                 >
-                   <Trash2 size={16} /> Reset Form
-                 </button>
-                 <div className="flex gap-3">
-                   <button 
-                     type="button" 
-                     onClick={handleResetForm}
-                     className="px-5 py-2.5 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-xl text-sm font-medium transition-colors"
-                   >
-                     Batal
-                   </button>
-                   
-                   {/* Tombol Simpan Klien Baru */}
-                   <button 
-                     type="submit" 
-                     disabled={loading}
-                     className="flex items-center gap-2 px-6 py-2.5 text-white bg-[#2a2a2a] hover:bg-black rounded-xl text-sm font-medium transition-colors disabled:opacity-50 shadow-sm"
-                   >
-                     {loading ? 'Menyimpan...' : editingId ? 'Perbarui Data Klien' : 'Simpan Klien Baru'}
-                   </button>
-                 </div>
+              <div>
+                <label className="block text-sm text-gray-700 mb-2">Tanggal Acara</label>
+                <div className="relative">
+                  <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input 
+                    type="date" 
+                    name="eventDate"
+                    value={formData.eventDate}
+                    onChange={handleInputChange}
+                    className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 outline-none"
+                  />
+                </div>
               </div>
-
-            </form>
+            </div>
           </div>
 
-          {/* KOLOM KANAN: Ringkasan & Preview Input Saat Ini */}
-          <aside className="w-full xl:w-[400px] shrink-0 space-y-6">
+          {/* Bagian 2: Pengaturan Galeri */}
+          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+            <h2 className="flex items-center gap-2 font-semibold text-gray-900 mb-6">
+              <LinkIcon size={18} className="text-gray-400" /> Pengaturan Galeri
+            </h2>
             
-            {/* Banner Cover Klien */}
-            <div className="relative h-48 rounded-2xl overflow-hidden shadow-sm">
-              <img 
-                src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=1000&auto=format&fit=crop" 
-                alt="Cover" 
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
-              <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
-                 <div>
-                    <h3 className="text-white font-medium text-lg leading-tight">{formData.clientName || 'Nama Klien'}</h3>
-                    <p className="text-gray-300 text-xs mt-1">{formatDateString(formData.eventDate)}</p>
-                 </div>
-                 <span className="bg-emerald-500/90 backdrop-blur text-white text-xs px-3 py-1 rounded-full font-medium">Aktif</span>
+            <div className="mb-6">
+              <label className="block text-sm text-gray-700 mb-2">Link Google Drive *</label>
+              <div className="flex gap-2">
+                 <input 
+                   type="url" 
+                   name="gdriveUrl"
+                   value={formData.gdriveUrl}
+                   onChange={handleInputChange}
+                   placeholder="https://drive.google.com/drive/folders/..."
+                   required
+                   className="flex-1 p-2.5 border border-gray-300 rounded-lg text-sm text-gray-600 bg-gray-50 focus:bg-white outline-none transition-all"
+                 />
+                 <button 
+                   type="button" 
+                   onClick={() => formData.gdriveUrl && window.open(formData.gdriveUrl, '_blank')}
+                   className="p-2.5 border border-gray-300 rounded-lg text-gray-500 hover:bg-gray-50"
+                   title="Buka Drive"
+                 >
+                   <ExternalLink size={18} />
+                 </button>
               </div>
             </div>
 
-            {/* Box Ringkasan Form Input */}
-            <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-               <h3 className="font-semibold text-gray-900 mb-5">Ringkasan Input Form</h3>
-               <div className="space-y-4">
-                  <div className="flex text-sm">
-                     <div className="w-[45%] text-gray-500 flex items-center gap-2"><UserIcon size={14}/> Nama Klien</div>
-                     <div className="flex-1 font-medium text-gray-900 truncate">{formData.clientName || '-'}</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-2">
+               <div>
+                  <label className="block text-sm text-gray-700 mb-2">Maksimum Foto yang Bisa Dipilih</label>
+                  <input 
+                    type="number" 
+                    name="maxPhotos"
+                    value={formData.maxPhotos}
+                    onChange={handleInputChange}
+                    placeholder="20"
+                    className="w-full p-2.5 border border-gray-300 rounded-lg text-sm outline-none"
+                  />
+                  <p className="text-[11px] text-gray-400 mt-1">Batas jumlah foto pilihan klien.</p>
+               </div>
+               <div>
+                  <label className="block text-sm text-gray-700 mb-2">Masa Berlaku Link</label>
+                  <div className="relative">
+                    <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input 
+                      type="date" 
+                      name="expireDate"
+                      value={formData.expireDate}
+                      onChange={handleInputChange}
+                      className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 outline-none"
+                    />
                   </div>
-                  <div className="flex text-sm">
-                     <div className="w-[45%] text-gray-500 flex items-center gap-2"><Calendar size={14}/> Tanggal Acara</div>
-                     <div className="flex-1 font-medium text-gray-900">{formatDateString(formData.eventDate)}</div>
-                  </div>
-                  <div className="flex text-sm">
-                     <div className="w-[45%] text-gray-500 flex items-center gap-2"><LinkIcon size={14}/> Link GDrive</div>
-                     <div className="flex-1 font-medium text-gray-900 truncate text-blue-600">
-                        {formData.gdriveUrl ? `${formData.gdriveUrl.substring(0, 22)}...` : '-'}
-                     </div>
-                  </div>
-                  <div className="flex text-sm">
-                     <div className="w-[45%] text-gray-500 flex items-center gap-2"><ImageIcon size={14}/> Maks. Foto</div>
-                     <div className="flex-1 font-medium text-gray-900">{formData.maxPhotos ? `${formData.maxPhotos} foto` : '-'}</div>
-                  </div>
-                  <div className="flex text-sm">
-                     <div className="w-[45%] text-gray-500 flex items-center gap-2"><Clock size={14}/> Masa Berlaku</div>
-                     <div className="flex-1 font-medium text-gray-900">{formatDateString(formData.expireDate)}</div>
-                  </div>
+                  <p className="text-[11px] text-gray-400 mt-1">Tanggal akses galeri ditutup.</p>
                </div>
             </div>
+          </div>
 
-            {/* Box Link Galeri Preview */}
-            <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-               <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-semibold text-gray-900">Preview Link Galeri</h3>
-                  {createdSlug ? (
-                    <Link href={`/gallery/${createdSlug}`} target="_blank" className="text-gray-400 hover:text-gray-700">
-                      <ExternalLink size={16} />
-                    </Link>
-                  ) : (
-                    <ExternalLink size={16} className="text-gray-300" />
-                  )}
-               </div>
+          {/* Bagian 3: Catatan */}
+          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+             <h2 className="flex items-center gap-2 font-semibold text-gray-900 mb-4">
+              <FileText size={18} className="text-gray-400" /> Catatan <span className="text-gray-400 font-normal text-sm">(Opsional)</span>
+            </h2>
+            <textarea 
+              name="notes"
+              value={formData.notes}
+              onChange={handleInputChange}
+              maxLength={500}
+              placeholder="Contoh: Mohon pilih foto terbaik dan hindari foto blur."
+              rows={4}
+              className="w-full p-3 border border-gray-300 rounded-lg text-sm text-gray-700 resize-none outline-none focus:border-gray-400"
+            ></textarea>
+            <div className="text-right text-[11px] text-gray-400 mt-1">{formData.notes.length}/500</div>
+          </div>
 
-               {/* Card Link Galeri Aktif */}
-               <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-2.5 overflow-hidden">
-                     <div className="mt-0.5 shrink-0"><LinkIcon size={16} className="text-gray-400" /></div>
-                     <div className="overflow-hidden">
-                        <p className="text-xs font-semibold text-gray-800">Link Galeri Klien</p>
-                        {createdSlug ? (
-                          <p className="text-[11px] text-blue-600 font-mono truncate mt-0.5">
-                            {typeof window !== 'undefined' ? `${window.location.origin}/gallery/${createdSlug}` : `/gallery/${createdSlug}`}
-                          </p>
-                        ) : (
-                          <p className="text-[11px] text-gray-400 mt-0.5">Simpan data untuk membuat link galeri.</p>
-                        )}
-                     </div>
-                  </div>
-                  {createdSlug && (
-                    <button
-                      type="button"
-                      onClick={() => handleCopyLink(createdSlug)}
-                      className="shrink-0 px-2.5 py-1 text-xs text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 flex items-center gap-1 transition-colors shadow-xs font-medium"
-                    >
-                      {copiedSlug === createdSlug ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
-                      <span>{copiedSlug === createdSlug ? 'Tersalin' : 'Salin'}</span>
-                    </button>
-                  )}
-               </div>
-            </div>
+          {/* Tombol Aksi Bawah */}
+          <div className="flex items-center justify-between pt-2">
+             <button 
+               type="button" 
+               onClick={handleResetForm}
+               className="flex items-center gap-2 px-4 py-2.5 text-red-500 bg-red-50 hover:bg-red-100 rounded-xl text-sm font-medium border border-red-100 transition-colors"
+             >
+               <Trash2 size={16} /> Reset Form
+             </button>
+             <div className="flex gap-3">
+               <button 
+                 type="button" 
+                 onClick={handleResetForm}
+                 className="px-5 py-2.5 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-xl text-sm font-medium transition-colors"
+               >
+                 Batal
+               </button>
+               
+               {/* Tombol Simpan Klien Baru */}
+               <button 
+                 type="submit" 
+                 disabled={loading}
+                 className="flex items-center gap-2 px-6 py-2.5 text-white bg-[#2a2a2a] hover:bg-black rounded-xl text-sm font-medium transition-colors disabled:opacity-50 shadow-sm"
+               >
+                 {loading ? 'Menyimpan...' : editingId ? 'Perbarui Data Klien' : 'Simpan Klien Baru'}
+               </button>
+             </div>
+          </div>
 
-          </aside>
-        </div>
+        </form>
 
         {/* ========================================================= */}
-        {/* HALAMAN / SEKSI RINGKASAN & DAFTAR KLIEN TERDAFTAR */}
+        {/* SEKSI RINGKASAN & DAFTAR KLIEN TERDAFTAR */}
         {/* ========================================================= */}
         <section className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-5">
@@ -734,76 +635,53 @@ export default function HomePage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 text-sm">
-                  {clientsList.map((client) => {
-                    const galleryUrl = typeof window !== 'undefined' ? `${window.location.origin}/gallery/${client.slug}` : `/gallery/${client.slug}`;
-                    const isEditingThis = editingId === client.id;
-
-                    return (
-                      <tr 
-                        key={client.id} 
-                        className={`hover:bg-gray-50 transition-colors ${isEditingThis ? 'bg-amber-50/50' : ''}`}
-                      >
-                        <td className="py-4 px-4 font-medium text-gray-900">
-                          {client.client_name}
-                          {isEditingThis && (
-                            <span className="ml-2 text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full font-bold">
-                              Sedang Sedang Diedit
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-4 px-4 text-gray-600 text-xs">
-                          {formatDateString(client.event_date)}
-                        </td>
-                        <td className="py-4 px-4 text-gray-600 text-xs">
-                          {client.max_photos ? `${client.max_photos} foto` : '-'}
-                        </td>
-                        <td className="py-4 px-4 text-gray-600 text-xs">
-                          {formatDateString(client.expire_date)}
-                        </td>
-                        <td className="py-4 px-4">
-                          <div className="flex items-center gap-2 max-w-[220px]">
-                            <span className="text-xs text-blue-600 font-mono truncate">
-                              {galleryUrl}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => handleCopyLink(client.slug)}
-                              title="Salin Link"
-                              className="p-1 text-gray-500 hover:text-black rounded hover:bg-gray-200 transition-colors"
-                            >
-                              {copiedSlug === client.slug ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
-                            </button>
-                            <a
-                              href={galleryUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              title="Buka Galeri"
-                              className="p-1 text-gray-500 hover:text-black rounded hover:bg-gray-200 transition-colors"
-                            >
-                              <ExternalLink size={14} />
-                            </a>
-                          </div>
-                        </td>
-                        <td className="py-4 px-4 text-right space-x-2">
+                  {clientsList.map((client) => (
+                    <tr key={client.id} className="hover:bg-gray-50/80 transition-colors">
+                      <td className="py-3.5 px-4 font-medium text-gray-900">{client.client_name}</td>
+                      <td className="py-3.5 px-4 text-gray-600">{formatDateString(client.event_date)}</td>
+                      <td className="py-3.5 px-4 text-gray-600">{client.max_photos ? `${client.max_photos} Foto` : '-'}</td>
+                      <td className="py-3.5 px-4 text-gray-600">{formatDateString(client.expire_date)}</td>
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-mono text-blue-600 truncate max-w-[150px]">
+                            /gallery/{client.slug}
+                          </span>
                           <button
-                            type="button"
-                            onClick={() => handleEditClient(client)}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 rounded-lg shadow-xs transition-colors"
+                            onClick={() => handleCopyLink(client.slug)}
+                            className="p-1 hover:bg-gray-200 rounded text-gray-500 transition-colors"
+                            title="Salin Link"
                           >
-                            <Edit2 size={13} /> Edit
+                            {copiedSlug === client.slug ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
+                          </button>
+                          <Link
+                            href={`/gallery/${client.slug}`}
+                            target="_blank"
+                            className="p-1 hover:bg-gray-200 rounded text-gray-500 transition-colors"
+                            title="Buka Galeri"
+                          >
+                            <ExternalLink size={14} />
+                          </Link>
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleEditClient(client)}
+                            className="px-2.5 py-1 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                          >
+                            Edit
                           </button>
                           <button
-                            type="button"
                             onClick={() => handleDeleteClientFromList(client.id)}
-                            className="inline-flex items-center p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                             title="Hapus Klien"
                           >
-                            <Trash2 size={15} />
+                            <Trash2 size={14} />
                           </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
