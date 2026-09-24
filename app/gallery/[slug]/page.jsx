@@ -1,6 +1,6 @@
 import GalleryClient from './GalleryClient';
 
-export async function () {
+export async function generateStaticParams() {
   return [{ slug: 'demo' }];
 }
 
