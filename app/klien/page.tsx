@@ -1,479 +1,391 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard,
-  Users,
-  ClipboardList,
-  Settings,
-  Bell,
-  Search,
-  Filter,
-  Plus,
-  Eye,
-  Edit2,
+import { useState, ChangeEvent, FormEvent } from 'react';
+import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
+import { extractFolderId } from '@/lib/gdrive';
+import { 
+  Home, 
+  FileText, 
+  Settings, 
+  Bell, 
+  ChevronDown, 
+  ArrowLeft, 
+  User as UserIcon, 
+  Calendar, 
+  Link as LinkIcon, 
+  ExternalLink, 
   Trash2,
-  MoreVertical,
-  Calendar,
   Image as ImageIcon,
-  CheckCircle2,
-  Clock,
-  X,
-} from "lucide-react";
+  Clock
+} from 'lucide-react';
 
-// Tipe Data Klien
-interface Klien {
-  id: string;
-  nama: string;
-  kategori: string;
-  tanggalAcara: string;
-  jumlahFotoMaks: number;
-  status: "AKTIF" | "SELESAI" | "MENUNGGU";
-  email: string;
-  noHp: string;
+interface FormDataState {
+  clientName: string;
+  eventDate: string;
+  gdriveUrl: string;
+  maxPhotos: number;
+  expireDate: string;
+  notes: string;
 }
 
-export default function KelolaKlienPage() {
-  const pathname = usePathname();
-
-  // Menu Navigasi Sidebar (Konsisten dengan Dashboard)
-  const navigation = [
-    { name: "Dashboard", href: "/", icon: LayoutDashboard },
-    { name: "Kelola Klien", href: "/klien", icon: Users },
-    { name: "Riwayat Pesanan", href: "/pesanan", icon: ClipboardList },
-    { name: "Pengaturan", href: "/pengaturan", icon: Settings },
-  ];
-
-  // State Data Klien
-  const [dataKlien, setDataKlien] = useState<Klien[]>([
-    {
-      id: "1",
-      nama: "Ahmad Rizki & Keluarga",
-      kategori: "Wedding",
-      tanggalAcara: "12 Agustus 2025",
-      jumlahFotoMaks: 20,
-      status: "AKTIF",
-      email: "ahmad.rizki@example.com",
-      noHp: "081234567890",
-    },
-    {
-      id: "2",
-      nama: "Siti Nurhaliza",
-      kategori: "Wisuda",
-      tanggalAcara: "5 Agustus 2025",
-      jumlahFotoMaks: 15,
-      status: "AKTIF",
-      email: "siti.n@example.com",
-      noHp: "082345678901",
-    },
-    {
-      id: "3",
-      nama: "Keluarga Hadi",
-      kategori: "Family Session",
-      tanggalAcara: "28 Juli 2025",
-      jumlahFotoMaks: 30,
-      status: "SELESAI",
-      email: "hadi.family@example.com",
-      noHp: "083456789012",
-    },
-    {
-      id: "4",
-      nama: "Bapak Wahyu",
-      kategori: "Corporate Event",
-      tanggalAcara: "18 Juli 2025",
-      jumlahFotoMaks: 25,
-      status: "MENUNGGU",
-      email: "wahyu@corporate.id",
-      noHp: "084567890123",
-    },
-  ]);
-
-  // State Filter & Pencarian
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("ALL");
-
-  // State Modal Tambah Klien
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formBaru, setFormBaru] = useState({
-    nama: "",
-    kategori: "Wedding",
-    tanggalAcara: "",
-    jumlahFotoMaks: 20,
-    email: "",
-    noHp: "",
+export default function KlienPage() {
+  const [formData, setFormData] = useState<FormDataState>({
+    clientName: 'Ahmad Rizki & Keluarga',
+    eventDate: '2025-08-12',
+    gdriveUrl: 'https://drive.google.com/drive/folders/1aBcD...xyz',
+    maxPhotos: 20,
+    expireDate: '2025-08-31',
+    notes: ''
   });
+  
+  const [loading, setLoading] = useState(false);
 
-  // Filter Logic
-  const filteredKlien = dataKlien.filter((klien) => {
-    const matchSearch =
-      klien.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      klien.kategori.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      klien.email.toLowerCase().includes(searchQuery.toLowerCase());
-
-    const matchStatus =
-      statusFilter === "ALL" || klien.status === statusFilter;
-
-    return matchSearch && matchStatus;
-  });
-
-  // Handler Tambah Klien
-  const handleTambahKlien = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formBaru.nama || !formBaru.tanggalAcara) return;
-
-    const newKlienObj: Klien = {
-      id: Date.now().toString(),
-      nama: formBaru.nama,
-      kategori: formBaru.kategori,
-      tanggalAcara: formBaru.tanggalAcara,
-      jumlahFotoMaks: Number(formBaru.jumlahFotoMaks),
-      status: "AKTIF",
-      email: formBaru.email || "-",
-      noHp: formBaru.noHp || "-",
-    };
-
-    setDataKlien([newKlienObj, ...dataKlien]);
-    setFormBaru({
-      nama: "",
-      kategori: "Wedding",
-      tanggalAcara: "",
-      jumlahFotoMaks: 20,
-      email: "",
-      noHp: "",
-    });
-    setIsModalOpen(false);
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Handler Hapus Klien
-  const handleHapusKlien = (id: string) => {
-    if (confirm("Apakah Anda yakin ingin menghapus klien ini?")) {
-      setDataKlien(dataKlien.filter((item) => item.id !== id));
+  // Buat slug dinamis dari nama klien
+  const currentSlug = formData.clientName
+    ? formData.clientName.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+    : 'klien';
+
+  const handleSave = async (e: FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const folderId = extractFolderId ? extractFolderId(formData.gdriveUrl) : formData.gdriveUrl;
+      const slug = `${currentSlug}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      const { error } = await supabase.from('galleries').insert([
+        {
+          client_name: formData.clientName,
+          folder_id: folderId,
+          slug: slug,
+          gdrive_url: formData.gdriveUrl,
+          event_date: formData.eventDate || null,
+          max_photos: Number(formData.maxPhotos),
+          expire_date: formData.expireDate || null,
+          notes: formData.notes
+        },
+      ]);
+
+      if (error) {
+        alert('Gagal menyimpan perubahan: ' + error.message);
+      } else {
+        alert('Perubahan berhasil disimpan!');
+      }
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan';
+      alert('Error: ' + errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen bg-[#f6f6f6] font-sans text-stone-800">
-      {/* Sidebar Navigasi */}
-      <aside className="w-64 bg-white border-r border-stone-200/80 flex flex-col justify-between p-6">
-        <div>
-          {/* Logo Brand */}
-          <div className="mb-10 px-2">
-            <h1 className="text-2xl font-serif font-bold italic text-stone-900 tracking-wide">
-              Nyala Karya
-            </h1>
-            <p className="text-[10px] tracking-widest text-stone-400 font-sans uppercase font-semibold mt-0.5">
-              PHOTO & VIDEO
-            </p>
+    <div className="min-h-screen flex bg-[#f7f7f7] font-sans text-gray-800">
+      
+      {/* 1. Sidebar Kiri (Navigasi) */}
+      <aside className="w-[260px] bg-[#ececec] border-r border-gray-200 flex flex-col fixed h-full z-10">
+        {/* Logo */}
+        <div className="p-8 pb-10">
+          <div className="flex flex-col">
+             <span className="font-serif italic text-3xl font-bold tracking-tight">Nyala Karya</span>
+             <span className="text-[10px] uppercase tracking-widest text-gray-500 font-semibold mt-1">Photo & Video</span>
           </div>
-
-          {/* Navigasi Utama */}
-          <nav className="space-y-1.5">
-            {navigation.map((item) => {
-              const isActive = pathname === item.href;
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                    isActive
-                      ? "bg-stone-900 text-white shadow-sm"
-                      : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  {item.name}
-                </Link>
-              );
-            })}
-          </nav>
         </div>
 
-        {/* Estetika / Aksen Bawah Sidebar */}
-        <div className="text-xs text-stone-400 italic px-2">
-          Semoga harimu penuh kreativitas
+        {/* Menu Navigasi */}
+        <nav className="flex-1 px-4 space-y-1">
+          <Link href="/" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
+            <Home size={18} /> Dashboard
+          </Link>
+          <Link href="/klien" className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-white bg-[#2a2a2a] rounded-lg shadow-sm">
+            <ImageIcon size={18} /> Kelola Klien
+          </Link>
+          <Link href="/pesanan" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
+            <FileText size={18} /> Riwayat Pesanan
+          </Link>
+          <Link href="/pengaturan" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
+            <Settings size={18} /> Pengaturan
+          </Link>
+        </nav>
+
+        {/* Quote / Footer Sidebar */}
+        <div className="p-8 pt-0 relative overflow-hidden h-48 mt-auto">
+            <div className="relative z-10">
+               <p className="font-serif italic text-gray-500 text-lg leading-snug">Setiap momen<br/>punya ceritanya.</p>
+               <div className="w-6 h-px bg-gray-400 mt-4"></div>
+            </div>
+            <div className="absolute -bottom-10 -left-10 w-40 h-40 opacity-20 bg-cover bg-center" style={{backgroundImage: "url('https://images.unsplash.com/photo-1596489377759-99e2a77a445d?auto=format&fit=crop&q=80&w=200&ixlib=rb-4.0.3')"}}></div>
         </div>
       </aside>
 
       {/* Konten Utama */}
-      <main className="flex-1 flex flex-col">
-        {/* Topbar / Header */}
-        <header className="h-16 bg-white/80 backdrop-blur-md border-b border-stone-200/80 flex items-center justify-end px-8 gap-4 sticky top-0 z-10">
-          <button className="p-2 text-stone-500 hover:text-stone-800 hover:bg-stone-100 rounded-full transition">
-            <Bell className="w-5 h-5" />
-          </button>
-          <div className="flex items-center gap-3 pl-2 border-l border-stone-200">
-            <div className="w-8 h-8 rounded-full bg-stone-300 overflow-hidden flex items-center justify-center font-bold text-stone-700 text-xs">
-              AD
+      <main className="flex-1 ml-[260px] flex flex-col">
+        
+        {/* 2. Topbar */}
+        <header className="bg-[#f7f7f7] border-b border-gray-200 h-16 flex items-center justify-end px-8 sticky top-0 z-10">
+          <div className="flex items-center gap-6">
+            <button className="text-gray-500 hover:text-gray-900 relative">
+              <Bell size={20} />
+              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+            </button>
+            <div className="flex items-center gap-3 cursor-pointer">
+              <img src="https://i.pravatar.cc/150?img=33" alt="Admin" className="w-8 h-8 rounded-full" />
+              <span className="text-sm font-medium text-gray-700">Admin</span>
+              <ChevronDown size={14} className="text-gray-500" />
             </div>
-            <span className="text-sm font-semibold text-stone-800">Admin</span>
           </div>
         </header>
 
-        {/* Main Content Area */}
-        <div className="p-8 space-y-8 max-w-[1600px] mx-auto w-full">
-          {/* Page Header & Action */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-2xl font-semibold text-stone-900">
-                Kelola Klien
-              </h2>
-              <p className="text-sm text-stone-500 mt-1">
-                Atur daftar klien, batas pemilihan foto, dan kelola proyek fotografi kamu.
-              </p>
-            </div>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold rounded-xl shadow-sm transition w-fit"
-            >
-              <Plus className="w-4 h-4" />
-              Tambah Klien Baru
-            </button>
+        {/* 3. Area Form */}
+        <div className="p-8 max-w-7xl mx-auto w-full">
+          
+          {/* Header Konten */}
+          <div className="mb-8">
+            <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6 transition-colors">
+              <ArrowLeft size={16} /> Kembali ke Dashboard
+            </Link>
+            <h1 className="text-3xl font-serif text-gray-900 mb-2">Edit Klien</h1>
+            <p className="text-gray-500 text-sm">Atur informasi klien dan pengaturan galeri mereka.</p>
           </div>
 
-          {/* Filter, Search & Section Card */}
-          <div className="bg-white rounded-2xl p-6 border border-stone-200/80 shadow-sm space-y-6">
-            {/* Toolbar Filter & Search */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              {/* Search Bar */}
-              <div className="relative w-full sm:w-80">
-                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
-                <input
-                  type="text"
-                  placeholder="Cari nama, kategori, email..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-900/10 focus:border-stone-400 transition"
+          <div className="flex flex-col xl:flex-row gap-8">
+            
+            {/* KOLOM KIRI: Form Input */}
+            <div className="flex-1 space-y-6">
+              <form onSubmit={handleSave} className="space-y-6">
+                
+                {/* Bagian: Informasi Klien */}
+                <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+                  <h2 className="flex items-center gap-2 font-semibold text-gray-900 mb-6">
+                    <UserIcon size={18} className="text-gray-400" /> Informasi Klien
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm text-gray-700 mb-2">Nama Klien *</label>
+                      <input 
+                        type="text" 
+                        name="clientName"
+                        value={formData.clientName}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full p-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-200 focus:border-gray-500 outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-700 mb-2">Tanggal Acara</label>
+                      <div className="relative">
+                        <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input 
+                          type="date" 
+                          name="eventDate"
+                          value={formData.eventDate}
+                          onChange={handleInputChange}
+                          className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bagian: Pengaturan Galeri */}
+                <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+                  <h2 className="flex items-center gap-2 font-semibold text-gray-900 mb-6">
+                    <LinkIcon size={18} className="text-gray-400" /> Pengaturan Galeri
+                  </h2>
+                  
+                  <div className="mb-6">
+                    <label className="block text-sm text-gray-700 mb-2">Link Google Drive *</label>
+                    <div className="flex gap-2">
+                       <input 
+                         type="url" 
+                         name="gdriveUrl"
+                         value={formData.gdriveUrl}
+                         onChange={handleInputChange}
+                         required
+                         className="flex-1 p-2.5 border border-gray-300 rounded-lg text-sm text-gray-600 bg-gray-50 focus:bg-white outline-none"
+                       />
+                       <a 
+                         href={formData.gdriveUrl} 
+                         target="_blank" 
+                         rel="noopener noreferrer"
+                         className="p-2.5 border border-gray-300 rounded-lg text-gray-500 hover:bg-gray-50 flex items-center justify-center"
+                       >
+                         <ExternalLink size={18} />
+                       </a>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                     <div>
+                        <label className="block text-sm text-gray-700 mb-2">Maksimum Foto yang Bisa Dipilih</label>
+                        <input 
+                          type="number" 
+                          name="maxPhotos"
+                          value={formData.maxPhotos}
+                          onChange={handleInputChange}
+                          className="w-full p-2.5 border border-gray-300 rounded-lg text-sm outline-none"
+                        />
+                        <p className="text-[11px] text-gray-400 mt-1">Jumlah maksimal foto yang dapat dipilih oleh klien.</p>
+                     </div>
+                     <div>
+                        <label className="block text-sm text-gray-700 mb-2">Masa Berlaku Link</label>
+                        <div className="relative">
+                          <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                          <input 
+                            type="date" 
+                            name="expireDate"
+                            value={formData.expireDate}
+                            onChange={handleInputChange}
+                            className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 outline-none"
+                          />
+                        </div>
+                        <p className="text-[11px] text-gray-400 mt-1">Setelah tanggal ini, link tidak dapat diakses.</p>
+                     </div>
+                  </div>
+                </div>
+
+                {/* Bagian: Catatan */}
+                <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+                   <h2 className="flex items-center gap-2 font-semibold text-gray-900 mb-4">
+                    <FileText size={18} className="text-gray-400" /> Catatan <span className="text-gray-400 font-normal text-sm">(Opsional)</span>
+                  </h2>
+                  <textarea 
+                    name="notes"
+                    value={formData.notes}
+                    onChange={handleInputChange}
+                    placeholder="Contoh: Mohon pilih foto terbaik dan hindari foto blur. Untuk foto grup, pilih yang paling jelas."
+                    rows={4}
+                    maxLength={500}
+                    className="w-full p-3 border border-gray-300 rounded-lg text-sm text-gray-700 resize-none outline-none"
+                  ></textarea>
+                  <div className="text-right text-[11px] text-gray-400 mt-1">
+                    {formData.notes.length}/500
+                  </div>
+                </div>
+
+                {/* Tombol Aksi Bawah */}
+                <div className="flex items-center justify-between pt-4">
+                   <button type="button" className="flex items-center gap-2 px-4 py-2.5 text-red-500 bg-red-50 hover:bg-red-100 rounded-lg text-sm font-medium border border-red-100 transition-colors">
+                     <Trash2 size={16} /> Hapus Klien
+                   </button>
+                   <div className="flex gap-3">
+                     <Link href="/" className="px-6 py-2.5 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors">
+                       Batal
+                     </Link>
+                     <button 
+                       type="submit" 
+                       disabled={loading}
+                       className="px-6 py-2.5 text-white bg-[#2a2a2a] hover:bg-black rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                     >
+                       {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
+                     </button>
+                   </div>
+                </div>
+
+              </form>
+            </div>
+
+            {/* KOLOM KANAN: Ringkasan & Preview */}
+            <aside className="w-full xl:w-[400px] shrink-0 space-y-6">
+              
+              {/* Banner / Cover Klien */}
+              <div className="relative h-48 rounded-2xl overflow-hidden shadow-sm">
+                <img 
+                  src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=1000&auto=format&fit=crop" 
+                  alt="Cover" 
+                  className="w-full h-full object-cover"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
+                   <div>
+                      <h3 className="text-white font-medium text-lg">{formData.clientName || 'Nama Klien'}</h3>
+                      <p className="text-gray-300 text-xs mt-1">{formData.eventDate || 'Tanggal Belum Diatur'}</p>
+                   </div>
+                   <span className="bg-emerald-500/90 backdrop-blur text-white text-xs px-3 py-1 rounded-full font-medium">Aktif</span>
+                </div>
               </div>
 
-              {/* Status Filter */}
-              <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
-                <Filter className="w-3.5 h-3.5 text-stone-400 shrink-0 mr-1" />
-                {["ALL", "AKTIF", "MENUNGGU", "SELESAI"].map((st) => (
-                  <button
-                    key={st}
-                    onClick={() => setStatusFilter(st)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                      statusFilter === st
-                        ? "bg-stone-900 text-white"
-                        : "bg-stone-100 text-stone-600 hover:bg-stone-200"
-                    }`}
-                  >
-                    {st === "ALL" ? "Semua Status" : st}
-                  </button>
-                ))}
+              {/* Box Ringkasan */}
+              <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+                 <h3 className="font-semibold text-gray-900 mb-5">Ringkasan Pengaturan</h3>
+                 <div className="space-y-4">
+                    <div className="flex text-sm">
+                       <div className="w-[45%] text-gray-500 flex items-center gap-2"><UserIcon size={14}/> Nama Klien</div>
+                       <div className="flex-1 font-medium text-gray-900 truncate">{formData.clientName || '-'}</div>
+                    </div>
+                    <div className="flex text-sm">
+                       <div className="w-[45%] text-gray-500 flex items-center gap-2"><Calendar size={14}/> Tanggal Acara</div>
+                       <div className="flex-1 font-medium text-gray-900">{formData.eventDate || '-'}</div>
+                    </div>
+                    <div className="flex text-sm">
+                       <div className="w-[45%] text-gray-500 flex items-center gap-2"><LinkIcon size={14}/> Link Google Drive</div>
+                       <div className="flex-1 font-medium text-gray-900 truncate text-blue-600">
+                         <a href={formData.gdriveUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                           {formData.gdriveUrl || '-'}
+                         </a>
+                       </div>
+                    </div>
+                    <div className="flex text-sm">
+                       <div className="w-[45%] text-gray-500 flex items-center gap-2"><ImageIcon size={14}/> Maks. Foto Dipilih</div>
+                       <div className="flex-1 font-medium text-gray-900">{formData.maxPhotos} foto</div>
+                    </div>
+                    <div className="flex text-sm">
+                       <div className="w-[45%] text-gray-500 flex items-center gap-2"><Clock size={14}/> Masa Berlaku Link</div>
+                       <div className="flex-1 font-medium text-gray-900">{formData.expireDate || '-'}</div>
+                    </div>
+                 </div>
               </div>
-            </div>
 
-            {/* Tabel Klien */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-stone-100 text-stone-400 uppercase tracking-wider font-semibold">
-                    <th className="pb-3 pr-2">No</th>
-                    <th className="pb-3 px-2">Nama Klien</th>
-                    <th className="pb-3 px-2">Kontak</th>
-                    <th className="pb-3 px-2">Tanggal Acara</th>
-                    <th className="pb-3 px-2">Maks. Foto</th>
-                    <th className="pb-3 px-2">Status</th>
-                    <th className="pb-3 pl-2 text-right">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-stone-100 font-medium text-stone-700">
-                  {filteredKlien.length > 0 ? (
-                    filteredKlien.map((klien, idx) => (
-                      <tr key={klien.id} className="hover:bg-stone-50/50 transition">
-                        <td className="py-3.5 pr-2 text-stone-400">{idx + 1}</td>
-                        <td className="py-3.5 px-2 font-semibold text-stone-900">
-                          {klien.nama}
-                          <span className="block text-[10px] font-normal text-stone-400">
-                            {klien.kategori}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-2">
-                          <span className="block text-stone-700">{klien.email}</span>
-                          <span className="text-[10px] text-stone-400">{klien.noHp}</span>
-                        </td>
-                        <td className="py-3.5 px-2">{klien.tanggalAcara}</td>
-                        <td className="py-3.5 px-2">{klien.jumlahFotoMaks} foto</td>
-                        <td className="py-3.5 px-2">
-                          {klien.status === "AKTIF" && (
-                            <span className="px-2.5 py-1 rounded-full text-[10px] bg-emerald-50 text-emerald-600 font-semibold">
-                              AKTIF
-                            </span>
-                          )}
-                          {klien.status === "MENUNGGU" && (
-                            <span className="px-2.5 py-1 rounded-full text-[10px] bg-amber-50 text-amber-600 font-semibold">
-                              MENUNGGU
-                            </span>
-                          )}
-                          {klien.status === "SELESAI" && (
-                            <span className="px-2.5 py-1 rounded-full text-[10px] bg-stone-100 text-stone-600 font-semibold">
-                              SELESAI
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-3.5 pl-2 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <Link
-                              href={`/klien/${klien.id}`}
-                              className="p-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg transition"
-                              title="Lihat Detail Galeri"
-                            >
-                              <Eye className="w-3.5 h-3.5" />
-                            </Link>
-                            <button
-                              onClick={() => handleHapusKlien(klien.id)}
-                              className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition"
-                              title="Hapus Klien"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={7} className="py-8 text-center text-stone-400">
-                        Tidak ada data klien yang ditemukan.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+              {/* Box Preview Galeri */}
+              <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+                 <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-semibold text-gray-900">Preview Galeri</h3>
+                    <a 
+                      href={`/gallery/${currentSlug}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-gray-400 hover:text-gray-700 transition-colors p-1"
+                      title="Buka preview galeri klien"
+                    >
+                      <ExternalLink size={16} />
+                    </a>
+                 </div>
+                 
+                 <div className="grid grid-cols-4 gap-2 mb-4">
+                    <div className="aspect-square bg-gray-200 rounded-lg overflow-hidden">
+                       <img src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=150&q=80" className="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity cursor-pointer" alt="Preview"/>
+                    </div>
+                    <div className="aspect-square bg-gray-200 rounded-lg overflow-hidden">
+                       <img src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=150&q=80" className="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity cursor-pointer" alt="Preview"/>
+                    </div>
+                    <div className="aspect-square bg-gray-200 rounded-lg overflow-hidden">
+                       <img src="https://images.unsplash.com/photo-1627556704302-624286467c65?auto=format&fit=crop&w=150&q=80" className="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity cursor-pointer" alt="Preview"/>
+                    </div>
+                    <div className="aspect-square bg-gray-200 rounded-lg overflow-hidden relative">
+                       <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=150&q=80" className="w-full h-full object-cover opacity-50" alt="Preview"/>
+                       <div className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white drop-shadow-md">+15</div>
+                    </div>
+                 </div>
+
+                 <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 flex items-start gap-3">
+                    <div className="mt-0.5"><LinkIcon size={16} className="text-gray-400" /></div>
+                    <div>
+                       <p className="text-sm font-medium text-gray-800">Link galeri aktif</p>
+                       <p className="text-xs text-gray-500 mt-0.5">Klien dapat mulai memilih foto melalui link ini.</p>
+                    </div>
+                 </div>
+              </div>
+
+            </aside>
           </div>
         </div>
       </main>
-
-      {/* Modal Tambah Klien */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-stone-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 border border-stone-200/80 shadow-lg max-w-md w-full space-y-5">
-            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-              <h3 className="font-semibold text-stone-900 text-base">
-                Tambah Klien Baru
-              </h3>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="p-1 text-stone-400 hover:text-stone-700 rounded-lg transition"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleTambahKlien} className="space-y-4 text-xs">
-              <div>
-                <label className="block font-medium text-stone-700 mb-1">
-                  Nama Klien / Pasangan
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="misal: Ahmad & Diana"
-                  value={formBaru.nama}
-                  onChange={(e) => setFormBaru({ ...formBaru, nama: e.target.value })}
-                  className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-900/10 focus:border-stone-400 transition"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-medium text-stone-700 mb-1">
-                    Kategori Acara
-                  </label>
-                  <select
-                    value={formBaru.kategori}
-                    onChange={(e) => setFormBaru({ ...formBaru, kategori: e.target.value })}
-                    className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-900/10 focus:border-stone-400 transition"
-                  >
-                    <option value="Wedding">Wedding</option>
-                    <option value="Wisuda">Wisuda</option>
-                    <option value="Family Session">Family Session</option>
-                    <option value="Corporate Event">Corporate Event</option>
-                    <option value="Lainnya">Lainnya</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-medium text-stone-700 mb-1">
-                    Jumlah Max Foto
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    required
-                    value={formBaru.jumlahFotoMaks}
-                    onChange={(e) => setFormBaru({ ...formBaru, jumlahFotoMaks: Number(e.target.value) })}
-                    className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-900/10 focus:border-stone-400 transition"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-medium text-stone-700 mb-1">
-                  Tanggal Acara
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="misal: 15 September 2025"
-                  value={formBaru.tanggalAcara}
-                  onChange={(e) => setFormBaru({ ...formBaru, tanggalAcara: e.target.value })}
-                  className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-900/10 focus:border-stone-400 transition"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-medium text-stone-700 mb-1">
-                    Email Klien
-                  </label>
-                  <input
-                    type="email"
-                    placeholder="email@klien.com"
-                    value={formBaru.email}
-                    onChange={(e) => setFormBaru({ ...formBaru, email: e.target.value })}
-                    className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-900/10 focus:border-stone-400 transition"
-                  />
-                </div>
-                <div>
-                  <label className="block font-medium text-stone-700 mb-1">
-                    Nomor WhatsApp
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="081234567..."
-                    value={formBaru.noHp}
-                    onChange={(e) => setFormBaru({ ...formBaru, noHp: e.target.value })}
-                    className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-900/10 focus:border-stone-400 transition"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-3 flex items-center justify-end gap-2 border-t border-stone-100">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl font-medium transition"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-xl font-semibold transition"
-                >
-                  Simpan Klien
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
