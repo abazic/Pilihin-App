@@ -54,7 +54,7 @@ export default function GalleryClient() {
         const restored = gdrivePhotos.filter((p) =>
           data.selected_photos.includes(p.name)
         );
-        setSelectedPhotos(restored.map((p) => ({ name: p.name, url: p.url })));
+        setSelectedPhotos(restored.map((p) => ({  id: p.id, name: p.name, url: p.url })));
       }
 
       setLoading(false);
@@ -105,7 +105,7 @@ export default function GalleryClient() {
         alert(`Batas maksimal pemilihan foto adalah ${gallery.max_photos} foto.`);
         return;
       }
-      setSelectedPhotos([...selectedPhotos, { name: photoData.name, url: photoData.url }]);
+      setSelectedPhotos([...selectedPhotos, {  id: photoData.id, name: photoData.name, url: photoData.url }]);
     }
   };
 
