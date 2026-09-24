@@ -241,7 +241,7 @@ export default function HomePage() {
       }
     } catch (err: any) {
       alert('Terjadi kesalahan saat mengekstrak link atau menyimpan data.');
-    } font-sans finally {
+    } finally {
       setLoading(false);
     }
   };
