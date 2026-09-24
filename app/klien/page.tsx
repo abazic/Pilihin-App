@@ -17,7 +17,9 @@ import {
   ExternalLink, 
   Trash2,
   Image as ImageIcon,
-  Clock
+  Clock,
+  Copy,
+  Check
 } from 'lucide-react';
 
 interface FormDataState {
@@ -30,15 +32,18 @@ interface FormDataState {
 }
 
 export default function AdminPage() {
+  // 1. Inisialisasi Form Kosong
   const [formData, setFormData] = useState<FormDataState>({
-    clientName: 'Ahmad Rizki & Keluarga',
-    eventDate: '2025-08-12',
-    gdriveUrl: 'https://drive.google.com/drive/folders/1aBcD...xyz',
-    maxPhotos: 20,
-    expireDate: '2025-08-31',
+    clientName: '',
+    eventDate: '',
+    gdriveUrl: '',
+    maxPhotos: '',
+    expireDate: '',
     notes: ''
   });
   
+  const [createdSlug, setCreatedSlug] = useState<string>('');
+  const [copied, setCopied] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -52,7 +57,7 @@ export default function AdminPage() {
       const date = new Date(dateStr);
       return date.toLocaleDateString('id-ID', {
         day: 'numeric',
-        month: 'Long',
+        month: 'long',
         year: 'numeric'
       });
     } catch {
@@ -60,33 +65,69 @@ export default function AdminPage() {
     }
   };
 
+  // 2. Fungsi Simpan Klien
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.clientName || !formData.gdriveUrl) {
+      alert('Mohon isi Nama Klien dan Link Google Drive!');
+      return;
+    }
+
     setLoading(true);
 
-    const folderId = extractFolderId(formData.gdriveUrl);
-    const slug = `${formData.clientName.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Math.floor(1000 + Math.random() * 9000)}`;
+    try {
+      const folderId = extractFolderId(formData.gdriveUrl);
+      const generatedSlug = `${formData.clientName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
 
-    const { error } = await supabase.from('galleries').insert([
-      {
-        client_name: formData.clientName,
-        folder_id: folderId,
-        slug: slug,
-        // Kolom opsional Supabase jika sudah dikonfigurasi:
-        // event_date: formData.eventDate,
-        // max_photos: formData.maxPhotos,
-        // expire_date: formData.expireDate,
-        // notes: formData.notes
-      },
-    ]);
+      const { error } = await supabase.from('galleries').insert([
+        {
+          client_name: formData.clientName,
+          folder_id: folderId,
+          slug: generatedSlug,
+          // Kolom opsional Supabase jika sudah dikonfigurasi:
+          // event_date: formData.eventDate || null,
+          // max_photos: formData.maxPhotos ? Number(formData.maxPhotos) : null,
+          // expire_date: formData.expireDate || null,
+          // notes: formData.notes || null,
+        },
+      ]);
 
-    setLoading(false);
-
-    if (error) {
-      alert('Gagal menyimpan perubahan: ' + error.message);
-    } else {
-      alert('Perubahan berhasil disimpan!');
+      if (error) {
+        alert('Gagal menyimpan perubahan: ' + error.message);
+      } else {
+        setCreatedSlug(generatedSlug);
+        alert('Klien berhasil disimpan! Link galeri siap dikirim ke klien.');
+      }
+    } catch (err: any) {
+      alert('Terjadi kesalahan saat mengekstrak link atau menyimpan data.');
+    } finally {
+      setLoading(false);
     }
+  };
+
+  // 3. Fungsi Hapus / Kosongkan Klien
+  const handleDelete = () => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus / mengosongkan data klien ini?')) {
+      setFormData({
+        clientName: '',
+        eventDate: '',
+        gdriveUrl: '',
+        maxPhotos: '',
+        expireDate: '',
+        notes: ''
+      });
+      setCreatedSlug('');
+      alert('Data klien berhasil dikosongkan.');
+    }
+  };
+
+  // Salin Link Galeri ke Clipboard
+  const handleCopyLink = () => {
+    if (!createdSlug) return;
+    const fullUrl = `${window.location.origin}/gallery/${createdSlug}`;
+    navigator.clipboard.writeText(fullUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -104,10 +145,10 @@ export default function AdminPage() {
 
         {/* Menu Navigasi */}
         <nav className="flex-1 px-4 space-y-1">
-          <Link href="#" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
+          <Link href="/" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
             <Home size={18} /> Dashboard
           </Link>
-          <Link href="#" className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-white bg-[#2a2a2a] rounded-lg shadow-sm">
+          <Link href="/klien" className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-white bg-[#2a2a2a] rounded-lg shadow-sm">
             <ImageIcon size={18} /> Kelola Klien
           </Link>
           <Link href="#" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
@@ -152,9 +193,9 @@ export default function AdminPage() {
           
           {/* Header Konten */}
           <div className="mb-8">
-            <button type="button" className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6 transition-colors">
+            <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6 transition-colors">
               <ArrowLeft size={16} /> Kembali ke Daftar Klien
-            </button>
+            </Link>
             <h1 className="text-3xl font-serif text-gray-900 mb-2">Edit Klien</h1>
             <p className="text-gray-500 text-sm">Atur informasi klien dan pengaturan galeri mereka.</p>
           </div>
@@ -178,6 +219,7 @@ export default function AdminPage() {
                         name="clientName"
                         value={formData.clientName}
                         onChange={handleInputChange}
+                        placeholder="Masukkan nama klien"
                         required
                         className="w-full p-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-200 focus:border-gray-500 outline-none"
                       />
@@ -212,6 +254,7 @@ export default function AdminPage() {
                          name="gdriveUrl"
                          value={formData.gdriveUrl}
                          onChange={handleInputChange}
+                         placeholder="https://drive.google.com/drive/folders/..."
                          required
                          className="flex-1 p-2.5 border border-gray-300 rounded-lg text-sm text-gray-600 bg-gray-50 focus:bg-white outline-none"
                        />
@@ -219,6 +262,7 @@ export default function AdminPage() {
                          type="button" 
                          onClick={() => formData.gdriveUrl && window.open(formData.gdriveUrl, '_blank')}
                          className="p-2.5 border border-gray-300 rounded-lg text-gray-500 hover:bg-gray-50"
+                         title="Buka Drive"
                        >
                          <ExternalLink size={18} />
                        </button>
@@ -233,6 +277,7 @@ export default function AdminPage() {
                           name="maxPhotos"
                           value={formData.maxPhotos}
                           onChange={handleInputChange}
+                          placeholder="20"
                           className="w-full p-2.5 border border-gray-300 rounded-lg text-sm outline-none"
                         />
                         <p className="text-[11px] text-gray-400 mt-1">Jumlah maksimal foto yang dapat dipilih oleh klien.</p>
@@ -273,11 +318,19 @@ export default function AdminPage() {
 
                 {/* Tombol Aksi Bawah */}
                 <div className="flex items-center justify-between pt-4">
-                   <button type="button" className="flex items-center gap-2 px-4 py-2.5 text-red-500 bg-red-50 hover:bg-red-100 rounded-lg text-sm font-medium border border-red-100 transition-colors">
+                   <button 
+                     type="button" 
+                     onClick={handleDelete}
+                     className="flex items-center gap-2 px-4 py-2.5 text-red-500 bg-red-50 hover:bg-red-100 rounded-lg text-sm font-medium border border-red-100 transition-colors"
+                   >
                      <Trash2 size={16} /> Hapus Klien
                    </button>
                    <div className="flex gap-3">
-                     <button type="button" className="px-6 py-2.5 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors">
+                     <button 
+                       type="button" 
+                       onClick={handleDelete}
+                       className="px-6 py-2.5 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors"
+                     >
                        Batal
                      </button>
                      <button 
@@ -333,7 +386,7 @@ export default function AdminPage() {
                     </div>
                     <div className="flex text-sm">
                        <div className="w-[45%] text-gray-500 flex items-center gap-2"><ImageIcon size={14}/> Maks. Foto Dipilih</div>
-                       <div className="flex-1 font-medium text-gray-900">{formData.maxPhotos} foto</div>
+                       <div className="flex-1 font-medium text-gray-900">{formData.maxPhotos ? `${formData.maxPhotos} foto` : '-'}</div>
                     </div>
                     <div className="flex text-sm">
                        <div className="w-[45%] text-gray-500 flex items-center gap-2"><Clock size={14}/> Masa Berlaku Link</div>
@@ -346,7 +399,13 @@ export default function AdminPage() {
               <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
                  <div className="flex justify-between items-center mb-4">
                     <h3 className="font-semibold text-gray-900">Preview Galeri</h3>
-                    <ExternalLink size={16} className="text-gray-400 cursor-pointer hover:text-gray-700" />
+                    {createdSlug ? (
+                      <Link href={`/gallery/${createdSlug}`} target="_blank" className="text-gray-400 hover:text-gray-700">
+                        <ExternalLink size={16} />
+                      </Link>
+                    ) : (
+                      <ExternalLink size={16} className="text-gray-300" />
+                    )}
                  </div>
                  
                  <div className="grid grid-cols-4 gap-2 mb-4">
@@ -365,12 +424,31 @@ export default function AdminPage() {
                     </div>
                  </div>
 
-                 <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 flex items-start gap-3">
-                    <div className="mt-0.5"><LinkIcon size={16} className="text-gray-400" /></div>
-                    <div>
-                       <p className="text-sm font-medium text-gray-800">Link galeri aktif</p>
-                       <p className="text-xs text-gray-500 mt-0.5">Klien dapat mulai memilih foto melalui link ini.</p>
+                 {/* Link Galeri Aktif & Tombol Salin Link */}
+                 <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3 overflow-hidden">
+                       <div className="mt-0.5 shrink-0"><LinkIcon size={16} className="text-gray-400" /></div>
+                       <div className="overflow-hidden">
+                          <p className="text-sm font-medium text-gray-800">Link Galeri Klien</p>
+                          {createdSlug ? (
+                            <p className="text-xs text-blue-600 font-mono truncate mt-0.5">
+                              {typeof window !== 'undefined' ? `${window.location.origin}/gallery/${createdSlug}` : `/gallery/${createdSlug}`}
+                            </p>
+                          ) : (
+                            <p className="text-xs text-gray-500 mt-0.5">Simpan data klien untuk membuat link galeri aktif.</p>
+                          )}
+                       </div>
                     </div>
+                    {createdSlug && (
+                      <button
+                        type="button"
+                        onClick={handleCopyLink}
+                        className="shrink-0 px-2 py-1 text-xs text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-gray-100 flex items-center gap-1 transition-colors"
+                      >
+                        {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
+                        <span>{copied ? 'Tersalin' : 'Salin'}</span>
+                      </button>
+                    )}
                  </div>
               </div>
 
