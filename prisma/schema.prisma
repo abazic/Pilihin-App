@@ -1,0 +1,54 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Status {
+  AKTIF
+  NONAKTIF
+  SELESAI
+}
+
+model Client {
+  id           String      @id @default(cuid())
+  name         String
+  category     String      // e.g. "Wedding", "Wisuda", "Family Session"
+  eventDate    DateTime
+  maxSelect    Int         @default(20)
+  expireDate   DateTime?
+  driveUrl     String?
+  notes        String?
+  slug         String      @unique // Unique Token untuk Link Client (e.g. /gallery/ahmad-rizki-928)
+  password     String?     // Optional Password Akses Galeri
+  status       Status      @default(AKTIF)
+  photos       Photo[]
+  selections   Selection[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model Photo {
+  id         String      @id @default(cuid())
+  clientId   String
+  client     Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  filename   String      // e.g. "IMG_0001"
+  url        String      // URL image dari CDN / Vercel Blob / Drive
+  category   String      @default("Semua") // "Sendiri", "Bersama", "Detail"
+  selections Selection[]
+  createdAt  DateTime    @default(now())
+}
+
+model Selection {
+  id        String   @id @default(cuid())
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  photoId   String
+  photo     Photo    @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([clientId, photoId])
+}
