@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, ChangeEvent, FormEvent } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { extractFolderId } from '@/lib/gdrive';
@@ -20,8 +20,17 @@ import {
   Clock
 } from 'lucide-react';
 
-export default function AdminPage() {
-  const [formData, setFormData] = useState({
+interface FormDataState {
+  clientName: string;
+  eventDate: string;
+  gdriveUrl: string;
+  maxPhotos: number;
+  expireDate: string;
+  notes: string;
+}
+
+export default function KlienPage() {
+  const [formData, setFormData] = useState<FormDataState>({
     clientName: 'Ahmad Rizki & Keluarga',
     eventDate: '2025-08-12',
     gdriveUrl: 'https://drive.google.com/drive/folders/1aBcD...xyz',
@@ -32,42 +41,47 @@ export default function AdminPage() {
   
   const [loading, setLoading] = useState(false);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   // Buat slug dinamis dari nama klien
   const currentSlug = formData.clientName
-    ? `${formData.clientName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+    ? formData.clientName.toLowerCase().replace(/[^a-z0-9]+/g, '-')
     : 'klien';
 
-  const handleSave = async (e) => {
+  const handleSave = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    const folderId = extractFolderId(formData.gdriveUrl);
-    const slug = `${currentSlug}-${Math.floor(1000 + Math.random() * 9000)}`;
+    try {
+      const folderId = extractFolderId ? extractFolderId(formData.gdriveUrl) : formData.gdriveUrl;
+      const slug = `${currentSlug}-${Math.floor(1000 + Math.random() * 9000)}`;
 
-    const { error } = await supabase.from('galleries').insert([
-      {
-        client_name: formData.clientName,
-        folder_id: folderId,
-        slug: slug,
-        gdrive_url: formData.gdriveUrl,
-        event_date: formData.eventDate || null,
-        max_photos: Number(formData.maxPhotos),
-        expire_date: formData.expireDate || null,
-        notes: formData.notes
-      },
-    ]);
+      const { error } = await supabase.from('galleries').insert([
+        {
+          client_name: formData.clientName,
+          folder_id: folderId,
+          slug: slug,
+          gdrive_url: formData.gdriveUrl,
+          event_date: formData.eventDate || null,
+          max_photos: Number(formData.maxPhotos),
+          expire_date: formData.expireDate || null,
+          notes: formData.notes
+        },
+      ]);
 
-    setLoading(false);
-
-    if (error) {
-      alert('Gagal menyimpan perubahan: ' + error.message);
-    } else {
-      alert('Perubahan berhasil disimpan!');
+      if (error) {
+        alert('Gagal menyimpan perubahan: ' + error.message);
+      } else {
+        alert('Perubahan berhasil disimpan!');
+      }
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan';
+      alert('Error: ' + errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -133,8 +147,8 @@ export default function AdminPage() {
           
           {/* Header Konten */}
           <div className="mb-8">
-            <Link href="/klien" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6 transition-colors">
-              <ArrowLeft size={16} /> Kembali ke Daftar Klien
+            <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6 transition-colors">
+              <ArrowLeft size={16} /> Kembali ke Dashboard
             </Link>
             <h1 className="text-3xl font-serif text-gray-900 mb-2">Edit Klien</h1>
             <p className="text-gray-500 text-sm">Atur informasi klien dan pengaturan galeri mereka.</p>
@@ -261,7 +275,7 @@ export default function AdminPage() {
                      <Trash2 size={16} /> Hapus Klien
                    </button>
                    <div className="flex gap-3">
-                     <Link href="/klien" className="px-6 py-2.5 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors">
+                     <Link href="/" className="px-6 py-2.5 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors">
                        Batal
                      </Link>
                      <button 
@@ -333,7 +347,7 @@ export default function AdminPage() {
                  <div className="flex justify-between items-center mb-4">
                     <h3 className="font-semibold text-gray-900">Preview Galeri</h3>
                     <a 
-                      href={`/galeri/${currentSlug}`} 
+                      href={`/gallery/${currentSlug}`} 
                       target="_blank" 
                       rel="noopener noreferrer" 
                       className="text-gray-400 hover:text-gray-700 transition-colors p-1"
