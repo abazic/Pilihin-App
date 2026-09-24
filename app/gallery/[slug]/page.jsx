@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { getPhotosFromGDrive } from '@/lib/gdrive';
 import { Search, HelpCircle, User, Check, X, Camera, CheckCircle, Clock, Send } from 'lucide-react';
 
-export default function ClientGalleryPage() {
+export default function GalleryClient() {
   const { slug } = useParams();
   const [gallery, setGallery] = useState(null);
   const [photos, setPhotos] = useState([]);
@@ -15,8 +15,7 @@ export default function ClientGalleryPage() {
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Masukkan nomor WhatsApp Admin di sini (Gunakan kode negara 62)
-  const ADMIN_PHONE_NUMBER = '6281234567890'; 
+  const ADMIN_PHONE_NUMBER = '6281234567890';
 
   const filters = [
     { name: 'Semua', count: photos.length, active: true },
@@ -44,7 +43,6 @@ export default function ClientGalleryPage() {
       const gdrivePhotos = await getPhotosFromGDrive(data.folder_id);
       setPhotos(gdrivePhotos);
 
-      // Restore foto yang sebelumnya pernah dipilih dari database jika ada
       if (data.selected_photos && data.selected_photos.length > 0) {
         const restored = gdrivePhotos.filter((p) =>
           data.selected_photos.includes(p.name)
@@ -71,7 +69,6 @@ export default function ClientGalleryPage() {
     setSelectedPhotos(selectedPhotos.filter((p) => p.name !== photoName));
   };
 
-  // Fungsi Kirim Pilihan Langsung ke WhatsApp Admin
   const handleSendToWhatsApp = async () => {
     if (selectedPhotos.length === 0) {
       alert('Pilih minimal 1 foto terlebih dahulu!');
@@ -80,7 +77,6 @@ export default function ClientGalleryPage() {
 
     setSaving(true);
 
-    // 1. Simpan ke database Supabase terlebih dahulu
     const namesToSave = selectedPhotos.map((p) => p.name);
     const { error } = await supabase
       .from('galleries')
@@ -94,7 +90,6 @@ export default function ClientGalleryPage() {
       return;
     }
 
-    // 2. Buat teks WhatsApp
     const photoListText = selectedPhotos
       .map((p, index) => `${index + 1}. ${p.name}`)
       .join('\n');
@@ -110,7 +105,6 @@ ${photoListText}
 
 Mohon diproses untuk tahap selanjutnya. Terima kasih!`;
 
-    // 3. Buka WhatsApp
     const waUrl = `https://wa.me/${ADMIN_PHONE_NUMBER}?text=${encodeURIComponent(message)}`;
     window.open(waUrl, '_blank');
   };
@@ -129,7 +123,6 @@ Mohon diproses untuk tahap selanjutnya. Terima kasih!`;
 
   return (
     <div className="min-h-screen bg-[#f7f7f7] font-sans text-gray-800 pb-12">
-      {/* 1. Header Utama */}
       <header className="bg-[#f7f7f7] border-b border-gray-200 px-8 py-4 flex items-center justify-between sticky top-0 z-20">
         <div className="flex items-center gap-2">
           <span className="font-serif italic text-2xl font-bold tracking-tight">Nyala Karya</span>
@@ -168,7 +161,6 @@ Mohon diproses untuk tahap selanjutnya. Terima kasih!`;
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* BAGIAN KIRI: Grid Foto */}
           <div className="flex-1">
             <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
               <div className="flex gap-2">
@@ -239,11 +231,8 @@ Mohon diproses untuk tahap selanjutnya. Terima kasih!`;
             </div>
           </div>
 
-          {/* BAGIAN KANAN: Sidebar & Tombol Kirim WhatsApp */}
           <aside className="w-full lg:w-[320px] shrink-0">
             <div className="bg-transparent lg:bg-[#f7f7f7] lg:sticky lg:top-24 rounded-2xl flex flex-col gap-6">
-              
-              {/* Box Foto Terpilih */}
               <div className="bg-[#f0f0f0] p-5 rounded-2xl border border-gray-200">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold text-gray-900">Foto Terpilih</h3>
@@ -275,7 +264,6 @@ Mohon diproses untuk tahap selanjutnya. Terima kasih!`;
                 </div>
               </div>
 
-              {/* Info & Tombol WhatsApp */}
               <div className="p-2">
                 <h3 className="font-semibold text-gray-900 mb-4">Ringkasan</h3>
 
@@ -290,7 +278,6 @@ Mohon diproses untuk tahap selanjutnya. Terima kasih!`;
                   </div>
                 </div>
 
-                {/* Tombol Kirim WhatsApp */}
                 <button
                   onClick={handleSendToWhatsApp}
                   disabled={saving || selectedPhotos.length === 0}
@@ -300,7 +287,6 @@ Mohon diproses untuk tahap selanjutnya. Terima kasih!`;
                   {saving ? 'Menyimpan...' : 'Kirim Pilihan ke WhatsApp'}
                 </button>
               </div>
-
             </div>
           </aside>
         </div>
