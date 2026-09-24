@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { extractFolderId } from '@/lib/gdrive';
@@ -19,10 +19,10 @@ import {
   Check,
   Plus,
   Phone,
-  X,
   MessageSquare,
   CheckCircle2,
-  Edit2
+  Edit2,
+  ListFilter
 } from 'lucide-react';
 
 interface FormDataState {
@@ -42,6 +42,18 @@ interface NotificationItem {
   read: boolean;
 }
 
+interface ClientItem {
+  id: string | number;
+  client_name: string;
+  folder_id: string;
+  slug: string;
+  max_photos: number | null;
+  event_date: string | null;
+  expire_date: string | null;
+  notes: string | null;
+  created_at?: string;
+}
+
 export default function HomePage() {
   // 1. State Form Input Klien
   const [formData, setFormData] = useState<FormDataState>({
@@ -53,9 +65,14 @@ export default function HomePage() {
     notes: ''
   });
   
+  const [editingId, setEditingId] = useState<string | number | null>(null);
   const [createdSlug, setCreatedSlug] = useState<string>('');
-  const [copied, setCopied] = useState<boolean>(false);
+  const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+
+  // State Daftar Ringkasan Klien
+  const [clientsList, setClientsList] = useState<ClientItem[]>([]);
+  const [fetchingClients, setFetchingClients] = useState<boolean>(false);
 
   // 2. State Profil Admin & WhatsApp
   const [adminInfo, setAdminInfo] = useState({
@@ -73,12 +90,35 @@ export default function HomePage() {
     { id: 3, title: 'Klien Baru Ditambahkan', desc: 'Link galeri Budi & Siska telah aktif.', time: '1 hari lalu', read: true },
   ]);
 
+  // Fetch daftar klien dari Supabase
+  const fetchClients = async () => {
+    setFetchingClients(true);
+    try {
+      const { data, error } = await supabase
+        .from('galleries')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        setClientsList(data);
+      }
+    } catch (err) {
+      console.error('Gagal mengambil daftar klien:', err);
+    } finally {
+      setFetchingClients(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchClients();
+  }, []);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const formatDateString = (dateStr: string) => {
+  const formatDateString = (dateStr: string | null) => {
     if (!dateStr) return '-';
     try {
       const date = new Date(dateStr);
@@ -92,7 +132,7 @@ export default function HomePage() {
     }
   };
 
-  // Reset / Tambah Klien Baru
+  // Reset Form Input
   const handleResetForm = () => {
     setFormData({
       clientName: '',
@@ -103,9 +143,45 @@ export default function HomePage() {
       notes: ''
     });
     setCreatedSlug('');
+    setEditingId(null);
   };
 
-  // 4. Simpan / Tambah Data Klien ke Supabase
+  // Select Klien untuk Diedit
+  const handleEditClient = (client: ClientItem) => {
+    setEditingId(client.id);
+    setFormData({
+      clientName: client.client_name || '',
+      eventDate: client.event_date || '',
+      gdriveUrl: client.folder_id ? `https://drive.google.com/drive/folders/${client.folder_id}` : '',
+      maxPhotos: client.max_photos || '',
+      expireDate: client.expire_date || '',
+      notes: client.notes || ''
+    });
+    setCreatedSlug(client.slug);
+
+    // Scroll mulus ke form atas
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Hapus Data Klien dari Supabase
+  const handleDeleteClientFromList = async (id: string | number) => {
+    if (!window.confirm('Apakah Anda yakin ingin menghapus data klien ini?')) return;
+
+    try {
+      const { error } = await supabase.from('galleries').delete().eq('id', id);
+      if (error) {
+        alert('Gagal menghapus klien: ' + error.message);
+      } else {
+        alert('Klien berhasil dihapus.');
+        if (editingId === id) handleResetForm();
+        fetchClients();
+      }
+    } catch (err) {
+      alert('Terjadi kesalahan saat menghapus data.');
+    }
+  };
+
+  // 4. Simpan / Perbarui Data Klien ke Supabase
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.clientName || !formData.gdriveUrl) {
@@ -117,38 +193,53 @@ export default function HomePage() {
 
     try {
       const folderId = extractFolderId(formData.gdriveUrl);
-      const generatedSlug = `${formData.clientName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
+      const generatedSlug = createdSlug || `${formData.clientName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
 
-      const { error } = await supabase.from('galleries').insert([
-        {
-          client_name: formData.clientName,
-          folder_id: folderId,
-          slug: generatedSlug,
-          max_photos: formData.maxPhotos ? Number(formData.maxPhotos) : null,
-          event_date: formData.eventDate || null,
-          expire_date: formData.expireDate || null,
-          notes: formData.notes || null
-        },
-      ]);
+      const payload = {
+        client_name: formData.clientName,
+        folder_id: folderId,
+        slug: generatedSlug,
+        max_photos: formData.maxPhotos ? Number(formData.maxPhotos) : null,
+        event_date: formData.eventDate || null,
+        expire_date: formData.expireDate || null,
+        notes: formData.notes || null
+      };
 
-      if (error) {
-        alert('Gagal menyimpan data: ' + error.message);
+      if (editingId) {
+        // Mode Edit / Update
+        const { error } = await supabase.from('galleries').update(payload).eq('id', editingId);
+
+        if (error) {
+          alert('Gagal memperbarui data: ' + error.message);
+        } else {
+          alert('Data klien berhasil diperbarui!');
+          handleResetForm();
+          fetchClients();
+        }
       } else {
-        setCreatedSlug(generatedSlug);
-        
-        // Tambahkan ke notifikasi lokal
-        setNotifications(prev => [
-          {
-            id: Date.now(),
-            title: 'Klien Baru Berhasil Dibuat',
-            desc: `Galeri untuk "${formData.clientName}" siap digunakan.`,
-            time: 'Baru saja',
-            read: false
-          },
-          ...prev
-        ]);
+        // Mode Tambah Baru
+        const { error } = await supabase.from('galleries').insert([payload]);
 
-        alert('Data klien berhasil disimpan! Link galeri telah dibuat.');
+        if (error) {
+          alert('Gagal menyimpan data: ' + error.message);
+        } else {
+          setCreatedSlug(generatedSlug);
+          
+          setNotifications(prev => [
+            {
+              id: Date.now(),
+              title: 'Klien Baru Berhasil Dibuat',
+              desc: `Galeri untuk "${formData.clientName}" siap digunakan.`,
+              time: 'Baru saja',
+              read: false
+            },
+            ...prev
+          ]);
+
+          alert('Data klien berhasil disimpan!');
+          handleResetForm();
+          fetchClients();
+        }
       }
     } catch (err: any) {
       alert('Terjadi kesalahan saat mengekstrak link atau menyimpan data.');
@@ -157,21 +248,13 @@ export default function HomePage() {
     }
   };
 
-  // Hapus / Reset Form
-  const handleDelete = () => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus / mengosongkan data form ini?')) {
-      handleResetForm();
-      alert('Form berhasil dikosongkan.');
-    }
-  };
-
   // Salin Link Galeri
-  const handleCopyLink = () => {
-    if (!createdSlug) return;
-    const fullUrl = `${window.location.origin}/gallery/${createdSlug}`;
+  const handleCopyLink = (slug: string) => {
+    if (!slug) return;
+    const fullUrl = `${window.location.origin}/gallery/${slug}`;
     navigator.clipboard.writeText(fullUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopiedSlug(slug);
+    setTimeout(() => setCopiedSlug(null), 2000);
   };
 
   // Tandai Semua Notifikasi Dibaca
@@ -192,14 +275,6 @@ export default function HomePage() {
             <span className="font-serif italic text-2xl font-bold tracking-tight text-gray-900">Nyala Karya</span>
             <span className="text-[9px] uppercase tracking-widest text-gray-400 font-semibold">Photo & Video</span>
           </div>
-
-          {/* Tombol Tambah Klien Baru di Header */}
-          <button
-            onClick={handleResetForm}
-            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors"
-          >
-            <Plus size={14} /> Tambah Klien Baru
-          </button>
         </div>
 
         {/* Notifikasi & Profil Admin */}
@@ -295,7 +370,6 @@ export default function HomePage() {
                   </button>
                 </div>
 
-                {/* Form Edit Admin / Mode Tampil */}
                 {isEditingAdmin ? (
                   <div className="space-y-3">
                     <div>
@@ -353,27 +427,29 @@ export default function HomePage() {
       </header>
 
       {/* Konten Utama */}
-      <main className="flex-1 p-6 sm:p-10 max-w-7xl mx-auto w-full">
+      <main className="flex-1 p-6 sm:p-10 max-w-7xl mx-auto w-full space-y-10">
         
-        {/* Judul Halaman & Tombol Tambah */}
-        <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Judul Halaman & Tombol Form Reset */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-serif text-gray-900 mb-1">
-              {createdSlug ? 'Edit / Kelola Klien' : 'Tambah Klien Baru'}
+              {editingId ? 'Edit Data Klien' : 'Form Data Klien'}
             </h1>
             <p className="text-gray-500 text-sm">
-              {createdSlug 
-                ? 'Perbarui detail klien dan salin link galeri yang siap dibagikan.' 
+              {editingId 
+                ? 'Perbarui data klien dan klik simpan untuk memperbarui database.' 
                 : 'Isi formulir di bawah ini untuk membuatkan link galeri pemilihan foto klien.'}
             </p>
           </div>
           
-          <button
-            onClick={handleResetForm}
-            className="flex items-center justify-center gap-2 px-4 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-xl shadow-sm transition-all self-start sm:self-auto"
-          >
-            <Plus size={15} /> Buat Klien Baru
-          </button>
+          {editingId && (
+            <button
+              onClick={handleResetForm}
+              className="flex items-center justify-center gap-2 px-4 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-xl shadow-sm transition-all self-start sm:self-auto"
+            >
+              <Plus size={15} /> Buat Klien Baru
+            </button>
+          )}
         </div>
 
         <div className="flex flex-col xl:flex-row gap-8">
@@ -496,7 +572,7 @@ export default function HomePage() {
               <div className="flex items-center justify-between pt-2">
                  <button 
                    type="button" 
-                   onClick={handleDelete}
+                   onClick={handleResetForm}
                    className="flex items-center gap-2 px-4 py-2.5 text-red-500 bg-red-50 hover:bg-red-100 rounded-xl text-sm font-medium border border-red-100 transition-colors"
                  >
                    <Trash2 size={16} /> Reset Form
@@ -510,13 +586,13 @@ export default function HomePage() {
                      Batal
                    </button>
                    
-                   {/* Tombol Simpan / Tambah Klien */}
+                   {/* Tombol Simpan Klien Baru */}
                    <button 
                      type="submit" 
                      disabled={loading}
                      className="flex items-center gap-2 px-6 py-2.5 text-white bg-[#2a2a2a] hover:bg-black rounded-xl text-sm font-medium transition-colors disabled:opacity-50 shadow-sm"
                    >
-                     {loading ? 'Menyimpan...' : createdSlug ? 'Perbarui Data Klien' : 'Simpan & Buat Galeri'}
+                     {loading ? 'Menyimpan...' : editingId ? 'Perbarui Data Klien' : 'Simpan Klien Baru'}
                    </button>
                  </div>
               </div>
@@ -524,7 +600,7 @@ export default function HomePage() {
             </form>
           </div>
 
-          {/* KOLOM KANAN: Ringkasan & Preview */}
+          {/* KOLOM KANAN: Ringkasan & Preview Input Saat Ini */}
           <aside className="w-full xl:w-[400px] shrink-0 space-y-6">
             
             {/* Banner Cover Klien */}
@@ -544,9 +620,9 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Box Ringkasan */}
+            {/* Box Ringkasan Form Input */}
             <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-               <h3 className="font-semibold text-gray-900 mb-5">Ringkasan Pengaturan</h3>
+               <h3 className="font-semibold text-gray-900 mb-5">Ringkasan Input Form</h3>
                <div className="space-y-4">
                   <div className="flex text-sm">
                      <div className="w-[45%] text-gray-500 flex items-center gap-2"><UserIcon size={14}/> Nama Klien</div>
@@ -573,10 +649,10 @@ export default function HomePage() {
                </div>
             </div>
 
-            {/* Box Link Galeri & Preview */}
+            {/* Box Link Galeri Preview */}
             <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
                <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-semibold text-gray-900">Preview Galeri</h3>
+                  <h3 className="font-semibold text-gray-900">Preview Link Galeri</h3>
                   {createdSlug ? (
                     <Link href={`/gallery/${createdSlug}`} target="_blank" className="text-gray-400 hover:text-gray-700">
                       <ExternalLink size={16} />
@@ -584,22 +660,6 @@ export default function HomePage() {
                   ) : (
                     <ExternalLink size={16} className="text-gray-300" />
                   )}
-               </div>
-               
-               <div className="grid grid-cols-4 gap-2 mb-4">
-                  <div className="aspect-square bg-gray-200 rounded-lg overflow-hidden">
-                     <img src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=150&q=80" className="w-full h-full object-cover opacity-80" alt="Preview"/>
-                  </div>
-                  <div className="aspect-square bg-gray-200 rounded-lg overflow-hidden">
-                     <img src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=150&q=80" className="w-full h-full object-cover opacity-80" alt="Preview"/>
-                  </div>
-                  <div className="aspect-square bg-gray-200 rounded-lg overflow-hidden">
-                     <img src="https://images.unsplash.com/photo-1627556704302-624286467c65?auto=format&fit=crop&w=150&q=80" className="w-full h-full object-cover opacity-80" alt="Preview"/>
-                  </div>
-                  <div className="aspect-square bg-gray-200 rounded-lg overflow-hidden relative">
-                     <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=150&q=80" className="w-full h-full object-cover opacity-50" alt="Preview"/>
-                     <div className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white drop-shadow-md">+15</div>
-                  </div>
                </div>
 
                {/* Card Link Galeri Aktif */}
@@ -613,18 +673,18 @@ export default function HomePage() {
                             {typeof window !== 'undefined' ? `${window.location.origin}/gallery/${createdSlug}` : `/gallery/${createdSlug}`}
                           </p>
                         ) : (
-                          <p className="text-[11px] text-gray-400 mt-0.5">Simpan data untuk menghasilkan link galeri.</p>
+                          <p className="text-[11px] text-gray-400 mt-0.5">Simpan data untuk membuat link galeri.</p>
                         )}
                      </div>
                   </div>
                   {createdSlug && (
                     <button
                       type="button"
-                      onClick={handleCopyLink}
+                      onClick={() => handleCopyLink(createdSlug)}
                       className="shrink-0 px-2.5 py-1 text-xs text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 flex items-center gap-1 transition-colors shadow-xs font-medium"
                     >
-                      {copied ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
-                      <span>{copied ? 'Tersalin' : 'Salin'}</span>
+                      {copiedSlug === createdSlug ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
+                      <span>{copiedSlug === createdSlug ? 'Tersalin' : 'Salin'}</span>
                     </button>
                   )}
                </div>
@@ -632,6 +692,124 @@ export default function HomePage() {
 
           </aside>
         </div>
+
+        {/* ========================================================= */}
+        {/* HALAMAN / SEKSI RINGKASAN & DAFTAR KLIEN TERDAFTAR */}
+        {/* ========================================================= */}
+        <section className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-5">
+            <div>
+              <h2 className="text-xl font-serif text-gray-900 flex items-center gap-2">
+                <ListFilter size={20} className="text-gray-500" /> Ringkasan Klien & Link Galeri
+              </h2>
+              <p className="text-xs text-gray-500 mt-1">
+                Daftar semua klien yang tersimpan. Klik tombol <span className="font-semibold text-gray-700">Edit</span> untuk memperbarui informasi klien pada form di atas.
+              </p>
+            </div>
+            <button
+              onClick={fetchClients}
+              className="text-xs font-medium text-gray-600 hover:text-black bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors self-start sm:self-auto"
+            >
+              Refresh Daftar
+            </button>
+          </div>
+
+          {fetchingClients ? (
+            <div className="text-center py-12 text-sm text-gray-400">Memuat data klien...</div>
+          ) : clientsList.length === 0 ? (
+            <div className="text-center py-12 text-sm text-gray-400">
+              Belum ada data klien yang tersimpan. Isi form di atas dan simpan klien baru.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[700px]">
+                <thead>
+                  <tr className="border-b border-gray-200 text-xs font-semibold text-gray-400 uppercase tracking-wider bg-gray-50/50">
+                    <th className="py-3 px-4">Nama Klien</th>
+                    <th className="py-3 px-4">Tanggal Acara</th>
+                    <th className="py-3 px-4">Maks. Foto</th>
+                    <th className="py-3 px-4">Masa Berlaku</th>
+                    <th className="py-3 px-4">Link Galeri</th>
+                    <th className="py-3 px-4 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-sm">
+                  {clientsList.map((client) => {
+                    const galleryUrl = typeof window !== 'undefined' ? `${window.location.origin}/gallery/${client.slug}` : `/gallery/${client.slug}`;
+                    const isEditingThis = editingId === client.id;
+
+                    return (
+                      <tr 
+                        key={client.id} 
+                        className={`hover:bg-gray-50 transition-colors ${isEditingThis ? 'bg-amber-50/50' : ''}`}
+                      >
+                        <td className="py-4 px-4 font-medium text-gray-900">
+                          {client.client_name}
+                          {isEditingThis && (
+                            <span className="ml-2 text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full font-bold">
+                              Sedang Sedang Diedit
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-4 px-4 text-gray-600 text-xs">
+                          {formatDateString(client.event_date)}
+                        </td>
+                        <td className="py-4 px-4 text-gray-600 text-xs">
+                          {client.max_photos ? `${client.max_photos} foto` : '-'}
+                        </td>
+                        <td className="py-4 px-4 text-gray-600 text-xs">
+                          {formatDateString(client.expire_date)}
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="flex items-center gap-2 max-w-[220px]">
+                            <span className="text-xs text-blue-600 font-mono truncate">
+                              {galleryUrl}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleCopyLink(client.slug)}
+                              title="Salin Link"
+                              className="p-1 text-gray-500 hover:text-black rounded hover:bg-gray-200 transition-colors"
+                            >
+                              {copiedSlug === client.slug ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
+                            </button>
+                            <a
+                              href={galleryUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Buka Galeri"
+                              className="p-1 text-gray-500 hover:text-black rounded hover:bg-gray-200 transition-colors"
+                            >
+                              <ExternalLink size={14} />
+                            </a>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4 text-right space-x-2">
+                          <button
+                            type="button"
+                            onClick={() => handleEditClient(client)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 rounded-lg shadow-xs transition-colors"
+                          >
+                            <Edit2 size={13} /> Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteClientFromList(client.id)}
+                            className="inline-flex items-center p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Hapus Klien"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+
       </main>
     </div>
   );
