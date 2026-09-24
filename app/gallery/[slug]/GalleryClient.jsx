@@ -332,7 +332,7 @@ Mohon diproses untuk tahap selanjutnya. Terima kasih!`;
                   ) : (
                     selectedPhotos.map((photo) => (
                       <div key={photo.name} className="flex items-center gap-3 bg-gray-50 p-2 rounded-lg border border-gray-100">
-                        <img src={photo.url} alt={photo.name} className="w-9 h-9 rounded object-cover shrink-0" />
+                        <img src={`/api/drive/image?fileId=${photo.id}`} alt={photo.name} className="w-9 h-9 rounded object-cover shrink-0" />
                         <span className="text-xs font-medium text-gray-700 flex-1 truncate">
                           {photo.name.replace(/\.[^/.]+$/, '')}
                         </span>
