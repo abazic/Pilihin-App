@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { getPhotosFromGDrive } from '@/lib/gdrive';
-import { Search, HelpCircle, User, Check, X, Camera, CheckCircle, Clock, Send } from 'lucide-react';
+import { Search, Check, X, Camera, CheckCircle, Send } from 'lucide-react';
 
 export default function GalleryClient() {
   const { slug } = useParams();
@@ -15,14 +15,8 @@ export default function GalleryClient() {
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Ganti dengan nomor WhatsApp Admin Studio
   const ADMIN_PHONE_NUMBER = '6281234567890';
-
-  const filters = [
-    { name: 'Semua', count: photos.length, active: true },
-    { name: 'Sendiri', count: 32, active: false },
-    { name: 'Bersama', count: 68, active: false },
-    { name: 'Detail', count: 20, active: false },
-  ];
 
   useEffect(() => {
     async function loadGalleryData() {
@@ -116,145 +110,155 @@ Mohon diproses untuk tahap selanjutnya. Terima kasih!`;
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f7f7f7]">
-        <p className="text-gray-500 animate-pulse">Memuat galeri...</p>
+        <p className="text-gray-500 animate-pulse font-medium">Memuat galeri...</p>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-[#f7f7f7] font-sans text-gray-800 pb-12">
-      <header className="bg-[#f7f7f7] border-b border-gray-200 px-8 py-4 flex items-center justify-between sticky top-0 z-20">
+      {/* Header Utama Minimalis */}
+      <header className="bg-white border-b border-gray-200 px-6 lg:px-12 py-4 flex items-center justify-between sticky top-0 z-20 shadow-sm">
         <div className="flex items-center gap-2">
-          <span className="font-serif italic text-2xl font-bold tracking-tight">Nyala Karya</span>
+          <span className="font-serif italic text-2xl font-bold tracking-tight text-gray-900">Nyala Karya</span>
           <span className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold border-l border-gray-300 pl-2 ml-2">Photo & Video</span>
         </div>
 
-        <div className="hidden md:flex items-center gap-6 text-sm">
-          <div className="flex items-center gap-2 font-medium text-gray-900">
-            <span className="bg-gray-900 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs">1</span>
-            Pilih Foto
+        {gallery?.client_name && (
+          <div className="text-right">
+            <p className="text-xs text-gray-400">Klien</p>
+            <p className="text-sm font-semibold text-gray-800 truncate max-w-[150px] sm:max-w-none">{gallery.client_name}</p>
           </div>
-          <span className="text-gray-300 text-xs">▶</span>
-          <div className="flex items-center gap-2 text-gray-400">
-            <span className="bg-gray-200 text-gray-500 w-5 h-5 rounded-full flex items-center justify-center text-xs">2</span>
-            Kirim WhatsApp
-          </div>
-        </div>
-
-        <div className="flex items-center gap-6 text-sm text-gray-600">
-          <button className="flex items-center gap-1 hover:text-gray-900">
-            <HelpCircle size={16} /> Bantuan
-          </button>
-          <button className="hover:text-gray-900">
-            <User size={20} />
-          </button>
-        </div>
+        )}
       </header>
 
-      <main className="max-w-[1600px] mx-auto px-8 mt-10">
+      <main className="max-w-[1600px] mx-auto px-6 lg:px-12 mt-8">
+        {/* Banner Judul */}
         <div className="mb-8">
-          <p className="text-xs font-semibold text-gray-500 tracking-wider uppercase mb-2">Galeri Foto</p>
-          <h1 className="text-4xl font-serif text-gray-900 mb-2">Pilih Foto Favoritmu</h1>
-          <p className="text-gray-500 max-w-2xl leading-relaxed">
-            Tandai foto yang ingin kamu pilih. Setelah selesai, klik tombol **Kirim ke WhatsApp** di panel sebelah kanan.
+          <p className="text-xs font-semibold text-gray-400 tracking-wider uppercase mb-1">Galeri Foto</p>
+          <h1 className="text-3xl sm:text-4xl font-serif text-gray-900 mb-2">Pilih Foto Favoritmu</h1>
+          <p className="text-gray-500 text-sm max-w-2xl leading-relaxed">
+            Klik foto untuk menandai foto yang kamu pilih. Setelah selesai, konfirmasi pilihanmu melalui tombol WhatsApp di panel samping.
           </p>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
+          {/* AREA FOTO & PENCARIAN */}
           <div className="flex-1">
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-              <div className="flex gap-2">
-                {filters.map((filter) => (
-                  <button
-                    key={filter.name}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                      filter.active
-                        ? 'bg-gray-800 text-white'
-                        : 'bg-transparent text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    {filter.name}{' '}
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${filter.active ? 'bg-gray-700' : 'bg-gray-200'}`}>
-                      {filter.count}
-                    </span>
-                  </button>
-                ))}
+            {/* Tool Bar: Cari Foto */}
+            <div className="flex items-center justify-between gap-4 mb-6">
+              <div className="text-sm text-gray-500">
+                Menampilkan <span className="font-semibold text-gray-800">{filteredPhotos.length}</span> dari {photos.length} foto
               </div>
 
-              <div className="relative w-full md:w-64">
+              <div className="relative w-full sm:w-72">
                 <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Cari nomor foto..."
+                  placeholder="Cari nama / nomor foto..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+                  className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 transition-all"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {filteredPhotos.map((photo) => {
-                const isSelected = selectedPhotos.some((p) => p.name === photo.name);
+            {/* Grid Foto */}
+            {filteredPhotos.length === 0 ? (
+              <div className="bg-white rounded-2xl p-12 text-center border border-gray-200 text-gray-400">
+                Foto tidak ditemukan.
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {filteredPhotos.map((photo) => {
+                  const isSelected = selectedPhotos.some((p) => p.name === photo.name);
 
-                return (
-                  <div
-                    key={photo.id}
-                    onClick={() => toggleSelectPhoto(photo)}
-                    className="relative group cursor-pointer aspect-square rounded-xl overflow-hidden"
-                  >
-                    <img
-                      src={photo.url}
-                      alt={photo.name}
-                      className="w-full h-full object-cover transition duration-300 group-hover:scale-105"
-                      loading="lazy"
-                    />
+                  return (
+                    <div
+                      key={photo.id || photo.name}
+                      onClick={() => toggleSelectPhoto(photo)}
+                      className={`relative group cursor-pointer aspect-square rounded-xl overflow-hidden border-2 transition-all ${
+                        isSelected ? 'border-blue-600 ring-2 ring-blue-600/20' : 'border-transparent'
+                      }`}
+                    >
+                      <img
+                        src={photo.url}
+                        alt={photo.name}
+                        className="w-full h-full object-cover transition duration-300 group-hover:scale-105"
+                        loading="lazy"
+                      />
 
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 opacity-80" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20 opacity-80" />
 
-                    <div className="absolute top-3 left-3">
-                      <div className={`w-5 h-5 rounded flex items-center justify-center border transition-colors ${
-                        isSelected ? 'bg-blue-600 border-blue-600' : 'bg-transparent border-white/70 group-hover:border-white'
-                      }`}>
-                        {isSelected && <Check size={14} className="text-white" />}
+                      {/* Checkbox Indikator */}
+                      <div className="absolute top-3 left-3">
+                        <div className={`w-6 h-6 rounded-md flex items-center justify-center border transition-all ${
+                          isSelected ? 'bg-blue-600 border-blue-600 shadow-sm' : 'bg-black/30 border-white/70 group-hover:border-white'
+                        }`}>
+                          {isSelected && <Check size={14} className="text-white stroke-[3]" />}
+                        </div>
+                      </div>
+
+                      {/* Nama File Foto */}
+                      <div className="absolute bottom-3 left-3 right-3 truncate">
+                        <p className="text-white text-xs font-medium tracking-wide drop-shadow-md truncate">
+                          {photo.name.replace(/\.[^/.]+$/, '')}
+                        </p>
                       </div>
                     </div>
-
-                    <div className="absolute bottom-3 left-3">
-                      <p className="text-white text-xs font-medium tracking-wide">
-                        {photo.name.replace(/\.[^/.]+$/, '')}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-          <aside className="w-full lg:w-[320px] shrink-0">
-            <div className="bg-transparent lg:bg-[#f7f7f7] lg:sticky lg:top-24 rounded-2xl flex flex-col gap-6">
-              <div className="bg-[#f0f0f0] p-5 rounded-2xl border border-gray-200">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-gray-900">Foto Terpilih</h3>
-                  <span className="text-xs text-gray-500">{selectedPhotos.length} foto</span>
-                </div>
+          {/* SIDEBAR RINGKASAN & WHATSAPP */}
+          <aside className="w-full lg:w-[340px] shrink-0">
+            <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm lg:sticky lg:top-24 space-y-6">
+              
+              {/* Header Sidebar */}
+              <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+                <h3 className="font-semibold text-gray-900">Ringkasan Pilihan</h3>
+                <span className="text-xs px-2.5 py-1 bg-blue-50 text-blue-700 font-medium rounded-full">
+                  {selectedPhotos.length} Terpilih
+                </span>
+              </div>
 
-                <div className="flex flex-col gap-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+              {/* Detail Jumlah */}
+              <div className="space-y-3 text-sm text-gray-600">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2"><Camera size={16} className="text-gray-400" /> Total Foto Galeri</div>
+                  <span className="font-medium text-gray-900">{photos.length}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2"><CheckCircle size={16} className="text-gray-400" /> Foto Dipilih</div>
+                  <span className="font-medium text-gray-900">{selectedPhotos.length}</span>
+                </div>
+              </div>
+
+              {/* Lista Foto yang Dipilih */}
+              <div>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Daftar Foto Dipilih</p>
+                <div className="flex flex-col gap-2.5 max-h-[260px] overflow-y-auto pr-1 custom-scrollbar">
                   {selectedPhotos.length === 0 ? (
-                    <p className="text-xs text-gray-400 italic text-center py-4">Belum ada foto yang dipilih.</p>
+                    <div className="py-8 text-center text-xs text-gray-400 border border-dashed border-gray-200 rounded-xl">
+                      Belum ada foto yang dipilih.
+                    </div>
                   ) : (
                     selectedPhotos.map((photo) => (
-                      <div key={photo.name} className="flex items-center gap-3">
-                        <img src={photo.url} alt={photo.name} className="w-10 h-10 rounded-md object-cover" />
+                      <div key={photo.name} className="flex items-center gap-3 bg-gray-50 p-2 rounded-lg border border-gray-100">
+                        <img src={photo.url} alt={photo.name} className="w-9 h-9 rounded object-cover shrink-0" />
                         <span className="text-xs font-medium text-gray-700 flex-1 truncate">
                           {photo.name.replace(/\.[^/.]+$/, '')}
                         </span>
                         <button
+                          type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             removeSelectedPhoto(photo.name);
                           }}
-                          className="text-gray-400 hover:text-gray-700 p-1"
+                          className="text-gray-400 hover:text-red-500 p-1 transition-colors"
+                          title="Hapus foto"
                         >
                           <X size={14} />
                         </button>
@@ -264,29 +268,17 @@ Mohon diproses untuk tahap selanjutnya. Terima kasih!`;
                 </div>
               </div>
 
-              <div className="p-2">
-                <h3 className="font-semibold text-gray-900 mb-4">Ringkasan</h3>
+              {/* Tombol Kirim WhatsApp */}
+              <button
+                type="button"
+                onClick={handleSendToWhatsApp}
+                disabled={saving || selectedPhotos.length === 0}
+                className="w-full bg-[#25D366] hover:bg-[#20ba5a] text-white py-3.5 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+              >
+                <Send size={16} />
+                {saving ? 'Menyimpan...' : 'Kirim Pilihan ke WhatsApp'}
+              </button>
 
-                <div className="flex flex-col gap-3 mb-6 text-sm text-gray-600">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2"><Camera size={16} className="text-gray-400" /> Total Foto</div>
-                    <span className="font-medium text-gray-900">{photos.length}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2"><CheckCircle size={16} className="text-gray-400" /> Terpilih</div>
-                    <span className="font-medium text-gray-900">{selectedPhotos.length}</span>
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleSendToWhatsApp}
-                  disabled={saving || selectedPhotos.length === 0}
-                  className="w-full bg-[#25D366] hover:bg-[#20ba5a] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-                >
-                  <Send size={16} />
-                  {saving ? 'Menyimpan...' : 'Kirim Pilihan ke WhatsApp'}
-                </button>
-              </div>
             </div>
           </aside>
         </div>
