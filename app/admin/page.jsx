@@ -6,7 +6,6 @@ import { supabase } from '@/lib/supabase';
 import { extractFolderId } from '@/lib/gdrive';
 import { 
   Home, 
-  Users, 
   FileText, 
   Settings, 
   Bell, 
@@ -38,25 +37,28 @@ export default function AdminPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  // Buat slug dinamis dari nama klien
+  const currentSlug = formData.clientName
+    ? `${formData.clientName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+    : 'klien';
+
   const handleSave = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    // TODO: Update Supabase schema to match all fields if needed.
-    // For now, this just demonstrates the basic save logic.
     const folderId = extractFolderId(formData.gdriveUrl);
-    const slug = `${formData.clientName.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const slug = `${currentSlug}-${Math.floor(1000 + Math.random() * 9000)}`;
 
     const { error } = await supabase.from('galleries').insert([
       {
         client_name: formData.clientName,
         folder_id: folderId,
         slug: slug,
-        // You would need to add these columns to your Supabase table to save them:
-        // event_date: formData.eventDate,
-        // max_photos: formData.maxPhotos,
-        // expire_date: formData.expireDate,
-        // notes: formData.notes
+        gdrive_url: formData.gdriveUrl,
+        event_date: formData.eventDate || null,
+        max_photos: Number(formData.maxPhotos),
+        expire_date: formData.expireDate || null,
+        notes: formData.notes
       },
     ]);
 
@@ -83,20 +85,20 @@ export default function AdminPage() {
         </div>
 
         {/* Menu Navigasi */}
-<nav className="flex-1 px-4 space-y-1">
-  <Link href="/" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
-    <Home size={18} /> Dashboard
-  </Link>
-  <Link href="/klien" className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-white bg-[#2a2a2a] rounded-lg shadow-sm">
-    <ImageIcon size={18} /> Kelola Klien
-  </Link>
-  <Link href="/pesanan" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
-    <FileText size={18} /> Riwayat Pesanan
-  </Link>
-  <Link href="/pengaturan" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
-    <Settings size={18} /> Pengaturan
-  </Link>
-</nav>
+        <nav className="flex-1 px-4 space-y-1">
+          <Link href="/" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
+            <Home size={18} /> Dashboard
+          </Link>
+          <Link href="/klien" className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-white bg-[#2a2a2a] rounded-lg shadow-sm">
+            <ImageIcon size={18} /> Kelola Klien
+          </Link>
+          <Link href="/pesanan" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
+            <FileText size={18} /> Riwayat Pesanan
+          </Link>
+          <Link href="/pengaturan" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
+            <Settings size={18} /> Pengaturan
+          </Link>
+        </nav>
 
         {/* Quote / Footer Sidebar */}
         <div className="p-8 pt-0 relative overflow-hidden h-48 mt-auto">
@@ -104,7 +106,6 @@ export default function AdminPage() {
                <p className="font-serif italic text-gray-500 text-lg leading-snug">Setiap momen<br/>punya ceritanya.</p>
                <div className="w-6 h-px bg-gray-400 mt-4"></div>
             </div>
-            {/* Dekorasi Bunga/Daun placeholder */}
             <div className="absolute -bottom-10 -left-10 w-40 h-40 opacity-20 bg-cover bg-center" style={{backgroundImage: "url('https://images.unsplash.com/photo-1596489377759-99e2a77a445d?auto=format&fit=crop&q=80&w=200&ixlib=rb-4.0.3')"}}></div>
         </div>
       </aside>
@@ -132,9 +133,9 @@ export default function AdminPage() {
           
           {/* Header Konten */}
           <div className="mb-8">
-            <button className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6 transition-colors">
+            <Link href="/klien" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6 transition-colors">
               <ArrowLeft size={16} /> Kembali ke Daftar Klien
-            </button>
+            </Link>
             <h1 className="text-3xl font-serif text-gray-900 mb-2">Edit Klien</h1>
             <p className="text-gray-500 text-sm">Atur informasi klien dan pengaturan galeri mereka.</p>
           </div>
@@ -158,6 +159,7 @@ export default function AdminPage() {
                         name="clientName"
                         value={formData.clientName}
                         onChange={handleInputChange}
+                        required
                         className="w-full p-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-200 focus:border-gray-500 outline-none"
                       />
                     </div>
@@ -191,11 +193,17 @@ export default function AdminPage() {
                          name="gdriveUrl"
                          value={formData.gdriveUrl}
                          onChange={handleInputChange}
+                         required
                          className="flex-1 p-2.5 border border-gray-300 rounded-lg text-sm text-gray-600 bg-gray-50 focus:bg-white outline-none"
                        />
-                       <button type="button" className="p-2.5 border border-gray-300 rounded-lg text-gray-500 hover:bg-gray-50">
+                       <a 
+                         href={formData.gdriveUrl} 
+                         target="_blank" 
+                         rel="noopener noreferrer"
+                         className="p-2.5 border border-gray-300 rounded-lg text-gray-500 hover:bg-gray-50 flex items-center justify-center"
+                       >
                          <ExternalLink size={18} />
-                       </button>
+                       </a>
                     </div>
                   </div>
 
@@ -238,10 +246,13 @@ export default function AdminPage() {
                     value={formData.notes}
                     onChange={handleInputChange}
                     placeholder="Contoh: Mohon pilih foto terbaik dan hindari foto blur. Untuk foto grup, pilih yang paling jelas."
-                    rows="4"
+                    rows={4}
+                    maxLength={500}
                     className="w-full p-3 border border-gray-300 rounded-lg text-sm text-gray-700 resize-none outline-none"
                   ></textarea>
-                  <div className="text-right text-[11px] text-gray-400 mt-1">0/500</div>
+                  <div className="text-right text-[11px] text-gray-400 mt-1">
+                    {formData.notes.length}/500
+                  </div>
                 </div>
 
                 {/* Tombol Aksi Bawah */}
@@ -250,13 +261,13 @@ export default function AdminPage() {
                      <Trash2 size={16} /> Hapus Klien
                    </button>
                    <div className="flex gap-3">
-                     <button type="button" className="px-6 py-2.5 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors">
+                     <Link href="/klien" className="px-6 py-2.5 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors">
                        Batal
-                     </button>
+                     </Link>
                      <button 
                        type="submit" 
                        disabled={loading}
-                       className="px-6 py-2.5 text-white bg-[#2a2a2a] hover:bg-black rounded-lg text-sm font-medium transition-colors"
+                       className="px-6 py-2.5 text-white bg-[#2a2a2a] hover:bg-black rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
                      >
                        {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
                      </button>
@@ -279,8 +290,8 @@ export default function AdminPage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
                 <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
                    <div>
-                      <h3 className="text-white font-medium text-lg">{formData.clientName}</h3>
-                      <p className="text-gray-300 text-xs mt-1">12 Agustus 2025</p>
+                      <h3 className="text-white font-medium text-lg">{formData.clientName || 'Nama Klien'}</h3>
+                      <p className="text-gray-300 text-xs mt-1">{formData.eventDate || 'Tanggal Belum Diatur'}</p>
                    </div>
                    <span className="bg-emerald-500/90 backdrop-blur text-white text-xs px-3 py-1 rounded-full font-medium">Aktif</span>
                 </div>
@@ -292,15 +303,19 @@ export default function AdminPage() {
                  <div className="space-y-4">
                     <div className="flex text-sm">
                        <div className="w-[45%] text-gray-500 flex items-center gap-2"><UserIcon size={14}/> Nama Klien</div>
-                       <div className="flex-1 font-medium text-gray-900 truncate">{formData.clientName}</div>
+                       <div className="flex-1 font-medium text-gray-900 truncate">{formData.clientName || '-'}</div>
                     </div>
                     <div className="flex text-sm">
                        <div className="w-[45%] text-gray-500 flex items-center gap-2"><Calendar size={14}/> Tanggal Acara</div>
-                       <div className="flex-1 font-medium text-gray-900">12 Agustus 2025</div>
+                       <div className="flex-1 font-medium text-gray-900">{formData.eventDate || '-'}</div>
                     </div>
                     <div className="flex text-sm">
                        <div className="w-[45%] text-gray-500 flex items-center gap-2"><LinkIcon size={14}/> Link Google Drive</div>
-                       <div className="flex-1 font-medium text-gray-900 truncate text-blue-600">https://drive.google.com/d...</div>
+                       <div className="flex-1 font-medium text-gray-900 truncate text-blue-600">
+                         <a href={formData.gdriveUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                           {formData.gdriveUrl || '-'}
+                         </a>
+                       </div>
                     </div>
                     <div className="flex text-sm">
                        <div className="w-[45%] text-gray-500 flex items-center gap-2"><ImageIcon size={14}/> Maks. Foto Dipilih</div>
@@ -308,16 +323,24 @@ export default function AdminPage() {
                     </div>
                     <div className="flex text-sm">
                        <div className="w-[45%] text-gray-500 flex items-center gap-2"><Clock size={14}/> Masa Berlaku Link</div>
-                       <div className="flex-1 font-medium text-gray-900">31 Agustus 2025</div>
+                       <div className="flex-1 font-medium text-gray-900">{formData.expireDate || '-'}</div>
                     </div>
                  </div>
               </div>
 
-              {/* Box Preview */}
+              {/* Box Preview Galeri */}
               <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
                  <div className="flex justify-between items-center mb-4">
                     <h3 className="font-semibold text-gray-900">Preview Galeri</h3>
-                    <ExternalLink size={16} className="text-gray-400 cursor-pointer hover:text-gray-700" />
+                    <a 
+                      href={`/galeri/${currentSlug}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-gray-400 hover:text-gray-700 transition-colors p-1"
+                      title="Buka preview galeri klien"
+                    >
+                      <ExternalLink size={16} />
+                    </a>
                  </div>
                  
                  <div className="grid grid-cols-4 gap-2 mb-4">
