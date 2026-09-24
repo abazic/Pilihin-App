@@ -28,8 +28,8 @@ export default function GalleryClient() {
   // State untuk Fitur Perbesar / Modal Preview Foto
   const [previewPhoto, setPreviewPhoto] = useState(null);
 
-  // Nomor WhatsApp Admin Studio
-  const ADMIN_PHONE_NUMBER = '6281234567890';
+  // Nomor WhatsApp Admin Studio Default (Fallback)
+  const DEFAULT_ADMIN_PHONE = '6281234567890';
 
   useEffect(() => {
     async function loadGalleryData() {
@@ -76,6 +76,21 @@ export default function GalleryClient() {
     } catch {
       return dateStr;
     }
+  };
+
+  // Fungsi Pembantu Formatter Nomor WhatsApp
+  const formatWhatsAppNumber = (phone) => {
+    if (!phone) return DEFAULT_ADMIN_PHONE;
+    
+    // Hapus semua karakter non-digit
+    let cleaned = phone.replace(/\D/g, '');
+    
+    // Jika diawali angka '0', ubah menjadi '62'
+    if (cleaned.startsWith('0')) {
+      cleaned = '62' + cleaned.slice(1);
+    }
+    
+    return cleaned || DEFAULT_ADMIN_PHONE;
   };
 
   // Fungsi Pilih / Batal Pilih Foto dengan Proteksi Max Photos
@@ -135,7 +150,11 @@ ${photoListText}
 
 Mohon diproses untuk tahap selanjutnya. Terima kasih!`;
 
-    const waUrl = `https://wa.me/${ADMIN_PHONE_NUMBER}?text=${encodeURIComponent(message)}`;
+    // Ambil nomor admin dinamis dari database atau gunakan fallback default
+    const rawAdminPhone = gallery?.admin_whatsapp || gallery?.admin_phone || DEFAULT_ADMIN_PHONE;
+    const cleanPhone = formatWhatsAppNumber(rawAdminPhone);
+
+    const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
     window.open(waUrl, '_blank');
   };
 
@@ -169,7 +188,7 @@ Mohon diproses untuk tahap selanjutnya. Terima kasih!`;
       </header>
 
       <main className="max-w-[1600px] mx-auto px-6 lg:px-12 mt-8">
-        {/* Banner Judul (Keterangan 'di panel samping' sudah dihapus) */}
+        {/* Banner Judul */}
         <div className="mb-8">
           <p className="text-xs font-semibold text-gray-400 tracking-wider uppercase mb-1">Galeri Foto</p>
           <h1 className="text-3xl sm:text-4xl font-serif text-gray-900 mb-2">Pilih Foto Favoritmu</h1>
@@ -226,7 +245,7 @@ Mohon diproses untuk tahap selanjutnya. Terima kasih!`;
 
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20 opacity-80" />
 
-                      {/* Checkbox Indikator (Pilih Foto) */}
+                      {/* Checkbox Indikator */}
                       <div className="absolute top-3 left-3 z-10">
                         <div className={`w-6 h-6 rounded-md flex items-center justify-center border transition-all ${
                           isSelected ? 'bg-blue-600 border-blue-600 shadow-sm' : 'bg-black/30 border-white/70 group-hover:border-white'
@@ -235,7 +254,7 @@ Mohon diproses untuk tahap selanjutnya. Terima kasih!`;
                         </div>
                       </div>
 
-                      {/* Tombol Perbesar Foto / Preview Modal */}
+                      {/* Tombol Perbesar Foto */}
                       <button
                         type="button"
                         onClick={(e) => {
@@ -285,7 +304,6 @@ Mohon diproses untuk tahap selanjutnya. Terima kasih!`;
                   <span className="font-medium text-gray-900">{selectedPhotos.length} Foto</span>
                 </div>
 
-                {/* Info Maksimal Foto dari Input Home/Edit Klien */}
                 {gallery?.max_photos && (
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2"><AlertCircle size={16} className="text-gray-400" /> Maks. Foto Dipilih</div>
@@ -293,7 +311,6 @@ Mohon diproses untuk tahap selanjutnya. Terima kasih!`;
                   </div>
                 )}
 
-                {/* Info Masa Berlaku Link dari Input Home/Edit Klien */}
                 {gallery?.expire_date && (
                   <div className="flex items-center justify-between pt-2 border-t border-gray-100 text-xs">
                     <div className="flex items-center gap-1.5 text-amber-700 font-medium">
