@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { extractFolderId } from '@/lib/gdrive';
 import { 
@@ -82,20 +83,20 @@ export default function AdminPage() {
         </div>
 
         {/* Menu Navigasi */}
-        <nav className="flex-1 px-4 space-y-1">
-          <a href="#" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
-            <Home size={18} /> Dashboard
-          </a>
-          <a href="#" className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-white bg-[#2a2a2a] rounded-lg shadow-sm">
-            <ImageIcon size={18} /> Kelola Klien
-          </a>
-          <a href="#" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
-            <FileText size={18} /> Riwayat Pesanan
-          </a>
-          <a href="#" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
-            <Settings size={18} /> Pengaturan
-          </a>
-        </nav>
+<nav className="flex-1 px-4 space-y-1">
+  <Link href="/" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
+    <Home size={18} /> Dashboard
+  </Link>
+  <Link href="/klien" className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-white bg-[#2a2a2a] rounded-lg shadow-sm">
+    <ImageIcon size={18} /> Kelola Klien
+  </Link>
+  <Link href="/pesanan" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
+    <FileText size={18} /> Riwayat Pesanan
+  </Link>
+  <Link href="/pengaturan" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
+    <Settings size={18} /> Pengaturan
+  </Link>
+</nav>
 
         {/* Quote / Footer Sidebar */}
         <div className="p-8 pt-0 relative overflow-hidden h-48 mt-auto">
