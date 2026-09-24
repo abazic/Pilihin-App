@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, ChangeEvent, FormEvent } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { extractFolderId } from '@/lib/gdrive';
@@ -24,12 +24,12 @@ interface FormDataState {
   clientName: string;
   eventDate: string;
   gdriveUrl: string;
-  maxPhotos: number;
+  maxPhotos: number | string;
   expireDate: string;
   notes: string;
 }
 
-export default function KlienPage() {
+export default function AdminPage() {
   const [formData, setFormData] = useState<FormDataState>({
     clientName: 'Ahmad Rizki & Keluarga',
     eventDate: '2025-08-12',
@@ -39,49 +39,53 @@ export default function KlienPage() {
     notes: ''
   });
   
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Buat slug dinamis dari nama klien
-  const currentSlug = formData.clientName
-    ? formData.clientName.toLowerCase().replace(/[^a-z0-9]+/g, '-')
-    : 'klien';
+  const formatDateString = (dateStr: string) => {
+    if (!dateStr) return '-';
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'Long',
+        year: 'numeric'
+      });
+    } catch {
+      return dateStr;
+    }
+  };
 
-  const handleSave = async (e: FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      const folderId = extractFolderId ? extractFolderId(formData.gdriveUrl) : formData.gdriveUrl;
-      const slug = `${currentSlug}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const folderId = extractFolderId(formData.gdriveUrl);
+    const slug = `${formData.clientName.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Math.floor(1000 + Math.random() * 9000)}`;
 
-      const { error } = await supabase.from('galleries').insert([
-        {
-          client_name: formData.clientName,
-          folder_id: folderId,
-          slug: slug,
-          gdrive_url: formData.gdriveUrl,
-          event_date: formData.eventDate || null,
-          max_photos: Number(formData.maxPhotos),
-          expire_date: formData.expireDate || null,
-          notes: formData.notes
-        },
-      ]);
+    const { error } = await supabase.from('galleries').insert([
+      {
+        client_name: formData.clientName,
+        folder_id: folderId,
+        slug: slug,
+        // Kolom opsional Supabase jika sudah dikonfigurasi:
+        // event_date: formData.eventDate,
+        // max_photos: formData.maxPhotos,
+        // expire_date: formData.expireDate,
+        // notes: formData.notes
+      },
+    ]);
 
-      if (error) {
-        alert('Gagal menyimpan perubahan: ' + error.message);
-      } else {
-        alert('Perubahan berhasil disimpan!');
-      }
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan';
-      alert('Error: ' + errorMessage);
-    } finally {
-      setLoading(false);
+    setLoading(false);
+
+    if (error) {
+      alert('Gagal menyimpan perubahan: ' + error.message);
+    } else {
+      alert('Perubahan berhasil disimpan!');
     }
   };
 
@@ -100,16 +104,16 @@ export default function KlienPage() {
 
         {/* Menu Navigasi */}
         <nav className="flex-1 px-4 space-y-1">
-          <Link href="/" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
+          <Link href="#" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
             <Home size={18} /> Dashboard
           </Link>
-          <Link href="/klien" className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-white bg-[#2a2a2a] rounded-lg shadow-sm">
+          <Link href="#" className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-white bg-[#2a2a2a] rounded-lg shadow-sm">
             <ImageIcon size={18} /> Kelola Klien
           </Link>
-          <Link href="/pesanan" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
+          <Link href="#" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
             <FileText size={18} /> Riwayat Pesanan
           </Link>
-          <Link href="/pengaturan" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
+          <Link href="#" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
             <Settings size={18} /> Pengaturan
           </Link>
         </nav>
@@ -120,6 +124,7 @@ export default function KlienPage() {
                <p className="font-serif italic text-gray-500 text-lg leading-snug">Setiap momen<br/>punya ceritanya.</p>
                <div className="w-6 h-px bg-gray-400 mt-4"></div>
             </div>
+            {/* Dekorasi Bunga/Daun placeholder */}
             <div className="absolute -bottom-10 -left-10 w-40 h-40 opacity-20 bg-cover bg-center" style={{backgroundImage: "url('https://images.unsplash.com/photo-1596489377759-99e2a77a445d?auto=format&fit=crop&q=80&w=200&ixlib=rb-4.0.3')"}}></div>
         </div>
       </aside>
@@ -130,7 +135,7 @@ export default function KlienPage() {
         {/* 2. Topbar */}
         <header className="bg-[#f7f7f7] border-b border-gray-200 h-16 flex items-center justify-end px-8 sticky top-0 z-10">
           <div className="flex items-center gap-6">
-            <button className="text-gray-500 hover:text-gray-900 relative">
+            <button type="button" className="text-gray-500 hover:text-gray-900 relative">
               <Bell size={20} />
               <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
             </button>
@@ -147,9 +152,9 @@ export default function KlienPage() {
           
           {/* Header Konten */}
           <div className="mb-8">
-            <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6 transition-colors">
-              <ArrowLeft size={16} /> Kembali ke Dashboard
-            </Link>
+            <button type="button" className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6 transition-colors">
+              <ArrowLeft size={16} /> Kembali ke Daftar Klien
+            </button>
             <h1 className="text-3xl font-serif text-gray-900 mb-2">Edit Klien</h1>
             <p className="text-gray-500 text-sm">Atur informasi klien dan pengaturan galeri mereka.</p>
           </div>
@@ -210,14 +215,13 @@ export default function KlienPage() {
                          required
                          className="flex-1 p-2.5 border border-gray-300 rounded-lg text-sm text-gray-600 bg-gray-50 focus:bg-white outline-none"
                        />
-                       <a 
-                         href={formData.gdriveUrl} 
-                         target="_blank" 
-                         rel="noopener noreferrer"
-                         className="p-2.5 border border-gray-300 rounded-lg text-gray-500 hover:bg-gray-50 flex items-center justify-center"
+                       <button 
+                         type="button" 
+                         onClick={() => formData.gdriveUrl && window.open(formData.gdriveUrl, '_blank')}
+                         className="p-2.5 border border-gray-300 rounded-lg text-gray-500 hover:bg-gray-50"
                        >
                          <ExternalLink size={18} />
-                       </a>
+                       </button>
                     </div>
                   </div>
 
@@ -259,14 +263,12 @@ export default function KlienPage() {
                     name="notes"
                     value={formData.notes}
                     onChange={handleInputChange}
+                    maxLength={500}
                     placeholder="Contoh: Mohon pilih foto terbaik dan hindari foto blur. Untuk foto grup, pilih yang paling jelas."
                     rows={4}
-                    maxLength={500}
                     className="w-full p-3 border border-gray-300 rounded-lg text-sm text-gray-700 resize-none outline-none"
                   ></textarea>
-                  <div className="text-right text-[11px] text-gray-400 mt-1">
-                    {formData.notes.length}/500
-                  </div>
+                  <div className="text-right text-[11px] text-gray-400 mt-1">{formData.notes.length}/500</div>
                 </div>
 
                 {/* Tombol Aksi Bawah */}
@@ -275,9 +277,9 @@ export default function KlienPage() {
                      <Trash2 size={16} /> Hapus Klien
                    </button>
                    <div className="flex gap-3">
-                     <Link href="/" className="px-6 py-2.5 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors">
+                     <button type="button" className="px-6 py-2.5 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors">
                        Batal
-                     </Link>
+                     </button>
                      <button 
                        type="submit" 
                        disabled={loading}
@@ -305,7 +307,7 @@ export default function KlienPage() {
                 <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
                    <div>
                       <h3 className="text-white font-medium text-lg">{formData.clientName || 'Nama Klien'}</h3>
-                      <p className="text-gray-300 text-xs mt-1">{formData.eventDate || 'Tanggal Belum Diatur'}</p>
+                      <p className="text-gray-300 text-xs mt-1">{formatDateString(formData.eventDate)}</p>
                    </div>
                    <span className="bg-emerald-500/90 backdrop-blur text-white text-xs px-3 py-1 rounded-full font-medium">Aktif</span>
                 </div>
@@ -321,14 +323,12 @@ export default function KlienPage() {
                     </div>
                     <div className="flex text-sm">
                        <div className="w-[45%] text-gray-500 flex items-center gap-2"><Calendar size={14}/> Tanggal Acara</div>
-                       <div className="flex-1 font-medium text-gray-900">{formData.eventDate || '-'}</div>
+                       <div className="flex-1 font-medium text-gray-900">{formatDateString(formData.eventDate)}</div>
                     </div>
                     <div className="flex text-sm">
                        <div className="w-[45%] text-gray-500 flex items-center gap-2"><LinkIcon size={14}/> Link Google Drive</div>
                        <div className="flex-1 font-medium text-gray-900 truncate text-blue-600">
-                         <a href={formData.gdriveUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                           {formData.gdriveUrl || '-'}
-                         </a>
+                          {formData.gdriveUrl ? `${formData.gdriveUrl.substring(0, 25)}...` : '-'}
                        </div>
                     </div>
                     <div className="flex text-sm">
@@ -337,24 +337,16 @@ export default function KlienPage() {
                     </div>
                     <div className="flex text-sm">
                        <div className="w-[45%] text-gray-500 flex items-center gap-2"><Clock size={14}/> Masa Berlaku Link</div>
-                       <div className="flex-1 font-medium text-gray-900">{formData.expireDate || '-'}</div>
+                       <div className="flex-1 font-medium text-gray-900">{formatDateString(formData.expireDate)}</div>
                     </div>
                  </div>
               </div>
 
-              {/* Box Preview Galeri */}
+              {/* Box Preview */}
               <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
                  <div className="flex justify-between items-center mb-4">
                     <h3 className="font-semibold text-gray-900">Preview Galeri</h3>
-                    <a 
-                      href={`/gallery/${currentSlug}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="text-gray-400 hover:text-gray-700 transition-colors p-1"
-                      title="Buka preview galeri klien"
-                    >
-                      <ExternalLink size={16} />
-                    </a>
+                    <ExternalLink size={16} className="text-gray-400 cursor-pointer hover:text-gray-700" />
                  </div>
                  
                  <div className="grid grid-cols-4 gap-2 mb-4">
