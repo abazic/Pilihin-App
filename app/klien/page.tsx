@@ -13,23 +13,31 @@ import {
   Search,
   Filter,
   Eye,
-  Edit,
+  Edit3,
   Trash2,
   ChevronLeft,
   ChevronRight,
-  MoreVertical,
+  Phone,
+  Mail,
   Calendar,
-  CheckCircle2,
-  Clock,
-  UserCheck,
 } from "lucide-react";
 
-export default function KelolaKlien() {
-  const pathname = usePathname();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("SEMUA");
+// Tipe Data Klien
+interface Klien {
+  id: string;
+  nama: string;
+  kategori: string;
+  email: string;
+  telepon: string;
+  tanggalAcara: string;
+  jumlahFotoMaks: number;
+  status: "AKTIF" | "SELESAI" | "PENDING";
+}
 
-  // Menu Navigasi Sidebar
+export default function KelolaKlienPage() {
+  const pathname = usePathname();
+
+  // Menu Navigasi Sidebar (Konsisten dengan Dashboard)
   const navigation = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
     { name: "Kelola Klien", href: "/klien", icon: Users },
@@ -37,76 +45,88 @@ export default function KelolaKlien() {
     { name: "Pengaturan", href: "/pengaturan", icon: Settings },
   ];
 
-  // Mock Data Klien
-  const clientData = [
+  // Dummy Data Klien
+  const [klienList, setKlienList] = useState<Klien[]>([
     {
       id: "1",
       nama: "Ahmad Rizki & Keluarga",
-      email: "ahmad.rizki@gmail.com",
-      telepon: "0812-3456-7890",
       kategori: "Wedding",
-      tanggal: "12 Agustus 2025",
-      jumlahFoto: 20,
+      email: "ahmad.rizki@example.com",
+      telepon: "+62 812-3456-7890",
+      tanggalAcara: "12 Agustus 2025",
+      jumlahFotoMaks: 20,
       status: "AKTIF",
     },
     {
       id: "2",
       nama: "Siti Nurhaliza",
-      email: "siti.nurhaliza@gmail.com",
-      telepon: "0821-9876-5432",
       kategori: "Wisuda",
-      tanggal: "5 Agustus 2025",
-      jumlahFoto: 15,
+      email: "siti.nurhaliza@example.com",
+      telepon: "+62 857-1234-5678",
+      tanggalAcara: "5 Agustus 2025",
+      jumlahFotoMaks: 15,
       status: "AKTIF",
     },
     {
       id: "3",
       nama: "Keluarga Hadi",
-      email: "hadi.family@gmail.com",
-      telepon: "0857-1122-3344",
       kategori: "Family Session",
-      tanggal: "28 Juli 2025",
-      jumlahFoto: 30,
+      email: "hadi.family@example.com",
+      telepon: "+62 819-8765-4321",
+      tanggalAcara: "28 Juli 2025",
+      jumlahFotoMaks: 30,
       status: "SELESAI",
     },
     {
       id: "4",
       nama: "Bapak Wahyu",
-      email: "wahyu.corporate@gmail.com",
-      telepon: "0813-5566-7788",
-      kategori: "Event Corporate",
-      tanggal: "18 Juli 2025",
-      jumlahFoto: 25,
-      status: "DRAFT",
+      kategori: "Corporate Event",
+      email: "wahyu@corp.co.id",
+      telepon: "+62 821-9988-7766",
+      tanggalAcara: "18 Juli 2025",
+      jumlahFotoMaks: 25,
+      status: "SELESAI",
     },
     {
       id: "5",
-      nama: "Dina & Bayu",
-      email: "dina.bayu@gmail.com",
-      telepon: "0896-4433-2211",
-      kategori: "Pre-Wedding",
-      tanggal: "10 Juli 2025",
-      jumlahFoto: 20,
-      status: "SELESAI",
+      nama: "Dina & Aris",
+      kategori: "Prewedding",
+      email: "dina.aris@example.com",
+      telepon: "+62 813-1122-3344",
+      tanggalAcara: "2 September 2025",
+      jumlahFotoMaks: 40,
+      status: "PENDING",
     },
-  ];
+  ]);
 
-  // Filter Data Klien berdasarkan Search dan Status
-  const filteredClients = clientData.filter((client) => {
+  // State Filter & Pencarian
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+
+  // Filter Logic
+  const filteredKlien = klienList.filter((item) => {
     const matchSearch =
-      client.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      client.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      client.kategori.toLowerCase().includes(searchQuery.toLowerCase());
+      item.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.kategori.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.email.toLowerCase().includes(searchQuery.toLowerCase());
+
     const matchStatus =
-      selectedStatus === "SEMUA" || client.status === selectedStatus;
+      statusFilter === "ALL" ? true : item.status === statusFilter;
 
     return matchSearch && matchStatus;
   });
 
+  // Handler Hapus
+  const handleDelete = (id: string) => {
+    if (confirm("Apakah Anda yakin ingin menghapus data klien ini?")) {
+      setKlienList((prev) => prev.filter((k) => k.id !== id));
+    }
+  };
+
   return (
     <div className="flex min-h-screen bg-[#f6f6f6] font-sans text-stone-800">
       {/* Sidebar Navigasi */}
-      <aside className="w-64 bg-white border-r border-stone-200/80 flex flex-col justify-between p-6">
+      <aside className="w-64 bg-white border-r border-stone-200/80 flex flex-col justify-between p-6 shrink-0">
         <div>
           {/* Logo Brand */}
           <div className="mb-10 px-2">
@@ -148,7 +168,7 @@ export default function KelolaKlien() {
       </aside>
 
       {/* Konten Utama */}
-      <main className="flex-1 flex flex-col">
+      <main className="flex-1 flex flex-col min-w-0">
         {/* Topbar / Header */}
         <header className="h-16 bg-white/80 backdrop-blur-md border-b border-stone-200/80 flex items-center justify-end px-8 gap-4 sticky top-0 z-10">
           <button className="p-2 text-stone-500 hover:text-stone-800 hover:bg-stone-100 rounded-full transition">
@@ -162,125 +182,59 @@ export default function KelolaKlien() {
           </div>
         </header>
 
-        {/* Kelola Klien Area */}
+        {/* Content Area */}
         <div className="p-8 space-y-8 max-w-[1600px] mx-auto w-full">
-          {/* Header & Aksi Utama */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          {/* Header Halaman & Tombol Aksi */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h2 className="text-2xl font-semibold text-stone-900">
                 Kelola Klien
               </h2>
               <p className="text-sm text-stone-500 mt-1">
-                Kelola daftar klien, pantau status galeri, dan atur hak akses foto klienmu.
+                Kelola data klien, jadwal sesi, dan kuota pemilihan foto mereka.
               </p>
             </div>
             <Link
               href="/klien/tambah"
-              className="flex items-center gap-2 bg-stone-900 hover:bg-stone-800 text-white px-5 py-2.5 rounded-xl text-xs font-semibold shadow-sm transition w-fit"
+              className="flex items-center gap-2 px-4 py-2.5 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-xs font-semibold shadow-sm transition w-fit"
             >
               <Plus className="w-4 h-4" />
-              <span>Tambah Klien Baru</span>
+              Tambah Klien Baru
             </Link>
           </div>
 
-          {/* 4 Stat Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            <div className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-sm relative">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-stone-500">
-                  Total Klien
-                </span>
-                <div className="p-2 bg-stone-100 rounded-xl text-stone-600">
-                  <Users className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="text-3xl font-bold text-stone-900 mt-3">12</div>
-              <p className="text-[11px] text-stone-400 mt-1">
-                Terdaftar dalam sistem
-              </p>
+          {/* Filter & Search Bar */}
+          <div className="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-sm flex flex-col sm:flex-row gap-4 items-center justify-between">
+            {/* Input Pencarian */}
+            <div className="relative w-full sm:w-80">
+              <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Cari nama, kategori, atau email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-900 focus:bg-white transition"
+              />
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-sm relative">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-stone-500">
-                  Klien Aktif
-                </span>
-                <div className="p-2 bg-emerald-50 rounded-xl text-emerald-600">
-                  <UserCheck className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="text-3xl font-bold text-stone-900 mt-3">7</div>
-              <p className="text-[11px] text-stone-400 mt-1">
-                Sedang proses alur foto
-              </p>
-            </div>
-
-            <div className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-sm relative">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-stone-500">
-                  Selesai
-                </span>
-                <div className="p-2 bg-blue-50 rounded-xl text-blue-600">
-                  <CheckCircle2 className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="text-3xl font-bold text-stone-900 mt-3">4</div>
-              <p className="text-[11px] text-stone-400 mt-1">
-                Galeri telah diserahkan
-              </p>
-            </div>
-
-            <div className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-sm relative">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-stone-500">
-                  Draft / Pending
-                </span>
-                <div className="p-2 bg-amber-50 rounded-xl text-amber-600">
-                  <Clock className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="text-3xl font-bold text-stone-900 mt-3">1</div>
-              <p className="text-[11px] text-stone-400 mt-1">
-                Menunggu konfirmasi
-              </p>
+            {/* Filter Status */}
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Filter className="w-4 h-4 text-stone-400 shrink-0" />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full sm:w-auto px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs font-medium text-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-900 cursor-pointer"
+              >
+                <option value="ALL">Semua Status</option>
+                <option value="AKTIF">Aktif</option>
+                <option value="PENDING">Pending</option>
+                <option value="SELESAI">Selesai</option>
+              </select>
             </div>
           </div>
 
-          {/* Tabel Utama & Filter Bar */}
-          <div className="bg-white rounded-2xl p-6 border border-stone-200/80 shadow-sm space-y-6">
-            {/* Toolbar: Search & Status Filter */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              {/* Search Bar */}
-              <div className="relative w-full sm:w-80">
-                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
-                <input
-                  type="text"
-                  placeholder="Cari nama, email, atau acara..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-stone-900 focus:bg-white transition"
-                />
-              </div>
-
-              {/* Status Filter Buttons */}
-              <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
-                {["SEMUA", "AKTIF", "SELESAI", "DRAFT"].map((status) => (
-                  <button
-                    key={status}
-                    onClick={() => setSelectedStatus(status)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-medium transition ${
-                      selectedStatus === status
-                        ? "bg-stone-900 text-white"
-                        : "bg-stone-100 text-stone-600 hover:bg-stone-200"
-                    }`}
-                  >
-                    {status}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Tabel Data Klien */}
+          {/* Table Container */}
+          <div className="bg-white rounded-2xl p-6 border border-stone-200/80 shadow-sm space-y-4">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
@@ -289,76 +243,78 @@ export default function KelolaKlien() {
                     <th className="pb-3 px-2">Nama Klien</th>
                     <th className="pb-3 px-2">Kontak</th>
                     <th className="pb-3 px-2">Tanggal Acara</th>
-                    <th className="pb-3 px-2">Batas Foto</th>
+                    <th className="pb-3 px-2">Maks Foto</th>
                     <th className="pb-3 px-2">Status</th>
                     <th className="pb-3 pl-2 text-right">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100 font-medium text-stone-700">
-                  {filteredClients.length > 0 ? (
-                    filteredClients.map((client, index) => (
-                      <tr key={client.id} className="hover:bg-stone-50/50 transition">
-                        <td className="py-4 pr-2 text-stone-400">
-                          {index + 1}
+                  {filteredKlien.length > 0 ? (
+                    filteredKlien.map((klien, index) => (
+                      <tr key={klien.id} className="hover:bg-stone-50/50 transition">
+                        <td className="py-4 pr-2 text-stone-400">{index + 1}</td>
+                        <td className="py-4 px-2 font-semibold text-stone-900">
+                          {klien.nama}
+                          <span className="block text-[10px] font-normal text-stone-400 mt-0.5">
+                            {klien.kategori}
+                          </span>
+                        </td>
+                        <td className="py-4 px-2 space-y-0.5">
+                          <div className="flex items-center gap-1.5 text-stone-600">
+                            <Mail className="w-3 h-3 text-stone-400" />
+                            <span>{klien.email}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-stone-400 text-[10px]">
+                            <Phone className="w-3 h-3 text-stone-400" />
+                            <span>{klien.telepon}</span>
+                          </div>
                         </td>
                         <td className="py-4 px-2">
-                          <span className="font-semibold text-stone-900 block">
-                            {client.nama}
-                          </span>
-                          <span className="text-[10px] text-stone-400 font-normal">
-                            {client.kategori}
-                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <Calendar className="w-3.5 h-3.5 text-stone-400" />
+                            <span>{klien.tanggalAcara}</span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-2 font-semibold text-stone-800">
+                          {klien.jumlahFotoMaks} foto
                         </td>
                         <td className="py-4 px-2">
-                          <span className="block text-stone-700">
-                            {client.email}
-                          </span>
-                          <span className="text-[10px] text-stone-400 font-normal">
-                            {client.telepon}
-                          </span>
-                        </td>
-                        <td className="py-4 px-2 text-stone-600">
-                          {client.tanggal}
-                        </td>
-                        <td className="py-4 px-2 text-stone-600">
-                          {client.jumlahFoto} foto
-                        </td>
-                        <td className="py-4 px-2">
-                          {client.status === "AKTIF" && (
+                          {klien.status === "AKTIF" && (
                             <span className="px-2.5 py-1 rounded-full text-[10px] bg-emerald-50 text-emerald-600 font-semibold">
                               AKTIF
                             </span>
                           )}
-                          {client.status === "SELESAI" && (
-                            <span className="px-2.5 py-1 rounded-full text-[10px] bg-blue-50 text-blue-600 font-semibold">
-                              SELESAI
+                          {klien.status === "PENDING" && (
+                            <span className="px-2.5 py-1 rounded-full text-[10px] bg-amber-50 text-amber-600 font-semibold">
+                              PENDING
                             </span>
                           )}
-                          {client.status === "DRAFT" && (
-                            <span className="px-2.5 py-1 rounded-full text-[10px] bg-amber-50 text-amber-600 font-semibold">
-                              DRAFT
+                          {klien.status === "SELESAI" && (
+                            <span className="px-2.5 py-1 rounded-full text-[10px] bg-stone-100 text-stone-500 font-semibold">
+                              SELESAI
                             </span>
                           )}
                         </td>
                         <td className="py-4 pl-2 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
+                          <div className="flex items-center justify-end gap-1">
                             <Link
-                              href={`/klien/${client.id}`}
-                              className="p-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg transition"
+                              href={`/klien/${klien.id}`}
                               title="Lihat Detail"
+                              className="p-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg transition"
                             >
                               <Eye className="w-3.5 h-3.5" />
                             </Link>
                             <Link
-                              href={`/klien/${client.id}/edit`}
+                              href={`/klien/edit/${klien.id}`}
+                              title="Edit Data"
                               className="p-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg transition"
-                              title="Edit"
                             >
-                              <Edit className="w-3.5 h-3.5" />
+                              <Edit3 className="w-3.5 h-3.5" />
                             </Link>
                             <button
+                              onClick={() => handleDelete(klien.id)}
+                              title="Hapus Klien"
                               className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition"
-                              title="Hapus"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -368,10 +324,7 @@ export default function KelolaKlien() {
                     ))
                   ) : (
                     <tr>
-                      <td
-                        colSpan={7}
-                        className="py-8 text-center text-stone-400 italic"
-                      >
+                      <td colSpan={7} className="text-center py-8 text-stone-400">
                         Tidak ada data klien yang ditemukan.
                       </td>
                     </tr>
@@ -380,22 +333,20 @@ export default function KelolaKlien() {
               </table>
             </div>
 
-            {/* Footer Tabel / Paginasi */}
-            <div className="flex items-center justify-between pt-2 border-t border-stone-100 text-xs text-stone-500">
-              <span>
-                Menampilkan <b>{filteredClients.length}</b> dari <b>{clientData.length}</b> klien
-              </span>
+            {/* Pagination Footer */}
+            <div className="flex items-center justify-between pt-4 border-t border-stone-100 text-xs text-stone-500">
+              <span>Menampilkan {filteredKlien.length} dari {klienList.length} klien</span>
               <div className="flex items-center gap-2">
                 <button
                   disabled
-                  className="p-1.5 rounded-lg border border-stone-200 text-stone-300 cursor-not-allowed"
+                  className="p-1.5 bg-stone-100 rounded-lg text-stone-400 cursor-not-allowed"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
-                <span className="font-semibold text-stone-800">1</span>
+                <span className="font-semibold text-stone-800 px-2">1</span>
                 <button
                   disabled
-                  className="p-1.5 rounded-lg border border-stone-200 text-stone-300 cursor-not-allowed"
+                  className="p-1.5 bg-stone-100 rounded-lg text-stone-400 cursor-not-allowed"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
