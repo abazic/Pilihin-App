@@ -14,9 +14,6 @@ import {
   Clock,
   Plus,
   ChevronRight,
-  Link2,
-  MoreHorizontal,
-  ExternalLink,
 } from "lucide-react";
 
 export default function Dashboard() {
