@@ -29,7 +29,7 @@ export default async function GalleryPage({ params }) {
             Masa aktif galeri foto untuk <strong>{client.client_name}</strong> telah habis. Silakan hubungi admin untuk memperpanjang masa akses.
           </p>
           <a
-            href={`https://wa.me/${client.admin_whatsapp || '6281234567890'}`}
+            href={`https://wa.me/${client.admin_whatsapp || process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || '201553538819'}`}
             className="inline-flex items-center justify-center px-5 py-2.5 bg-black text-white text-sm font-medium rounded-xl hover:bg-gray-800 transition-colors"
           >
             Hubungi Admin
