@@ -12,7 +12,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// Import Font Serif untuk logo & heading estetik (Nyala Karya)
+// Import Font Serif untuk logo & heading estetik 
 const playfair = Playfair_Display({
   variable: "--font-serif",
   subsets: ["latin"],
