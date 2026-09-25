@@ -62,7 +62,7 @@ export default function HomePage() {
     expireDate: '',
     notes: ''
   });
-  
+  const supabase = createClient();
   const [editingId, setEditingId] = useState<string | number | null>(null);
   const [createdSlug, setCreatedSlug] = useState<string>('');
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
