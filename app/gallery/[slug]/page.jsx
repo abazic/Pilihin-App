@@ -2,6 +2,8 @@
 import { createClient } from '@/lib/supabase/server'
 import GalleryClient from './GalleryClient'
 import { notFound } from 'next/navigation'
+// 👇 1. Import fungsi GDrive di sini (berjalan di server)
+import { getPhotosFromGDrive } from '@/lib/gdrive' 
 
 export async function generateMetadata({ params }) {
   // Metadata dinamis...
@@ -45,6 +47,10 @@ export default async function GalleryPage({ params }) {
     )
   }
 
-  // Jika masih berlaku, tampilkan komponen galeri
-  return <GalleryClient client={client} />
+  // 👇 2. Panggil GDrive API di Server-Side
+  // Pastikan field 'folder_id' sesuai dengan nama kolom di database Supabase kamu
+  const photos = await getPhotosFromGDrive(client.folder_id);
+
+  // 👇 3. Oper 'initialPhotos' ke GalleryClient
+  return <GalleryClient client={client} initialPhotos={photos} />
 }
