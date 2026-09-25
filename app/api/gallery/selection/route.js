@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 // Sesuaikan import ini dengan letak fungsi Supabase server kamu (misal: dari utils/supabase/server.ts)
-import { createClient } from '@/utils/supabase/server'; 
+import { createClient } from '@/lib/supabase/server'; 
 
 export async function POST(request) {
   try {
