@@ -75,7 +75,7 @@ export default function HomePage() {
   // 2. State Profil Admin & WhatsApp
   const [adminInfo, setAdminInfo] = useState({
     name: 'Admin Abazic Art.chive',
-    whatsapp: '6281234567890'
+    whatsapp: process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || '20553538819
   });
   const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
   const [isEditingAdmin, setIsEditingAdmin] = useState<boolean>(false);
