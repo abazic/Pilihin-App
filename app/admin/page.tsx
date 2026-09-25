@@ -74,7 +74,7 @@ export default function HomePage() {
 
   // 2. State Profil Admin & WhatsApp
   const [adminInfo, setAdminInfo] = useState({
-    name: 'Admin Nyala Karya',
+    name: 'Admin Abazic Art.chive',
     whatsapp: '6281234567890'
   });
   const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
@@ -270,7 +270,7 @@ export default function HomePage() {
         {/* Logo Brand */}
         <div className="flex items-center gap-6">
           <div className="flex flex-col">
-            <span className="font-serif italic text-2xl font-bold tracking-tight text-gray-900">Nyala Karya</span>
+            <span className="font-serif italic text-2xl font-bold tracking-tight text-gray-900">Abazic Art.chive</span>
             <span className="text-[9px] uppercase tracking-widest text-gray-400 font-semibold">Photo & Video</span>
           </div>
         </div>
