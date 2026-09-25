@@ -47,10 +47,14 @@ export default function GalleryClient() {
 
       setGallery(data);
 
-      const gdrivePhotos = await getPhotosFromGDrive(data.folder_id);
+      // Fetch melalui API Route internal, bukan langsung memanggil lib/gdrive
+      const res = await fetch(`/api/drive/photos?folderId=${data.folder_id}`);
+      const gdrivePhotos = await res.json();
+      
       setPhotos(gdrivePhotos);
 
       if (data.selected_photos && data.selected_photos.length > 0) {
+        // ... (lanjutan kode sama seperti sebelumnya)
         const restored = gdrivePhotos.filter((p) =>
           data.selected_photos.includes(p.name)
         );
