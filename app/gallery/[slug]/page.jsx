@@ -10,7 +10,7 @@ export default async function GalleryPage({ params }) {
 
   // Ambil data klien dari Supabase
   const { data: client, error } = await supabase
-    .from('clients') // Pastikan nama tabel benar (clients atau galleries)
+    .from('galleries') // Pastikan nama tabel benar (clients atau galleries)
     .select('*')
     .eq('slug', slug)
     .single()
