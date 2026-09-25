@@ -42,7 +42,7 @@ export default function LoginPage() {
         {/* Logo & Judul */}
         <div className="text-center mb-8">
           <div className="flex flex-col items-center mb-4">
-            <span className="font-serif italic text-3xl font-bold tracking-tight text-gray-900">Nyala Karya</span>
+            <span className="font-serif italic text-3xl font-bold tracking-tight text-gray-900">Abazic Art.chive</span>
             <span className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">Photo & Video</span>
           </div>
           <h1 className="text-xl font-medium text-gray-800">Login Admin</h1>
