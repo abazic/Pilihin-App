@@ -103,7 +103,7 @@ export default function HomePage() {
       }
     } catch (err) {
       console.error('Gagal mengambil daftar klien:', err);
-    } fontally {
+    } finally {
       setFetchingClients(false);
     }
   }, [supabase]);
