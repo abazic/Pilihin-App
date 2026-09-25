@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 // Sesuaikan import ini dengan letak fungsi Supabase server kamu (misal: dari utils/supabase/server.ts)
 import { createClient } from '@/utils/supabase/server'; 
 
-export async function POST(request: Request) {
+export async function POST(request) {
   try {
     const { slug, selectedPhotos } = await request.json();
 
@@ -31,11 +31,20 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Cek apakah galeri sudah expired
+    // 2. Cek apakah galeri sudah expired (MENGGUNAKAN ZONA WAKTU CAIRO)
     if (gallery.expire_date) {
-      const now = new Date();
-      const expireDate = new Date(gallery.expire_date);
-      if (now > expireDate) {
+      // Ambil tanggal hari ini berdasarkan zona waktu Kairo (format YYYY-MM-DD)
+      const nowInCairo = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Africa/Cairo',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }).format(new Date());
+
+      // Bandingkan string YYYY-MM-DD langsung (misal: "2026-09-26" > "2026-09-25")
+      // Ini memastikan expired dihitung tepat pada pergantian hari di waktu Kairo.
+      // Asumsi format gallery.expire_date di database adalah tanggal (contoh: "2026-09-25")
+      if (nowInCairo > gallery.expire_date) {
         return NextResponse.json(
           { error: 'Batas waktu pemilihan untuk galeri ini sudah berakhir (Expired)' },
           { status: 403 }
@@ -44,20 +53,16 @@ export async function POST(request: Request) {
     }
 
     // 3. Cek maksimal jumlah foto (max_photos)
-    if (gallery.max_photos && selectedPhotos.length > gallery.max_photos) {
+    if (gallery.max_photos !== null && selectedPhotos.length > gallery.max_photos) {
       return NextResponse.json(
         { error: `Maksimal pilihan adalah ${gallery.max_photos} foto. Kamu memilih ${selectedPhotos.length} foto.` },
         { status: 400 }
       );
     }
 
-    // 4. (Opsional tapi penting) Cek apakah foto yang dikirim memang ada di galeri
-    // Asumsi: kolom 'photos' di database menyimpan daftar nama foto (misal dalam bentuk array JSON)
+    // 4. Cek apakah foto yang dikirim memang ada di galeri
     if (gallery.photos && Array.isArray(gallery.photos)) {
-      // Kita asumsikan gallery.photos adalah array of object [{ url: '...', name: 'IMG_001.jpg' }] 
-      // ATAU array of string ['IMG_001.jpg', 'IMG_002.jpg']
-      // Sesuaikan mapping ini dengan struktur datamu
-      const availablePhotoNames = gallery.photos.map((p: any) => p.name || p); 
+      const availablePhotoNames = gallery.photos.map((p) => p.name || p); 
       
       const isAllPhotosValid = selectedPhotos.every(photo => availablePhotoNames.includes(photo));
       
