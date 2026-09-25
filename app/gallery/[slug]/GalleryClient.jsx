@@ -1,41 +1,28 @@
-// Di dalam GalleryClient.jsx / tsx
 'use client';
+import { useState } from 'react';
 
 export default function GalleryClient({ galleryData, initialPhotos }) {
-  // seluruh UI gallery
-const saveSelection = async (slug, selectedPhotos) => {
-  try {
-    // Tampilkan state loading jika perlu
-    // setIsLoading(true);
+  const [selectedPhotos, setSelectedPhotos] = useState([]);
 
-    const response = await fetch('/api/gallery/selection', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        slug: slug,
-        selectedPhotos: selectedPhotos
-      }),
-    });
+  const saveSelection = async (slug, selectedPhotos) => { /* ...kode lama... */ };
 
-    const data = await response.json();
+  const togglePhoto = (name) =>
+    setSelectedPhotos((prev) =>
+      prev.includes(name) ? prev.filter((p) => p !== name) : [...prev, name]
+    );
 
-    if (!response.ok) {
-      // Tangani error dari server (expired, limit, dll)
-      // Tampilkan toast / alert error ke user
-      alert(`Gagal: ${data.error}`);
-      return;
-    }
-
-    // Sukses!
-    // Tampilkan notifikasi sukses atau pindah halaman
-    alert('Berhasil: ' + data.message);
-    
-  } catch (error) {
-    console.error('Error saving selection:', error);
-    alert('Terjadi kesalahan jaringan, coba lagi nanti.');
-  } finally {
-    // setIsLoading(false);
-  }
-};
+  return (
+    <div>
+      <div className="grid grid-cols-3 gap-3">
+        {initialPhotos?.map((p) => (
+          <button key={p.id} onClick={() => togglePhoto(p.name)}>
+            <img src={p.url} alt={p.name} />
+          </button>
+        ))}
+      </div>
+      <button onClick={() => saveSelection(galleryData?.slug, selectedPhotos)}>
+        Simpan Pilihan
+      </button>
+    </div>
+  );
+}
