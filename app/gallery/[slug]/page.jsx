@@ -1,8 +1,8 @@
-// app/gallery/[slug]/page.jsx
 import { createClient } from '@/lib/supabase/server'
 import GalleryClient from './GalleryClient'
 import { notFound } from 'next/navigation'
 import { getPhotosFromGDrive } from '@/lib/gdrive' 
+import { isGalleryExpired } from '@/lib/gallery-expiry'
 
 export default async function GalleryPage({ params }) {
   const { slug } = await params;
@@ -10,7 +10,7 @@ export default async function GalleryPage({ params }) {
 
   // Ambil data klien dari Supabase
   const { data: client, error } = await supabase
-    .from('galleries') // Pastikan nama tabel benar (clients atau galleries)
+    .from('galleries')
     .select('*')
     .eq('slug', slug)
     .single()
@@ -19,10 +19,8 @@ export default async function GalleryPage({ params }) {
     notFound()
   }
 
-  // 🔴 CEK MASA BERLAKU GALERI (Sudah disesuaikan ke expire_date)
-  const now = new Date()
- const expirationDate = client.expire_date ? new Date(client.expire_date) : null;
-if (expirationDate && now > expirationDate){
+  // 🔴 CEK MASA BERLAKU GALERI (Menggunakan Helper Konsisten)
+  if (isGalleryExpired(client.expire_date)) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4 text-center">
         <div className="max-w-md bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
@@ -31,7 +29,7 @@ if (expirationDate && now > expirationDate){
             Masa aktif galeri foto untuk <strong>{client.client_name}</strong> telah habis. Silakan hubungi admin untuk memperpanjang masa akses.
           </p>
           <a
-            href={`https://wa.me/${client.admin_whatsapp || '6281234567890'}`} // Disinkronkan dengan skema admin_whatsapp
+            href={`https://wa.me/${client.admin_whatsapp || '6281234567890'}`}
             className="inline-flex items-center justify-center px-5 py-2.5 bg-black text-white text-sm font-medium rounded-xl hover:bg-gray-800 transition-colors"
           >
             Hubungi Admin
@@ -44,6 +42,6 @@ if (expirationDate && now > expirationDate){
   // Panggil GDrive API di Server-Side
   const photos = await getPhotosFromGDrive(client.folder_id);
 
-  // Oper data ke Client Component menggunakan props bernama 'galleryData' agar konsisten
+  // Oper data ke Client Component menggunakan props 'galleryData'
   return <GalleryClient galleryData={client} initialPhotos={photos} />
 }
