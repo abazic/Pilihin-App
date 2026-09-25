@@ -1,5 +1,8 @@
 // Di dalam GalleryClient.jsx / tsx
+'use client';
 
+export default function GalleryClient({ galleryData, initialPhotos }) {
+  // seluruh UI gallery
 const saveSelection = async (slug, selectedPhotos) => {
   try {
     // Tampilkan state loading jika perlu
