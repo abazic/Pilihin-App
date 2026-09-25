@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { extractFolderId } from '@/lib/gdrive';
@@ -88,8 +88,8 @@ export default function HomePage() {
     { id: 3, title: 'Klien Baru Ditambahkan', desc: 'Link galeri Budi & Siska telah aktif.', time: '1 hari lalu', read: true },
   ]);
 
-  // Fetch daftar klien dari Supabase
-  const fetchClients = async () => {
+  // Fetch daftar klien dari Supabase menggunakan useCallback agar referensi fungsi stabil
+  const fetchClients = useCallback(async () => {
     setFetchingClients(true);
     try {
       const { data, error } = await supabase
@@ -105,11 +105,11 @@ export default function HomePage() {
     } finally {
       setFetchingClients(false);
     }
-  };
+  }, [supabase]);
 
   useEffect(() => {
     fetchClients();
-  }, []);
+  }, [fetchClients]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -594,9 +594,7 @@ export default function HomePage() {
 
         </form>
 
-        {/* ========================================================= */}
-        {/* SEKSI RINGKASAN & DAFTAR KLIEN TERDAFTAR */}
-        {/* ========================================================= */}
+        {/* Ringkasan & Daftar Klien Terdaftar */}
         <section className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-5">
             <div>
