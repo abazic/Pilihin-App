@@ -15,7 +15,7 @@ export async function POST(request) {
     }
 
     // Inisialisasi Supabase client (Server-side)
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // 1. Cari gallery berdasarkan slug
     const { data: gallery, error: fetchError } = await supabase
