@@ -239,7 +239,7 @@ export default function HomePage() {
           fetchClients();
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       alert('Terjadi kesalahan saat mengekstrak link atau menyimpan data.');
     } finally {
       setLoading(false);
