@@ -29,10 +29,11 @@ export default function LoginPage() {
       router.push('/admin');
       router.refresh(); // Refresh state Next.js agar middleware membaca sesi baru
     } catch (err: unknown) {
-      setError(err.message || 'Gagal login. Periksa kembali email dan password.');
-    } finally {
-      setLoading(false);
-    }
+  if (err instanceof Error) {
+    alert(`Terjadi kesalahan: ${err.message}`);
+  } else {
+    alert('Terjadi kesalahan saat mengekstrak link atau menyimpan data.');
+  }
   };
 
   return (
