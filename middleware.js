@@ -38,7 +38,7 @@ export async function middleware(request) {
       .from('profiles')
       .select('role')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
     // Jika terjadi error, tidak ada data profile, atau role bukan 'admin'
     if (error || profile?.role !== 'admin') {
