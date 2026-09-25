@@ -6,7 +6,7 @@ import { getPhotosFromGDrive } from '@/lib/gdrive'
 
 export default async function GalleryPage({ params }) {
   const { slug } = await params;
-  const supabase = createClient()
+  const supabase = await createClient()
 
   // Ambil data klien dari Supabase
   const { data: client, error } = await supabase
