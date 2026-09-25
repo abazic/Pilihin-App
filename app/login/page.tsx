@@ -12,6 +12,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const supabase = createClient();
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -29,12 +30,17 @@ export default function LoginPage() {
       router.push('/admin');
       router.refresh(); // Refresh state Next.js agar middleware membaca sesi baru
     } catch (err: unknown) {
-  if (err instanceof Error) {
-    alert(`Terjadi kesalahan: ${err.message}`);
-  } else {
-    alert('Terjadi kesalahan saat mengekstrak link atau menyimpan data.');
-  }
-  };
+      if (err instanceof Error) {
+        // Menggunakan setError agar notifikasi muncul di UI sesuai desain kamu, bukan sekadar alert
+        setError(`Terjadi kesalahan: ${err.message}`);
+      } else {
+        setError('Terjadi kesalahan saat mengekstrak link atau menyimpan data.');
+      }
+    } finally {
+      // Pastikan loading berhenti baik saat berhasil maupun gagal
+      setLoading(false); 
+    }
+  }; // <-- Kurung kurawal penutup fungsi handleLogin yang sebelumnya hilang
 
   return (
     <div className="min-h-screen bg-[#f7f7f7] flex items-center justify-center p-6">
