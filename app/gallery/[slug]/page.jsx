@@ -21,9 +21,8 @@ export default async function GalleryPage({ params }) {
 
   // 🔴 CEK MASA BERLAKU GALERI (Sudah disesuaikan ke expire_date)
   const now = new Date()
-  const expirationDate = new Date(client.expire_date)
-
-  if (now > expirationDate) {
+ const expirationDate = client.expire_date ? new Date(client.expire_date) : null;
+if (expirationDate && now > expirationDate){
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4 text-center">
         <div className="max-w-md bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
