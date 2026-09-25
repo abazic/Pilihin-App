@@ -19,16 +19,23 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { data, error } = await supabase.auth.signInWithPassword({
+  email: email.trim(),
+  password,
+})
 
-      if (error) throw error;
-      
-      // Jika berhasil, arahkan ke dashboard admin
-      router.push('/admin');
-      router.refresh(); // Refresh state Next.js agar middleware membaca sesi baru
+if (error) {
+  setError(error.message)
+  return
+}
+
+if (!data.user) {
+  setError('Login gagal: user tidak ditemukan.')
+  return
+}
+
+router.replace('/admin')
+router.refresh()
     } catch (err: unknown) {
       if (err instanceof Error) {
         // Menggunakan setError agar notifikasi muncul di UI sesuai desain kamu, bukan sekadar alert
