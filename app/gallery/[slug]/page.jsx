@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation'
 import { getPhotosFromGDrive } from '@/lib/gdrive' 
 
 export default async function GalleryPage({ params }) {
-  const { slug } = params
+  const { slug } = await params;
   const supabase = createClient()
 
   // Ambil data klien dari Supabase
