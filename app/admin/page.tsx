@@ -240,10 +240,11 @@ export default function HomePage() {
         }
       }
     } catch (err: unknown) {
-      alert('Terjadi kesalahan saat mengekstrak link atau menyimpan data.');
-    } finally {
-      setLoading(false);
-    }
+  if (err instanceof Error) {
+    alert(`Terjadi kesalahan: ${err.message}`);
+  } else {
+    alert('Terjadi kesalahan saat mengekstrak link atau menyimpan data.');
+  }
   };
 
   // Salin Link Galeri
