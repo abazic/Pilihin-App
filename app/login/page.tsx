@@ -28,7 +28,7 @@ export default function LoginPage() {
       // Jika berhasil, arahkan ke dashboard admin
       router.push('/admin');
       router.refresh(); // Refresh state Next.js agar middleware membaca sesi baru
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message || 'Gagal login. Periksa kembali email dan password.');
     } finally {
       setLoading(false);
