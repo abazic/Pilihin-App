@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-// Sesuaikan import ini dengan letak fungsi Supabase server kamu (misal: dari utils/supabase/server.ts)
 import { createClient } from '@/lib/supabase/server'; 
+import { isGalleryExpired } from '@/lib/gallery-expiry';
 
 export async function POST(request) {
   try {
@@ -31,25 +31,12 @@ export async function POST(request) {
       );
     }
 
-    // 2. Cek apakah galeri sudah expired (MENGGUNAKAN ZONA WAKTU CAIRO)
-    if (gallery.expire_date) {
-      // Ambil tanggal hari ini berdasarkan zona waktu Kairo (format YYYY-MM-DD)
-      const nowInCairo = new Intl.DateTimeFormat('en-CA', {
-        timeZone: 'Africa/Cairo',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      }).format(new Date());
-
-      // Bandingkan string YYYY-MM-DD langsung (misal: "2026-09-26" > "2026-09-25")
-      // Ini memastikan expired dihitung tepat pada pergantian hari di waktu Kairo.
-      // Asumsi format gallery.expire_date di database adalah tanggal (contoh: "2026-09-25")
-      if (nowInCairo > gallery.expire_date) {
-        return NextResponse.json(
-          { error: 'Batas waktu pemilihan untuk galeri ini sudah berakhir (Expired)' },
-          { status: 403 }
-        );
-      }
+    // 2. Cek apakah galeri sudah expired (MENGGUNAKAN HELPER KONSISTEN)
+    if (isGalleryExpired(gallery.expire_date)) {
+      return NextResponse.json(
+        { error: 'Batas waktu pemilihan untuk galeri ini sudah berakhir (Expired)' },
+        { status: 403 }
+      );
     }
 
     // 3. Cek maksimal jumlah foto (max_photos)
