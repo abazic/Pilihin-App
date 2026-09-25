@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { extractFolderId } from '@/lib/gdrive';
+import { DEFAULT_WHATSAPP_NUMBER } from '@/lib/constants';
 import { 
   FileText, 
   Bell, 
@@ -75,7 +76,7 @@ export default function HomePage() {
   // 2. State Profil Admin & WhatsApp
   const [adminInfo, setAdminInfo] = useState({
     name: 'Admin Abazic Art.chive',
-    whatsapp: process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || '20553538819
+    whatsapp: DEFAULT_WHATSAPP_NUMBER
   });
   const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
   const [isEditingAdmin, setIsEditingAdmin] = useState<boolean>(false);
@@ -88,7 +89,7 @@ export default function HomePage() {
     { id: 3, title: 'Klien Baru Ditambahkan', desc: 'Link galeri Budi & Siska telah aktif.', time: '1 hari lalu', read: true },
   ]);
 
-  // Fetch daftar klien dari Supabase menggunakan useCallback agar referensi fungsi stabil
+  // Fetch daftar klien dari Supabase
   const fetchClients = useCallback(async () => {
     setFetchingClients(true);
     try {
@@ -102,7 +103,7 @@ export default function HomePage() {
       }
     } catch (err) {
       console.error('Gagal mengambil daftar klien:', err);
-    } finally {
+    } fontally {
       setFetchingClients(false);
     }
   }, [supabase]);
@@ -110,6 +111,44 @@ export default function HomePage() {
   useEffect(() => {
     fetchClients();
   }, [fetchClients]);
+
+  // Fetch Nomor WhatsApp dari Supabase saat halaman dimuat
+  useEffect(() => {
+    async function loadAdminSettings() {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('key', 'whatsapp_number')
+        .single();
+
+      if (!error && data?.value) {
+        setAdminInfo(prev => ({ ...prev, whatsapp: data.value }));
+      }
+    }
+    loadAdminSettings();
+  }, [supabase]);
+
+  // Fungsi Simpan Profil ke Supabase
+  const handleSaveAdminProfile = async () => {
+    try {
+      const { error } = await supabase
+        .from('settings')
+        .upsert({ 
+          key: 'whatsapp_number', 
+          value: adminInfo.whatsapp,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) {
+        alert('Gagal menyimpan nomor WhatsApp: ' + error.message);
+      } else {
+        alert('Profil Admin berhasil diperbarui!');
+        setIsEditingAdmin(false);
+      }
+    } catch (err) {
+      alert('Terjadi kesalahan saat menyimpan profil.');
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -157,7 +196,6 @@ export default function HomePage() {
     });
     setCreatedSlug(client.slug);
 
-    // Scroll mulus ke form atas
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -179,7 +217,7 @@ export default function HomePage() {
     }
   };
 
-  // 4. Simpan / Perbarui Data Klien ke Supabase
+  // Simpan / Perbarui Data Klien ke Supabase
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.clientName || !formData.gdriveUrl) {
@@ -204,7 +242,6 @@ export default function HomePage() {
       };
 
       if (editingId) {
-        // Mode Edit / Update
         const { error } = await supabase.from('galleries').update(payload).eq('id', editingId);
 
         if (error) {
@@ -215,7 +252,6 @@ export default function HomePage() {
           fetchClients();
         }
       } else {
-        // Mode Tambah Baru
         const { error } = await supabase.from('galleries').insert([payload]);
 
         if (error) {
@@ -240,11 +276,14 @@ export default function HomePage() {
         }
       }
     } catch (err: unknown) {
-  if (err instanceof Error) {
-    alert(`Terjadi kesalahan: ${err.message}`);
-  } else {
-    alert('Terjadi kesalahan saat mengekstrak link atau menyimpan data.');
-  }
+      if (err instanceof Error) {
+        alert(`Terjadi kesalahan: ${err.message}`);
+      } else {
+        alert('Terjadi kesalahan saat mengekstrak link atau menyimpan data.');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Salin Link Galeri
@@ -256,7 +295,6 @@ export default function HomePage() {
     setTimeout(() => setCopiedSlug(null), 2000);
   };
 
-  // Tandai Semua Notifikasi Dibaca
   const markAllNotifsRead = () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
@@ -268,7 +306,6 @@ export default function HomePage() {
       
       {/* Topbar / Header Utama */}
       <header className="bg-white border-b border-gray-200 h-20 px-6 sm:px-12 flex items-center justify-between sticky top-0 z-30 shadow-sm">
-        {/* Logo Brand */}
         <div className="flex items-center gap-6">
           <div className="flex flex-col">
             <span className="font-serif italic text-2xl font-bold tracking-tight text-gray-900">Abazic Art.chive</span>
@@ -276,10 +313,9 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Notifikasi & Profil Admin */}
         <div className="flex items-center gap-4 relative">
           
-          {/* 1. TOMBOL NOTIFIKASI */}
+          {/* TOMBOL NOTIFIKASI */}
           <div className="relative">
             <button 
               type="button" 
@@ -295,7 +331,6 @@ export default function HomePage() {
               )}
             </button>
 
-            {/* Dropdown Notifikasi */}
             {isNotifOpen && (
               <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white border border-gray-200 rounded-2xl shadow-xl z-40 overflow-hidden">
                 <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
@@ -339,7 +374,7 @@ export default function HomePage() {
             )}
           </div>
 
-          {/* 2. TOMBOL ADMIN (NAMA & WHATSAPP) */}
+          {/* TOMBOL ADMIN (NAMA & WHATSAPP) */}
           <div className="relative">
             <button
               onClick={() => {
@@ -356,7 +391,6 @@ export default function HomePage() {
               <ChevronDown size={14} className="text-gray-400" />
             </button>
 
-            {/* Dropdown Menu Admin */}
             {isProfileOpen && (
               <div className="absolute right-0 mt-3 w-72 bg-white border border-gray-200 rounded-2xl shadow-xl z-40 p-4 space-y-4">
                 <div className="flex justify-between items-center pb-3 border-b border-gray-100">
@@ -390,7 +424,7 @@ export default function HomePage() {
                       />
                     </div>
                     <button 
-                      onClick={() => setIsEditingAdmin(false)}
+                      onClick={handleSaveAdminProfile}
                       className="w-full py-1.5 bg-gray-900 text-white rounded-lg text-xs font-medium"
                     >
                       Simpan Profil
@@ -428,7 +462,6 @@ export default function HomePage() {
       {/* Konten Utama */}
       <main className="flex-1 p-6 sm:p-10 max-w-7xl mx-auto w-full space-y-10">
         
-        {/* Judul Halaman & Tombol Form Reset */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-serif text-gray-900 mb-1">
@@ -451,10 +484,8 @@ export default function HomePage() {
           )}
         </div>
 
-        {/* Form Input Klien (Lebar Penuh) */}
+        {/* Form Input Klien */}
         <form onSubmit={handleSave} className="space-y-6">
-          
-          {/* Bagian 1: Informasi Klien */}
           <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
             <h2 className="flex items-center gap-2 font-semibold text-gray-900 mb-6">
               <UserIcon size={18} className="text-gray-400" /> Informasi Klien
@@ -488,7 +519,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Bagian 2: Pengaturan Galeri */}
           <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
             <h2 className="flex items-center gap-2 font-semibold text-gray-900 mb-6">
               <LinkIcon size={18} className="text-gray-400" /> Pengaturan Galeri
@@ -547,7 +577,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Bagian 3: Catatan */}
           <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
              <h2 className="flex items-center gap-2 font-semibold text-gray-900 mb-4">
               <FileText size={18} className="text-gray-400" /> Catatan <span className="text-gray-400 font-normal text-sm">(Opsional)</span>
@@ -564,7 +593,6 @@ export default function HomePage() {
             <div className="text-right text-[11px] text-gray-400 mt-1">{formData.notes.length}/500</div>
           </div>
 
-          {/* Tombol Aksi Bawah */}
           <div className="flex items-center justify-between pt-2">
              <button 
                type="button" 
@@ -582,7 +610,6 @@ export default function HomePage() {
                  Batal
                </button>
                
-               {/* Tombol Simpan Klien Baru */}
                <button 
                  type="submit" 
                  disabled={loading}
@@ -595,7 +622,7 @@ export default function HomePage() {
 
         </form>
 
-        {/* Ringkasan & Daftar Klien Terdaftar */}
+        {/* Ringkasan & Daftar Klien */}
         <section className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-5">
             <div>
