@@ -4,8 +4,25 @@ import { useState } from 'react';
 export default function GalleryClient({ galleryData, initialPhotos }) {
   const [selectedPhotos, setSelectedPhotos] = useState([]);
 
-  const saveSelection = async (slug, selectedPhotos) => { /* ...kode lama... */ };
+  const saveSelection = async (slug, selectedPhotos) => {
+  try {
+    const response = await fetch('/api/gallery/selection', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug, selectedPhotos }),
+    });
+    const data = await response.json();
 
+    if (!response.ok) {
+      alert(`Gagal: ${data.error}`);
+      return;
+    }
+    alert('Berhasil: ' + data.message);
+  } catch (error) {
+    console.error('Error saving selection:', error);
+    alert('Terjadi kesalahan jaringan, coba lagi nanti.');
+  }
+};
   const togglePhoto = (name) =>
     setSelectedPhotos((prev) =>
       prev.includes(name) ? prev.filter((p) => p !== name) : [...prev, name]
