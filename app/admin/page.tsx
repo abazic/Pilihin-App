@@ -75,7 +75,7 @@ export default function HomePage() {
 
   // 2. State Profil Admin & WhatsApp
   const [adminInfo, setAdminInfo] = useState({
-    name: 'Admin Abazic Art.chive',
+    name: 'Admin Pilihin Fotomu',
     whatsapp: DEFAULT_WHATSAPP_NUMBER
   });
   const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
@@ -308,8 +308,8 @@ export default function HomePage() {
       <header className="bg-white border-b border-gray-200 h-20 px-6 sm:px-12 flex items-center justify-between sticky top-0 z-30 shadow-sm">
         <div className="flex items-center gap-6">
           <div className="flex flex-col">
-            <span className="font-serif italic text-2xl font-bold tracking-tight text-gray-900">Pilihin Fotomu by Abazic</span>
-            <span className="text-[9px] uppercase tracking-widest text-gray-400 font-semibold">Photo & Video</span>
+            <span className="font-serif italic text-2xl font-bold tracking-tight text-gray-900">Pilihin Fotomu</span>
+            <span className="text-[9px] uppercase tracking-widest text-gray-400 font-semibold">by Abazic</span>
           </div>
         </div>
 
