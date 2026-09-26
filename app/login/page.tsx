@@ -95,8 +95,8 @@ export default function LoginPage() {
         {/* Logo & Judul */}
         <div className="text-center mb-8">
           <div className="flex flex-col items-center mb-4">
-            <span className="font-serif italic text-3xl font-bold tracking-tight text-gray-900">Pilihin Fotomu by Abazic</span>
-            <span className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">Photo & Video</span>
+            <span className="font-serif italic text-3xl font-bold tracking-tight text-gray-900">Pilihin Fotomu</span>
+            <span className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">by Abazic</span>
           </div>
           <h1 className="text-xl font-medium text-gray-800">
             {isResetMode ? 'Reset Password' : 'Login Admin'}
