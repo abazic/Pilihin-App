@@ -20,7 +20,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Pilihin Fotomu by Abazic | Photo & Video",
+  title: "Pilihin Fotomu | by Abazic",
   description: "Sistem Manajemen Galeri dan Pemilihan Foto Klien Nyala Karya",
 };
 
