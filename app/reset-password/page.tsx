@@ -227,19 +227,17 @@ function ResetPasswordForm() {
               Password Baru
             </label>
 
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(e) =>
-                setNewPassword(e.target.value)
-              }
-              required
-              minLength={6}
-              autoComplete="new-password"
-              className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-200 focus:border-gray-500 outline-none transition-all"
-              placeholder="Minimal 6 karakter"
-              disabled={loading || status === 'success'}
-            />
+          <input
+  type="password"
+  value={newPassword}
+  onChange={(e) => setNewPassword(e.target.value)}
+  required
+  minLength={6}
+  autoComplete="new-password"
+  className="w-full p-3 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-gray-200 focus:border-gray-500 outline-none transition-all"
+  placeholder="Minimal 6 karakter"
+  disabled={loading || status === 'success'}
+/>
           </div>
 
           <div>
@@ -247,19 +245,17 @@ function ResetPasswordForm() {
               Konfirmasi Password Baru
             </label>
 
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) =>
-                setConfirmPassword(e.target.value)
-              }
-              required
-              minLength={6}
-              autoComplete="new-password"
-              className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-200 focus:border-gray-500 outline-none transition-all"
-              placeholder="Ulangi password baru"
-              disabled={loading || status === 'success'}
-            />
+           <input
+  type="password"
+  value={confirmPassword}
+  onChange={(e) => setConfirmPassword(e.target.value)}
+  required
+  minLength={6}
+  autoComplete="new-password"
+  className="w-full p-3 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-gray-200 focus:border-gray-500 outline-none transition-all"
+  placeholder="Ulangi password baru"
+  disabled={loading || status === 'success'}
+/>
           </div>
 
           <button
