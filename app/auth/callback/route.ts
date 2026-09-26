@@ -5,7 +5,14 @@ import { cookies } from 'next/headers';
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
-  const next = searchParams.get('next') ?? '/admin';
+  let next = searchParams.get('next') ?? '/admin';
+
+  // FIX LOGIKA: Jika arah redirect adalah ke halaman reset-password, 
+  // tambahkan parameter type=recovery agar app/reset-password/page.tsx 
+  // tidak melempar user ke /pengaturan.
+  if (next.startsWith('/reset-password') && !next.includes('type=recovery')) {
+    next = next.includes('?') ? `${next}&type=recovery` : `${next}?type=recovery`;
+  }
 
   if (code) {
     const cookieStore = await cookies();
@@ -33,26 +40,13 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
+      // Jika berhasil, redirect ke path yang sudah diperbaiki
       return NextResponse.redirect(`${origin}${next}`);
     }
   }
 
+  // Jika kode invalid, tidak ada, atau kedaluwarsa
   return NextResponse.redirect(
     `${origin}/login?error=Invalid_atau_link_kedaluwarsa`
   );
-}
-    );
-
-    // Tukar kode dengan session pemulihan
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    
-    if (!error) {
-      // Jika berhasil, redirect ke /reset-password
-      // User sudah memiliki session saat masuk ke halaman ini
-      return NextResponse.redirect(`${origin}${next}`);
-    }
-  }
-
-  // Jika kode invalid, tidak ada, atau kedaluwarsa, kembalikan ke login dengan pesan error
-  return NextResponse.redirect(`${origin}/login?error=Invalid_atau_link_kedaluwarsa`);
 }
