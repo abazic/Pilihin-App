@@ -12,23 +12,8 @@ function getSafeNextPath(next: string | null) {
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  
-  // Format 1: Query param (explicit code)
-  let code = url.searchParams.get('code');
-  
-  // Format 2: Hash fragment (implicit flow - dari Supabase default template)
-  if (!code && url.hash) {
-    const hashParams = new URLSearchParams(url.hash.substring(1));
-    code = hashParams.get('code');
-  }
-
+  const code = url.searchParams.get('code');
   const next = getSafeNextPath(url.searchParams.get('next'));
-
-  if (!code) {
-    return NextResponse.redirect(
-      new URL('/login?error=Invalid_atau_link_kedaluwarsa', url.origin)
-    );
-  }
 
   const cookieStore = await cookies();
 
@@ -40,11 +25,9 @@ export async function GET(request: Request) {
         get(name: string) {
           return cookieStore.get(name)?.value;
         },
-
         set(name: string, value: string, options: CookieOptions) {
           cookieStore.set({ name, value, ...options });
         },
-
         remove(name: string, options: CookieOptions) {
           cookieStore.delete({ name, ...options });
         },
@@ -52,14 +35,33 @@ export async function GET(request: Request) {
     }
   );
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  // ✅ FIX: Handle PKCE flow (no code param, session dari cookies Supabase)
+  if (code) {
+    // Explicit code parameter (legacy flow)
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    
+    if (error) {
+      console.error('Auth callback error:', error.message);
+      return NextResponse.redirect(
+        new URL('/login?error=Invalid_atau_link_kedaluwarsa', url.origin)
+      );
+    }
+  } else {
+    // ✅ PKCE flow: Session sudah di-set dari Supabase cookies
+    // Cek apakah session valid
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
 
-  if (error) {
-    console.error('Auth callback error:', error.message);
+    if (sessionError || !session) {
+      console.error('No session after redirect:', sessionError?.message);
+      return NextResponse.redirect(
+        new URL('/login?error=Invalid_atau_link_kedaluwarsa', url.origin)
+      );
+    }
 
-    return NextResponse.redirect(
-      new URL('/login?error=Invalid_atau_link_kedaluwarsa', url.origin)
-    );
+    // ✅ Session valid, lanjut ke next page
   }
 
   // Recovery flow perlu memberi tahu /reset-password
