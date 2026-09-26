@@ -1,11 +1,17 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { KeyRound } from 'lucide-react';
 
-// Pisahkan logic form ke komponen terpisah agar bisa dibungkus Suspense
+type ResetStatus =
+  | 'validating'
+  | 'ready'
+  | 'invalid'
+  | 'success'
+  | 'error';
+
 function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -13,108 +19,176 @@ function ResetPasswordForm() {
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
+
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
-  
+
   const [loading, setLoading] = useState(false);
-  const [isValidating, setIsValidating] = useState(true);
+  const [status, setStatus] = useState<ResetStatus>('validating');
 
   useEffect(() => {
-    // 1. Tangkap error dari URL (Supabase mengirim ini jika link kedaluwarsa)
-    const urlError = searchParams.get('error_description') || searchParams.get('error');
-    if (urlError) {
-      // Format pesan error bawaan Supabase agar lebih enak dibaca (opsional)
-      const cleanError = urlError.replace(/\+/g, ' ');
-      setError(cleanError);
-      setIsValidating(false);
-      return;
-    }
+    let mounted = true;
 
-    // 2. Cek apakah ini benar-benar datang dari flow recovery 
-    const isRecoveryFlow = searchParams.get('type') === 'recovery';
+    const validateRecoverySession = async () => {
+      const urlError =
+        searchParams.get('error_description') ||
+        searchParams.get('error');
 
-    const checkInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session) {
-        // VALIDASI SEMANTIK: Jika punya sesi TAPI bukan dari flow recovery
-        if (!isRecoveryFlow) {
-          // Arahkan kembali user "iseng" yang mencoba buka /reset-password ke dashboard/pengaturan
-          router.replace('/pengaturan');
-          return;
-        }
-        
-        setIsValidating(false); // Valid, izinkan form render
-      } else {
-        setError('Sesi pemulihan tidak valid atau sudah kedaluwarsa. Silakan minta link reset baru di halaman login.');
-        setIsValidating(false);
+      if (urlError) {
+        if (!mounted) return;
+
+        setError(urlError.replace(/\+/g, ' '));
+        setStatus('invalid');
+        return;
       }
+
+      const isRecoveryFlow =
+        searchParams.get('type') === 'recovery';
+
+      if (!isRecoveryFlow) {
+        if (!mounted) return;
+
+        setError(
+          'Halaman reset password hanya dapat diakses melalui link pemulihan password.'
+        );
+        setStatus('invalid');
+        return;
+      }
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!mounted) return;
+
+      if (!session) {
+        setError(
+          'Sesi pemulihan tidak valid atau sudah kedaluwarsa. Silakan minta link reset baru dari halaman login.'
+        );
+        setStatus('invalid');
+        return;
+      }
+
+      setError('');
+      setStatus('ready');
     };
 
-    checkInitialSession();
+    validateRecoverySession();
 
-    // 3. Listener dibiarkan saja sebagai fallback yang aman
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (!mounted) return;
+
       if (event === 'PASSWORD_RECOVERY') {
-        setIsValidating(false);
         setError('');
-      } else if (event === 'SIGNED_OUT') {
-        setError('Sesi tidak ditemukan atau Anda telah logout.');
+        setStatus('ready');
+      }
+
+      if (event === 'SIGNED_OUT') {
+        setError(
+          'Sesi pemulihan tidak ditemukan atau telah berakhir.'
+        );
+        setStatus('invalid');
       }
     });
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
-  }, [supabase.auth, searchParams, router]);
+  }, [searchParams, supabase.auth]);
 
-  const handleResetPassword = async (e: React.FormEvent) => {
+  const handleResetPassword = async (
+    e: React.FormEvent
+  ) => {
     e.preventDefault();
+
     setError('');
     setSuccessMsg('');
 
     if (newPassword.length < 6) {
       setError('Password minimal 6 karakter.');
+      setStatus('error');
       return;
     }
+
     if (newPassword !== confirmPassword) {
       setError('Password tidak cocok.');
+      setStatus('error');
       return;
     }
 
     setLoading(true);
 
     try {
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
+      const { error: updateError } =
+        await supabase.auth.updateUser({
+          password: newPassword,
+        });
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        throw updateError;
+      }
 
-      setSuccessMsg('Password berhasil diperbarui! Mengalihkan ke halaman login...');
-      
+      setSuccessMsg(
+        'Password berhasil diperbarui! Mengalihkan ke halaman login...'
+      );
+      setStatus('success');
+
+      // Recovery session tidak perlu dipertahankan setelah
+      // password berhasil diganti.
       await supabase.auth.signOut();
 
       setTimeout(() => {
         router.replace('/login');
-      }, 2500);
-
+      }, 2000);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(`Terjadi kesalahan: ${err.message}`);
       } else {
-        setError('Terjadi kesalahan saat memperbarui password.');
+        setError(
+          'Terjadi kesalahan saat memperbarui password.'
+        );
       }
+
+      setStatus('error');
     } finally {
       setLoading(false);
     }
   };
 
-  if (isValidating) {
+  if (status === 'validating') {
     return (
       <div className="min-h-screen bg-[#f7f7f7] flex items-center justify-center p-6">
-        <p className="text-sm text-gray-500 animate-pulse">Memvalidasi akses keamanan...</p>
+        <p className="text-sm text-gray-500 animate-pulse">
+          Memvalidasi akses keamanan...
+        </p>
+      </div>
+    );
+  }
+
+  if (status === 'invalid') {
+    return (
+      <div className="min-h-screen bg-[#f7f7f7] flex items-center justify-center p-6">
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+          <div className="text-center mb-6">
+            <h1 className="text-xl font-medium text-gray-800">
+              Link Reset Tidak Valid
+            </h1>
+
+            <p className="text-sm text-gray-500 mt-2">
+              {error}
+            </p>
+          </div>
+
+          <button
+            onClick={() => router.replace('/login')}
+            className="w-full py-3 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl text-sm font-medium transition-colors"
+          >
+            Kembali ke Halaman Login
+          </button>
+        </div>
       </div>
     );
   }
@@ -122,9 +196,11 @@ function ResetPasswordForm() {
   return (
     <div className="min-h-screen bg-[#f7f7f7] flex items-center justify-center p-6">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-        
         <div className="text-center mb-8">
-          <h1 className="text-xl font-medium text-gray-800">Buat Password Baru</h1>
+          <h1 className="text-xl font-medium text-gray-800">
+            Buat Password Baru
+          </h1>
+
           <p className="text-sm text-gray-500 mt-1">
             Silakan masukkan password baru untuk akun admin Anda.
           </p>
@@ -142,65 +218,84 @@ function ResetPasswordForm() {
           </div>
         )}
 
-        {error && (error.includes('kedaluwarsa') || error.includes('Sesi')) ? (
+        <form
+          onSubmit={handleResetPassword}
+          className="space-y-5"
+        >
+          <div>
+            <label className="block text-sm text-gray-700 mb-2">
+              Password Baru
+            </label>
+
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) =>
+                setNewPassword(e.target.value)
+              }
+              required
+              minLength={6}
+              autoComplete="new-password"
+              className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-200 focus:border-gray-500 outline-none transition-all"
+              placeholder="Minimal 6 karakter"
+              disabled={loading || status === 'success'}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm text-gray-700 mb-2">
+              Konfirmasi Password Baru
+            </label>
+
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) =>
+                setConfirmPassword(e.target.value)
+              }
+              required
+              minLength={6}
+              autoComplete="new-password"
+              className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-200 focus:border-gray-500 outline-none transition-all"
+              placeholder="Ulangi password baru"
+              disabled={loading || status === 'success'}
+            />
+          </div>
+
           <button
-            onClick={() => router.push('/login')}
-            className="w-full py-3 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl text-sm font-medium transition-colors"
+            type="submit"
+            disabled={
+              loading ||
+              status === 'success'
+            }
+            className="w-full flex items-center justify-center gap-2 py-3 bg-[#2a2a2a] hover:bg-black text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-50 mt-4"
           >
-            Kembali ke Halaman Login
+            {loading ? (
+              'Menyimpan...'
+            ) : (
+              <>
+                <KeyRound size={16} />
+                Simpan Password Baru
+              </>
+            )}
           </button>
-        ) : (
-          <form onSubmit={handleResetPassword} className="space-y-5">
-            <div>
-              <label className="block text-sm text-gray-700 mb-2">Password Baru</label>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-                className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-200 focus:border-gray-500 outline-none transition-all"
-                placeholder="Minimal 6 karakter"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm text-gray-700 mb-2">Konfirmasi Password Baru</label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-200 focus:border-gray-500 outline-none transition-all"
-                placeholder="Ulangi password baru"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading || !!successMsg}
-              className="w-full flex items-center justify-center gap-2 py-3 bg-[#2a2a2a] hover:bg-black text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-50 mt-4"
-            >
-              {loading ? 'Menyimpan...' : (
-                <>
-                  <KeyRound size={16} /> Simpan Password Baru
-                </>
-              )}
-            </button>
-          </form>
-        )}
+        </form>
       </div>
     </div>
   );
 }
 
-// WAJIB: Bungkus dengan Suspense untuk menghindari Next.js deopt/build error
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-[#f7f7f7] flex items-center justify-center p-6">
-        <p className="text-sm text-gray-500 animate-pulse">Memuat halaman...</p>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#f7f7f7] flex items-center justify-center p-6">
+          <p className="text-sm text-gray-500 animate-pulse">
+            Memuat halaman...
+          </p>
+        </div>
+      }
+    >
       <ResetPasswordForm />
     </Suspense>
   );
