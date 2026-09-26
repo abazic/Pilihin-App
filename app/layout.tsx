@@ -20,7 +20,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Abazic Art.chive | Photo & Video",
+  title: "Pilihin Fotomu by Abazic | Photo & Video",
   description: "Sistem Manajemen Galeri dan Pemilihan Foto Klien Nyala Karya",
 };
 
