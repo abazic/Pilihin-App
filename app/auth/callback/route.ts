@@ -4,19 +4,24 @@ import { cookies } from 'next/headers';
 
 function getSafeNextPath(next: string | null) {
   if (!next) return '/admin';
-
-  // Hanya izinkan internal path.
-  // Mencegah redirect seperti https://evil.com
   if (!next.startsWith('/') || next.startsWith('//')) {
     return '/admin';
   }
-
   return next;
 }
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const code = url.searchParams.get('code');
+  
+  // Format 1: Query param (explicit code)
+  let code = url.searchParams.get('code');
+  
+  // Format 2: Hash fragment (implicit flow - dari Supabase default template)
+  if (!code && url.hash) {
+    const hashParams = new URLSearchParams(url.hash.substring(1));
+    code = hashParams.get('code');
+  }
+
   const next = getSafeNextPath(url.searchParams.get('next'));
 
   if (!code) {
