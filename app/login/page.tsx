@@ -125,14 +125,14 @@ export default function LoginPage() {
           <form onSubmit={handleResetPassword} className="space-y-5">
             <div>
               <label className="block text-sm text-gray-700 mb-2">Email</label>
-              <input 
-                type="email" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@nyalakarya.com"
-                required
-                className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-200 focus:border-gray-500 outline-none transition-all"
-              />
+              <input
+  type="email"
+  value={email}
+  onChange={(e) => setEmail(e.target.value)}
+  placeholder="admin@nyalakarya.com"
+  required
+  className="w-full p-3 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-gray-200 focus:border-gray-500 outline-none transition-all"
+/>
             </div>
 
             <button 
@@ -188,14 +188,14 @@ export default function LoginPage() {
                   Lupa password?
                 </button>
               </div>
-              <input 
-                type="password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-200 focus:border-gray-500 outline-none transition-all"
-              />
+            <input
+  type="password"
+  value={password}
+  onChange={(e) => setPassword(e.target.value)}
+  placeholder="••••••••"
+  required
+  className="w-full p-3 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-gray-200 focus:border-gray-500 outline-none transition-all"
+/>
             </div>
 
             <button 
