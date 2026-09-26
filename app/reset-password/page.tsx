@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { KeyRound } from 'lucide-react';
 
-export default function ResetPasswordPage() {
+// Pisahkan logic form ke komponen terpisah agar bisa dibungkus Suspense
+function ResetPasswordForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
 
   const [newPassword, setNewPassword] = useState('');
@@ -16,14 +18,34 @@ export default function ResetPasswordPage() {
   const [successMsg, setSuccessMsg] = useState('');
   
   const [loading, setLoading] = useState(false);
-  const [isValidating, setIsValidating] = useState(true); // State untuk memvalidasi event recovery
+  const [isValidating, setIsValidating] = useState(true);
 
   useEffect(() => {
-    // 1. Cek apakah ada sesi aktif saat komponen dimuat (dibawa dari callback PKCE)
+    // 1. Tangkap error dari URL (Supabase mengirim ini jika link kedaluwarsa)
+    const urlError = searchParams.get('error_description') || searchParams.get('error');
+    if (urlError) {
+      // Format pesan error bawaan Supabase agar lebih enak dibaca (opsional)
+      const cleanError = urlError.replace(/\+/g, ' ');
+      setError(cleanError);
+      setIsValidating(false);
+      return;
+    }
+
+    // 2. Cek apakah ini benar-benar datang dari flow recovery 
+    const isRecoveryFlow = searchParams.get('type') === 'recovery';
+
     const checkInitialSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+      
       if (session) {
-        setIsValidating(false); // Ada sesi, izinkan form render
+        // VALIDASI SEMANTIK: Jika punya sesi TAPI bukan dari flow recovery
+        if (!isRecoveryFlow) {
+          // Arahkan kembali user "iseng" yang mencoba buka /reset-password ke dashboard/pengaturan
+          router.replace('/pengaturan');
+          return;
+        }
+        
+        setIsValidating(false); // Valid, izinkan form render
       } else {
         setError('Sesi pemulihan tidak valid atau sudah kedaluwarsa. Silakan minta link reset baru di halaman login.');
         setIsValidating(false);
@@ -32,10 +54,9 @@ export default function ResetPasswordPage() {
 
     checkInitialSession();
 
-    // 2. Dengarkan event PASSWORD_RECOVERY secara eksplisit dari auth listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    // 3. Listener dibiarkan saja sebagai fallback yang aman
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
       if (event === 'PASSWORD_RECOVERY') {
-        // Event spesifik dari Supabase bahwa user masuk via recovery link
         setIsValidating(false);
         setError('');
       } else if (event === 'SIGNED_OUT') {
@@ -46,7 +67,7 @@ export default function ResetPasswordPage() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [supabase.auth]);
+  }, [supabase.auth, searchParams, router]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,7 +86,6 @@ export default function ResetPasswordPage() {
     setLoading(true);
 
     try {
-      // updateUser hanya akan berhasil jika request ini memiliki konteks session yang valid
       const { error: updateError } = await supabase.auth.updateUser({
         password: newPassword,
       });
@@ -74,7 +94,6 @@ export default function ResetPasswordPage() {
 
       setSuccessMsg('Password berhasil diperbarui! Mengalihkan ke halaman login...');
       
-      // Logout user agar mereka login ulang dengan password baru demi keamanan (opsional)
       await supabase.auth.signOut();
 
       setTimeout(() => {
@@ -92,7 +111,6 @@ export default function ResetPasswordPage() {
     }
   };
 
-  // Tampilan saat masih mengecek status session / event recovery
   if (isValidating) {
     return (
       <div className="min-h-screen bg-[#f7f7f7] flex items-center justify-center p-6">
@@ -124,8 +142,7 @@ export default function ResetPasswordPage() {
           </div>
         )}
 
-        {/* Jika error di awal (sesi tidak valid), sembunyikan form, tampilkan tombol kembali */}
-        {error && error.includes('Sesi pemulihan') ? (
+        {error && (error.includes('kedaluwarsa') || error.includes('Sesi')) ? (
           <button
             onClick={() => router.push('/login')}
             className="w-full py-3 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl text-sm font-medium transition-colors"
@@ -173,5 +190,18 @@ export default function ResetPasswordPage() {
         )}
       </div>
     </div>
+  );
+}
+
+// WAJIB: Bungkus dengan Suspense untuk menghindari Next.js deopt/build error
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#f7f7f7] flex items-center justify-center p-6">
+        <p className="text-sm text-gray-500 animate-pulse">Memuat halaman...</p>
+      </div>
+    }>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }
