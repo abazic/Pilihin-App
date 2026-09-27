@@ -173,11 +173,13 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
             </span>
           )}
           {sentViaWa && !isLocked && (
+                     {sentViaWa && !isLocked && (
             <span className="flex items-center gap-1 text-emerald-600 text-xs font-semibold bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
               <CheckCircle2 size={12} /> Terkirim ke WA
             </span>
           )}
           
+          <a                                      {/* ← baris ini yang hilang */}
             href={`https://wa.me/${galleryData?.admin_whatsapp}`}
             target="_blank"
             rel="noopener noreferrer"
