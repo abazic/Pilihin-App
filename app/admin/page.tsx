@@ -125,7 +125,7 @@ const fetchNotifications = useCallback(async () => {
       data.map(n => ({
         id: n.id,
         title: n.title,
-        desc: n.desc,
+        desc: n.body,
         time: formatTimeAgo(n.created_at),
         read: n.read,
       }))
@@ -295,9 +295,9 @@ useEffect(() => {
         } else {
           setCreatedSlug(generatedSlug);
           
-          await supabase.from('notifications').insert([{
+         await supabase.from('notifications').insert([{
   title: 'Klien Baru Berhasil Dibuat',
-  desc: `Galeri untuk "${formData.clientName}" siap digunakan.`,
+  body: `Galeri untuk "${formData.clientName}" siap digunakan.`,
   read: false,
 }]);
 
