@@ -103,7 +103,7 @@ export default function GalleryClient({ galleryData, initialPhotos }) {
         <div className="flex items-center gap-2">
           <span className="font-serif italic text-2xl font-bold tracking-tight">Pilihin Fotomu</span>
           <span className="hidden sm:inline text-[10px] uppercase tracking-widest text-gray-400 font-semibold border-l border-gray-300 pl-2 ml-2">
-            Photo &amp; Video
+            by Abazic
           </span>
         </div>
 
