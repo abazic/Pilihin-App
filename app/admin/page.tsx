@@ -382,8 +382,10 @@ const handleDuplicateClient = async (client: ClientItem) => {
       {/* Topbar / Header Utama */}
      <header className="bg-white border-b border-gray-200 h-20 px-6 sm:px-12 flex items-center justify-between sticky top-0 z-30 shadow-sm">
   <div className="flex items-center gap-6">
-    {/* Logo section */}
-  </div>
+   <div className="flex flex-col">
+            <span className="font-serif italic text-2xl font-bold tracking-tight text-gray-900">Pilihin Fotomu</span>
+            <span className="text-[9px] uppercase tracking-widest text-gray-400 font-semibold">by Abazic</span>
+          </div>
 
   <div className="flex items-center gap-4 relative">
     
@@ -402,20 +404,6 @@ const handleDuplicateClient = async (client: ClientItem) => {
         <Megaphone size={20} />
       </button>
     </div>
-    
-    {/* TOMBOL NOTIFIKASI ← SUDAH ADA, JANGAN UBAH */}
-    <div className="relative">
-      <button 
-        type="button" 
-        onClick={() => {
-          setIsNotifOpen(!isNotifOpen);
-          setIsProfileOpen(false);
-        }}
-          <div className="flex flex-col">
-            <span className="font-serif italic text-2xl font-bold tracking-tight text-gray-900">Pilihin Fotomu</span>
-            <span className="text-[9px] uppercase tracking-widest text-gray-400 font-semibold">by Abazic</span>
-          </div>
-        </div>
 
         <div className="flex items-center gap-4 relative">
           
