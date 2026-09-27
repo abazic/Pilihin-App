@@ -187,9 +187,15 @@ useEffect(() => {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  const { name, value } = e.target;
+  setFormData(prev => ({ ...prev, [name]: value }));
+
+  // Auto-generate slug saat nama klien berubah (hanya saat create baru)
+  if (name === 'clientName' && !editingId) {
+    const newSlug = `${value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
+    setCreatedSlug(newSlug);
+  }
+};
 
   const formatDateString = (dateStr: string | null) => {
     if (!dateStr) return '-';
@@ -610,6 +616,35 @@ const handleDuplicateClient = async (client: ClientItem) => {
               </div>
             </div>
 
+            <div className="mb-6">
+  <label className="block text-sm text-gray-700 mb-2">
+    Link Slug / Galeri {editingId && '(Bisa diubah)'}
+  </label>
+  <div className="flex gap-2">
+    <input 
+      type="text" 
+      value={createdSlug}
+      onChange={(e) => setCreatedSlug(e.target.value)}
+      placeholder="nama-klien-1234"
+      className="flex-1 p-2.5 border border-gray-300 rounded-lg text-sm text-gray-600 bg-gray-50 focus:bg-white outline-none transition-all font-mono"
+    />
+    {editingId && (
+      <button 
+        type="button" 
+        onClick={() => {
+          const newSlug = `${formData.clientName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
+          setCreatedSlug(newSlug);
+        }}
+        className="p-2.5 border border-gray-300 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors"
+        title="Generate Ulang"
+      >
+        🔄
+      </button>
+    )}
+  </div>
+  <p className="text-[11px] text-gray-400 mt-1">Preview: /gallery/{createdSlug}</p>
+</div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-2">
                <div>
                   <label className="block text-sm text-gray-700 mb-2">Maksimum Foto yang Bisa Dipilih</label>
