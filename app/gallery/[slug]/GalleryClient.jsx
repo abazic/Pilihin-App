@@ -1,27 +1,25 @@
 // app/gallery/[slug]/GalleryClient.jsx
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
 import {
   Search, HelpCircle, User, Check, Camera, CheckCircle,
   Send, Maximize2, X, ChevronLeft, ChevronRight,
   Lock, CheckCircle2,
 } from "lucide-react";
 
-export default function GalleryClient({ galleryData, initialPhotos, existingSelection }) {  // ← tambah existingSelection
-  // ── Pre-populate dari DB jika sudah pernah simpan ──
+export default function GalleryClient({ galleryData, initialPhotos, existingSelection }) {
   const [selectedPhotos, setSelectedPhotos] = useState(() => {
     if (existingSelection?.selected_photos?.length > 0) {
-      return existingSelection.selected_photos; // [{id, name, url}]
+      return existingSelection.selected_photos;
     }
     return [];
   });
 
-  // ── State baru untuk fitur kunci & WA ──
-  const [isLocked, setIsLocked]     = useState(existingSelection?.is_locked ?? false);
-  const [sentViaWa, setSentViaWa]   = useState(existingSelection?.sent_via_wa ?? false);
-  const [locking, setLocking]       = useState(false);
-  
-  const [saving, setSaving]         = useState(false);
+  const [isLocked, setIsLocked]   = useState(existingSelection?.is_locked ?? false);
+  const [sentViaWa, setSentViaWa] = useState(existingSelection?.sent_via_wa ?? false);
+  const [locking, setLocking]     = useState(false);
+  const [saving, setSaving]       = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [previewIndex, setPreviewIndex] = useState(null);
 
@@ -32,9 +30,8 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // ── Toggle pilih foto — disabled kalau locked ──
   const toggleSelectPhoto = (photo) => {
-    if (isLocked) return;  // ← BARU: tidak bisa ubah kalau sudah dikunci
+    if (isLocked) return;
     setSelectedPhotos((prev) => {
       const already = prev.some((p) => p.name === photo.name);
       if (already) return prev.filter((p) => p.name !== photo.name);
@@ -64,11 +61,9 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [previewIndex, closePreview, showPrev, showNext]);
 
-  // ── Kirim ke WhatsApp + simpan ke DB ──
   const handleSendToWhatsApp = async () => {
     if (selectedPhotos.length === 0 || isLocked) return;
     setSaving(true);
-
     try {
       const response = await fetch("/api/gallery/selection", {
         method: "POST",
@@ -76,30 +71,25 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
         body: JSON.stringify({
           slug: galleryData?.slug,
           gallery_id: galleryData?.id,
-          selectedPhotos: selectedPhotos,  // kirim full object [{name, url}]
-          sent_via_wa: true,               // ← BARU: tandai sudah dikirim WA
+          selectedPhotos: selectedPhotos,
+          sent_via_wa: true,
         }),
       });
       const data = await response.json();
-
       if (!response.ok) {
         alert("Gagal menyimpan pilihan: " + data.error);
         return;
       }
-
-      setSentViaWa(true);  // ← update UI langsung tanpa reload
-
+      setSentViaWa(true);
       const photoListText = selectedPhotos
         .map((p, i) => (i + 1) + ". " + p.name)
         .join("\n");
-
       const message =
         "Halo Admin, saya telah selesai memilih foto.\n\n" +
         "*Detail Klien:* " + (galleryData?.client_name || "Klien") + "\n" +
         "*Total Foto Terpilih:* " + selectedPhotos.length + " Foto\n\n" +
         "*Daftar Nama Foto:*\n" + photoListText + "\n\n" +
         "Mohon diproses untuk tahap selanjutnya. Terima kasih!";
-
       if (galleryData?.admin_whatsapp) {
         const waUrl = "https://wa.me/" + galleryData.admin_whatsapp + "?text=" + encodeURIComponent(message);
         window.open(waUrl, "_blank");
@@ -112,16 +102,13 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
     }
   };
 
-  // ── BARU: Kunci pilihan ──
   const handleLockSelection = async () => {
     if (selectedPhotos.length === 0 || isLocked) return;
-
-    const confirm = window.confirm(
-      `Kunci pilihan? Setelah dikunci, kamu tidak bisa mengubah pilihan lagi.\n\n` +
-      `Total: ${selectedPhotos.length} foto dipilih.`
+    const confirmed = window.confirm(
+      "Kunci pilihan? Setelah dikunci, kamu tidak bisa mengubah pilihan lagi.\n\n" +
+      "Total: " + selectedPhotos.length + " foto dipilih."
     );
-    if (!confirm) return;
-
+    if (!confirmed) return;
     setLocking(true);
     try {
       const response = await fetch("/api/gallery/selection", {
@@ -131,17 +118,15 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
           slug: galleryData?.slug,
           gallery_id: galleryData?.id,
           selectedPhotos: selectedPhotos,
-          is_locked: true,               // ← kunci
+          is_locked: true,
         }),
       });
       const data = await response.json();
-
       if (!response.ok) {
         alert("Gagal mengunci pilihan: " + data.error);
         return;
       }
-
-      setIsLocked(true);  // ← update UI langsung
+      setIsLocked(true);
     } catch (error) {
       console.error("Error locking selection:", error);
       alert("Terjadi kesalahan jaringan.");
@@ -164,7 +149,7 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
           </span>
         </div>
 
-               <div className="flex items-center gap-4 md:gap-6 text-sm text-gray-600">
+        <div className="flex items-center gap-4 md:gap-6 text-sm text-gray-600">
           {isLocked && (
             <span className="flex items-center gap-1 text-amber-600 text-xs font-semibold bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
               <Lock size={12} /> Terkunci
@@ -175,8 +160,8 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
               <CheckCircle2 size={12} /> Terkirim ke WA
             </span>
           )}
-          
-            href={`https://wa.me/${galleryData?.admin_whatsapp}`}
+          <a
+            href={"https://wa.me/" + (galleryData?.admin_whatsapp ?? "")}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1 hover:text-gray-900 text-sm"
@@ -195,8 +180,6 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
             {galleryData?.client_name ?? "Galeri Foto"}
           </p>
           <h1 className="text-3xl font-serif text-gray-900 mb-2">Pilih Foto Favoritmu</h1>
-
-          {/* ← BARU: banner kalau sudah locked */}
           {isLocked ? (
             <div className="flex items-center gap-2 mt-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700">
               <Lock size={15} />
@@ -231,9 +214,7 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {filteredPhotos.map((photo, index) => {
               const isSelected = selectedPhotos.some((p) => p.name === photo.name);
-              // ← locked juga disable semua card, bukan hanya yang melewati limit
               const isDisabled = isLocked || (!isSelected && isLimitReached);
-
               return (
                 <div
                   key={photo.id}
@@ -280,7 +261,6 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
         )}
       </main>
 
-      {/* ── Bottom bar ── */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
         <div className="max-w-4xl mx-auto px-6 md:px-8 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4 text-sm text-gray-600">
@@ -295,7 +275,6 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
           </div>
 
           <div className="flex items-center gap-2">
-            {/* ← BARU: Tombol Kunci */}
             {!isLocked && (
               <button
                 onClick={handleLockSelection}
@@ -306,8 +285,6 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
                 {locking ? "Mengunci..." : "Kunci Pilihan"}
               </button>
             )}
-
-            {/* Tombol WA — hide kalau sudah locked DAN sudah sent */}
             {!(isLocked && sentViaWa) && (
               <button
                 onClick={handleSendToWhatsApp}
@@ -322,36 +299,55 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
         </div>
       </div>
 
-      {/* ── Preview Modal ── (tidak ada perubahan selain tambah disabled check) */}
       {previewPhoto && (
         <div
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center px-4"
           onClick={closePreview}
         >
-          <button onClick={closePreview} className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white" aria-label="Tutup">
+          <button
+            onClick={closePreview}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white"
+            aria-label="Tutup"
+          >
             <X size={20} />
           </button>
           {previewIndex > 0 && (
-            <button onClick={(e) => { e.stopPropagation(); showPrev(); }} className="absolute left-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white" aria-label="Sebelumnya">
+            <button
+              onClick={(e) => { e.stopPropagation(); showPrev(); }}
+              className="absolute left-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white"
+              aria-label="Sebelumnya"
+            >
               <ChevronLeft size={22} />
             </button>
           )}
           {previewIndex < filteredPhotos.length - 1 && (
-            <button onClick={(e) => { e.stopPropagation(); showNext(); }} className="absolute right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white" aria-label="Selanjutnya">
+            <button
+              onClick={(e) => { e.stopPropagation(); showNext(); }}
+              className="absolute right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white"
+              aria-label="Selanjutnya"
+            >
               <ChevronRight size={22} />
             </button>
           )}
-          <div className="max-w-3xl w-full flex flex-col items-center gap-4" onClick={(e) => e.stopPropagation()}>
-            <img src={previewPhoto.url} alt={previewPhoto.name} className="max-h-[75vh] w-auto rounded-lg object-contain" />
+          <div
+            className="max-w-3xl w-full flex flex-col items-center gap-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={previewPhoto.url}
+              alt={previewPhoto.name}
+              className="max-h-[75vh] w-auto rounded-lg object-contain"
+            />
             <div className="flex items-center gap-4">
               <p className="text-white/80 text-sm">{previewPhoto.name.replace(/\.[^/.]+$/, "")}</p>
-              {/* ← disabled juga kalau locked */}
               <button
                 onClick={() => !isLocked && toggleSelectPhoto(previewPhoto)}
                 disabled={isLocked || (!isPreviewSelected && isLimitReached)}
                 className={
                   "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed " +
-                  (isPreviewSelected ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-white text-gray-900 hover:bg-gray-100")
+                  (isPreviewSelected
+                    ? "bg-blue-600 text-white hover:bg-blue-700"
+                    : "bg-white text-gray-900 hover:bg-gray-100")
                 }
               >
                 <Check size={14} />
