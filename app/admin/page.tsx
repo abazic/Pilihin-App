@@ -380,33 +380,35 @@ const handleDuplicateClient = async (client: ClientItem) => {
     <div className="min-h-screen bg-[#f7f7f7] font-sans text-gray-800 flex flex-col">
       
       {/* Topbar / Header Utama */}
-     <header className="bg-white border-b border-gray-200 h-20 px-6 sm:px-12 flex items-center justify-between sticky top-0 z-30 shadow-sm">
-  <div className="flex items-center gap-6">
-   <div className="flex flex-col">
+      <header className="bg-white border-b border-gray-200 h-20 px-6 sm:px-12 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+        
+        {/* KIRI: Logo/Title */}
+        <div className="flex items-center gap-6">
+          <div className="flex flex-col">
             <span className="font-serif italic text-2xl font-bold tracking-tight text-gray-900">Pilihin Fotomu</span>
             <span className="text-[9px] uppercase tracking-widest text-gray-400 font-semibold">by Abazic</span>
           </div>
+        </div> {/* ← PENUTUP DIV KIRI DITAMBAHKAN DI SINI */}
 
-  <div className="flex items-center gap-4 relative">
-    
-    {/* TOMBOL BROADCAST ← BARU BUTTON */}
-    <div className="relative">
-      <button 
-        type="button" 
-        onClick={() => {
-          setIsBroadcastOpen(true);
-          setIsNotifOpen(false);
-          setIsProfileOpen(false);
-        }}
-        className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full relative transition-colors"
-        title="Broadcast Chat ke Multiple Klien"
-      >
-        <Megaphone size={20} />
-      </button>
-    </div>
-
+        {/* KANAN: Menu Aksi (Broadcast, Notif, Profil) */}
         <div className="flex items-center gap-4 relative">
           
+          {/* TOMBOL BROADCAST ← BARU BUTTON */}
+          <div className="relative">
+            <button 
+              type="button" 
+              onClick={() => {
+                setIsBroadcastOpen(true);
+                setIsNotifOpen(false);
+                setIsProfileOpen(false);
+              }}
+              className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full relative transition-colors"
+              title="Broadcast Chat ke Multiple Klien"
+            >
+              <Megaphone size={20} />
+            </button>
+          </div>
+
           {/* TOMBOL NOTIFIKASI */}
           <div className="relative">
             <button 
