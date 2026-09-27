@@ -186,12 +186,12 @@ useEffect(() => {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
   const { name, value } = e.target;
   setFormData(prev => ({ ...prev, [name]: value }));
 
-  // Auto-generate slug saat nama klien berubah (hanya saat create baru)
-  if (name === 'clientName' && !editingId) {
+  // Auto-generate slug saat nama berubah
+  if (name === 'clientName') {
     const newSlug = `${value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
     setCreatedSlug(newSlug);
   }
