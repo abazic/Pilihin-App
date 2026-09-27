@@ -1,11 +1,10 @@
 // app/gallery/[slug]/GalleryClient.jsx
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import {
   Search, HelpCircle, User, Check, Camera, CheckCircle,
   Send, Maximize2, X, ChevronLeft, ChevronRight,
-  Lock, LockOpen, CheckCircle2,  // ← BARU
+  Lock, CheckCircle2,
 } from "lucide-react";
 
 export default function GalleryClient({ galleryData, initialPhotos, existingSelection }) {  // ← tambah existingSelection
