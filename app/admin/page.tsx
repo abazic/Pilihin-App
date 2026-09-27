@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { extractFolderId } from '@/lib/gdrive';
 import { DEFAULT_WHATSAPP_NUMBER } from '@/lib/constants';
+import BroadcastModal from '@/components/BroadcastModal';  // ← BARIS BARU
 import { 
   FileText, 
   Bell, 
@@ -21,7 +22,8 @@ import {
   MessageSquare,
   CheckCircle2,
   Edit2,
-  ListFilter
+  ListFilter,
+  Megaphone  // ← TAMBAH ICON INI
 } from 'lucide-react';
 
 interface FormDataState {
@@ -87,9 +89,13 @@ export default function HomePage() {
   const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
   const [isEditingAdmin, setIsEditingAdmin] = useState<boolean>(false);
 
-  // 3. State Notifikasi
+ // 3. State Notifikasi
   const [isNotifOpen, setIsNotifOpen] = useState<boolean>(false);
- const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+
+  // 4. State Broadcast Modal ← BARIS BARU
+  const [isBroadcastOpen, setIsBroadcastOpen] = useState<boolean>(false);
+  
   // Fetch daftar klien dari Supabase
   const fetchClients = useCallback(async () => {
     setFetchingClients(true);
@@ -374,8 +380,37 @@ const handleDuplicateClient = async (client: ClientItem) => {
     <div className="min-h-screen bg-[#f7f7f7] font-sans text-gray-800 flex flex-col">
       
       {/* Topbar / Header Utama */}
-      <header className="bg-white border-b border-gray-200 h-20 px-6 sm:px-12 flex items-center justify-between sticky top-0 z-30 shadow-sm">
-        <div className="flex items-center gap-6">
+     <header className="bg-white border-b border-gray-200 h-20 px-6 sm:px-12 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+  <div className="flex items-center gap-6">
+    {/* Logo section */}
+  </div>
+
+  <div className="flex items-center gap-4 relative">
+    
+    {/* TOMBOL BROADCAST ← BARU BUTTON */}
+    <div className="relative">
+      <button 
+        type="button" 
+        onClick={() => {
+          setIsBroadcastOpen(true);
+          setIsNotifOpen(false);
+          setIsProfileOpen(false);
+        }}
+        className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full relative transition-colors"
+        title="Broadcast Chat ke Multiple Klien"
+      >
+        <Megaphone size={20} />
+      </button>
+    </div>
+    
+    {/* TOMBOL NOTIFIKASI ← SUDAH ADA, JANGAN UBAH */}
+    <div className="relative">
+      <button 
+        type="button" 
+        onClick={() => {
+          setIsNotifOpen(!isNotifOpen);
+          setIsProfileOpen(false);
+        }}
           <div className="flex flex-col">
             <span className="font-serif italic text-2xl font-bold tracking-tight text-gray-900">Pilihin Fotomu</span>
             <span className="text-[9px] uppercase tracking-widest text-gray-400 font-semibold">by Abazic</span>
@@ -820,6 +855,15 @@ const handleDuplicateClient = async (client: ClientItem) => {
         </section>
 
       </main>
+       {/* Broadcast Modal ← BARU */}
+      <BroadcastModal
+        isOpen={isBroadcastOpen}
+        onClose={() => setIsBroadcastOpen(false)}
+        clientsList={clientsList}
+        adminWhatsapp={adminInfo.whatsapp}
+        appBaseUrl={typeof window !== 'undefined' ? window.location.origin : 'https://pilihin-app.vercel.app'}
+      />
+
     </div>
   );
 }
