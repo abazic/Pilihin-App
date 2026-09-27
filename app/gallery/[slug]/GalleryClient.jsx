@@ -126,17 +126,16 @@ export default function GalleryClient({ galleryData, initialPhotos }) {
           </div>
 
           <div className="flex items-center gap-2">
-            {galleryData?.admin_whatsapp && (
-  
-    href={`https://wa.me/${galleryData.admin_whatsapp}`}
-    target="_blank"
-    rel="noopener noreferrer"
-    className="flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl text-sm font-medium transition-colors"
-  >
-    <MessageCircle size={16} />
-    <span className="hidden sm:inline">Hubungi Admin</span>
-  </a>
-)}
+                        {galleryData?.admin_whatsapp && (
+              
+                href={`https://wa.me/${galleryData.admin_whatsapp}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl text-sm font-medium transition-colors"
+              >
+                <MessageCircle size={16} />
+                <span className="hidden sm:inline">Hubungi Admin</span>
+              </a>
             )}
 
             <button
