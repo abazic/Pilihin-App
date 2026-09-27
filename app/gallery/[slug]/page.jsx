@@ -51,9 +51,16 @@ export default async function GalleryPage({ params }) {
     )
   }
 
-  // Panggil GDrive API di Server-Side
+  // 4. Panggil GDrive API di Server-Side
   const photos = await getPhotosFromGDrive(client.folder_id);
 
+  // 5. ← BARU: Ambil pilihan foto yang sudah ada (jika klien pernah simpan sebelumnya)
+  const { data: existingSelection } = await supabase
+    .from('photo_selections')
+    .select('*')
+    .eq('slug', slug)
+    .maybeSingle()
+  
   // Oper data ke Client Component
   return <GalleryClient galleryData={{ ...client, admin_whatsapp: adminWhatsApp }} initialPhotos={photos} />
 }
