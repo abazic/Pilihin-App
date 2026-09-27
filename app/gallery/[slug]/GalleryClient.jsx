@@ -126,7 +126,7 @@ export default function GalleryClient({ galleryData, initialPhotos }) {
           </div>
 
           <div className="flex items-center gap-2">
-                        {galleryData?.admin_whatsapp && (
+                          {galleryData?.admin_whatsapp && (
               
                 href={`https://wa.me/${galleryData.admin_whatsapp}`}
                 target="_blank"
@@ -137,7 +137,6 @@ export default function GalleryClient({ galleryData, initialPhotos }) {
                 <span className="hidden sm:inline">Hubungi Admin</span>
               </a>
             )}
-
             <button
               onClick={saveSelection}
               disabled={selectedPhotos.length === 0 || saving}
