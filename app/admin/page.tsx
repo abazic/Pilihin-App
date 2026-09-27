@@ -337,7 +337,33 @@ useEffect(() => {
     .eq('read', false);
 };
   const unreadNotifCount = notifications.filter(n => !n.read).length;
+// Duplikat Data Klien
+const handleDuplicateClient = async (client: ClientItem) => {
+  try {
+    const generatedSlug = `${client.client_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
 
+    const payload = {
+      client_name: `${client.client_name} (Copy)`,
+      folder_id: client.folder_id,
+      slug: generatedSlug,
+      max_photos: client.max_photos,
+      event_date: client.event_date,
+      expire_date: client.expire_date,
+      notes: client.notes
+    };
+
+    const { error } = await supabase.from('galleries').insert([payload]);
+
+    if (error) {
+      alert('Gagal menduplikat klien: ' + error.message);
+    } else {
+      alert('Klien berhasil diduplikat!');
+      fetchClients();
+    }
+  } catch (err) {
+    alert('Terjadi kesalahan saat menduplikat data.');
+  }
+};
   return (
     <div className="min-h-screen bg-[#f7f7f7] font-sans text-gray-800 flex flex-col">
       
@@ -734,6 +760,13 @@ useEffect(() => {
                           >
                             Edit
                           </button>
+                          <button
+  onClick={() => handleDuplicateClient(client)}
+  className="px-2.5 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+  title="Duplikat Klien"
+>
+  Duplikat
+</button>
                           <button
                             onClick={() => handleDeleteClientFromList(client.id)}
                             className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
