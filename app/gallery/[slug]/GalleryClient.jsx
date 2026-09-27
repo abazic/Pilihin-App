@@ -81,18 +81,6 @@ Mohon diproses untuk tahap selanjutnya. Terima kasih!`;
           </span>
         </div>
 
-        <div className="hidden md:flex items-center gap-6 text-sm">
-          <div className="flex items-center gap-2 font-medium text-gray-900">
-            <span className="bg-gray-900 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs">1</span>
-            Pilih Foto
-          </div>
-          <span className="text-gray-300 text-xs">▶</span>
-          <div className="flex items-center gap-2 text-gray-400">
-            <span className="bg-gray-200 text-gray-500 w-5 h-5 rounded-full flex items-center justify-center text-xs">2</span>
-            Kirim WhatsApp
-          </div>
-        </div>
-
         <div className="flex items-center gap-4 md:gap-6 text-sm text-gray-600">
           <button className="hidden sm:flex items-center gap-1 hover:text-gray-900">
             <HelpCircle size={16} /> Bantuan
