@@ -75,9 +75,9 @@ Mohon diproses untuk tahap selanjutnya. Terima kasih!`;
       {/* Header */}
       <header className="bg-[#f7f7f7] border-b border-gray-200 px-6 md:px-8 py-4 flex items-center justify-between sticky top-0 z-20">
         <div className="flex items-center gap-2">
-          <span className="font-serif italic text-2xl font-bold tracking-tight">Nyala Karya</span>
+          <span className="font-serif italic text-2xl font-bold tracking-tight">Pilihin Fotomu</span>
           <span className="hidden sm:inline text-[10px] uppercase tracking-widest text-gray-400 font-semibold border-l border-gray-300 pl-2 ml-2">
-            Photo & Video
+            by Abazic
           </span>
         </div>
 
