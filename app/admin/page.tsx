@@ -83,12 +83,7 @@ export default function HomePage() {
 
   // 3. State Notifikasi
   const [isNotifOpen, setIsNotifOpen] = useState<boolean>(false);
-  const [notifications, setNotifications] = useState<NotificationItem[]>([
-    { id: 1, title: 'Foto Dipilih Klien', desc: 'Ahmad Rizki telah selesai memilih 20 foto.', time: '10 min lalu', read: false },
-    { id: 2, title: 'Galeri Mendekati Expired', desc: 'Galeri Wisuda Al-Azhar berakhir besok.', time: '2 jam lalu', read: false },
-    { id: 3, title: 'Klien Baru Ditambahkan', desc: 'Link galeri Budi & Siska telah aktif.', time: '1 hari lalu', read: true },
-  ]);
-
+ const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   // Fetch daftar klien dari Supabase
   const fetchClients = useCallback(async () => {
     setFetchingClients(true);
@@ -111,7 +106,42 @@ export default function HomePage() {
   useEffect(() => {
     fetchClients();
   }, [fetchClients]);
+// Fetch notifikasi dari Supabase
+const fetchNotifications = useCallback(async () => {
+  const { data, error } = await supabase
+    .from('notifications')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(20);
 
+  if (!error && data) {
+    setNotifications(
+      data.map(n => ({
+        id: n.id,
+        title: n.title,
+        desc: n.desc,
+        time: formatTimeAgo(n.created_at),
+        read: n.read,
+      }))
+    );
+  }
+}, [supabase]);
+
+// Realtime: auto-update saat ada notifikasi baru
+useEffect(() => {
+  fetchNotifications();
+
+  const channel = supabase
+    .channel('notifications-realtime')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'notifications' },
+      () => fetchNotifications()
+    )
+    .subscribe();
+
+  return () => { supabase.removeChannel(channel); };
+}, [fetchNotifications, supabase]);
   // Fetch Nomor WhatsApp dari Supabase saat halaman dimuat
   useEffect(() => {
     async function loadAdminSettings() {
