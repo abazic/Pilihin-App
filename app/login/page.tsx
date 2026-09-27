@@ -129,7 +129,7 @@ export default function LoginPage() {
   type="email"
   value={email}
   onChange={(e) => setEmail(e.target.value)}
-  placeholder="admin@nyalakarya.com"
+  placeholder="admin@pilihin-app.com"
   required
   className="w-full p-3 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-gray-200 focus:border-gray-500 outline-none transition-all"
 />
@@ -168,7 +168,7 @@ export default function LoginPage() {
                 type="email" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@nyalakarya.com"
+                placeholder="admin@pilihin-app.com"
                 required
               className="w-full p-3 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-gray-200 focus:border-gray-500 outline-none transition-all"              />
             </div>
