@@ -52,7 +52,13 @@ interface ClientItem {
   notes: string | null;
   created_at?: string;
 }
-
+function formatTimeAgo(dateStr: string): string {
+  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+  if (diff < 60) return 'Baru saja';
+  if (diff < 3600) return `${Math.floor(diff / 60)} menit lalu`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} jam lalu`;
+  return `${Math.floor(diff / 86400)} hari lalu`;
+}
 export default function HomePage() {
   // 1. State Form Input Klien
   const [formData, setFormData] = useState<FormDataState>({
@@ -289,16 +295,11 @@ useEffect(() => {
         } else {
           setCreatedSlug(generatedSlug);
           
-          setNotifications(prev => [
-            {
-              id: Date.now(),
-              title: 'Klien Baru Berhasil Dibuat',
-              desc: `Galeri untuk "${formData.clientName}" siap digunakan.`,
-              time: 'Baru saja',
-              read: false
-            },
-            ...prev
-          ]);
+          await supabase.from('notifications').insert([{
+  title: 'Klien Baru Berhasil Dibuat',
+  desc: `Galeri untuk "${formData.clientName}" siap digunakan.`,
+  read: false,
+}]);
 
           alert('Data klien berhasil disimpan!');
           handleResetForm();
@@ -325,10 +326,16 @@ useEffect(() => {
     setTimeout(() => setCopiedSlug(null), 2000);
   };
 
-  const markAllNotifsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-  };
+ const markAllNotifsRead = async () => {
+  // Update lokal dulu biar responsif
+  setNotifications(prev => prev.map(n => ({ ...n, read: true })));
 
+  // Sync ke database
+  await supabase
+    .from('notifications')
+    .update({ read: true })
+    .eq('read', false);
+};
   const unreadNotifCount = notifications.filter(n => !n.read).length;
 
   return (
