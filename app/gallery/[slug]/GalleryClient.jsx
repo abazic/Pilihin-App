@@ -2,44 +2,62 @@
 'use client';
 
 import { useState } from 'react';
-import { Check, MessageCircle, Loader2 } from 'lucide-react';
+import { Search, HelpCircle, User, Check, Camera, CheckCircle, Send } from 'lucide-react';
 
 export default function GalleryClient({ galleryData, initialPhotos }) {
   const [selectedPhotos, setSelectedPhotos] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const maxPhotos = galleryData?.max_photos ?? initialPhotos.length;
   const isLimitReached = selectedPhotos.length >= maxPhotos;
 
-  const togglePhoto = (name) => {
+  const toggleSelectPhoto = (photo) => {
     setSelectedPhotos((prev) => {
-      if (prev.includes(name)) {
-        return prev.filter((p) => p !== name);
-      }
-      if (prev.length >= maxPhotos) {
-        return prev; // sudah mencapai batas, abaikan klik
-      }
-      return [...prev, name];
+      const already = prev.some((p) => p.name === photo.name);
+      if (already) return prev.filter((p) => p.name !== photo.name);
+      if (prev.length >= maxPhotos) return prev;
+      return [...prev, { name: photo.name, url: photo.url }];
     });
   };
 
-  const saveSelection = async () => {
+  const handleSendToWhatsApp = async () => {
     if (selectedPhotos.length === 0) return;
-
     setSaving(true);
+
     try {
+      const namesToSave = selectedPhotos.map((p) => p.name);
       const response = await fetch('/api/gallery/selection', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug: galleryData?.slug, selectedPhotos }),
+        body: JSON.stringify({ slug: galleryData?.slug, selectedPhotos: namesToSave }),
       });
       const data = await response.json();
 
       if (!response.ok) {
-        alert(`Gagal: ${data.error}`);
+        alert(`Gagal menyimpan pilihan: ${data.error}`);
         return;
       }
-      alert('Berhasil: ' + data.message);
+
+      const photoListText = selectedPhotos
+        .map((p, i) => `${i + 1}. ${p.name}`)
+        .join('\n');
+
+      const message =
+`Halo Admin, saya telah selesai memilih foto.
+
+*Detail Klien:* ${galleryData?.client_name || 'Klien'}
+*Total Foto Terpilih:* ${selectedPhotos.length} Foto
+
+*Daftar Nama Foto:*
+${photoListText}
+
+Mohon diproses untuk tahap selanjutnya. Terima kasih!`;
+
+      if (galleryData?.admin_whatsapp) {
+        const waUrl = `https://wa.me/${galleryData.admin_whatsapp}?text=${encodeURIComponent(message)}`;
+        window.open(waUrl, '_blank');
+      }
     } catch (error) {
       console.error('Error saving selection:', error);
       alert('Terjadi kesalahan jaringan, coba lagi nanti.');
@@ -48,107 +66,137 @@ export default function GalleryClient({ galleryData, initialPhotos }) {
     }
   };
 
-  const formattedDate = galleryData?.event_date
-    ? new Date(galleryData.event_date).toLocaleDateString('id-ID', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      })
-    : null;
+  const filteredPhotos = initialPhotos.filter((p) =>
+    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7] pb-28">
+    <div className="min-h-screen bg-[#f7f7f7] font-sans text-gray-800 pb-28">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-6 py-5 flex flex-col gap-1">
-          <h1 className="text-xl font-medium text-gray-900">
+      <header className="bg-[#f7f7f7] border-b border-gray-200 px-6 md:px-8 py-4 flex items-center justify-between sticky top-0 z-20">
+        <div className="flex items-center gap-2">
+          <span className="font-serif italic text-2xl font-bold tracking-tight">Nyala Karya</span>
+          <span className="hidden sm:inline text-[10px] uppercase tracking-widest text-gray-400 font-semibold border-l border-gray-300 pl-2 ml-2">
+            Photo & Video
+          </span>
+        </div>
+
+        <div className="hidden md:flex items-center gap-6 text-sm">
+          <div className="flex items-center gap-2 font-medium text-gray-900">
+            <span className="bg-gray-900 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs">1</span>
+            Pilih Foto
+          </div>
+          <span className="text-gray-300 text-xs">▶</span>
+          <div className="flex items-center gap-2 text-gray-400">
+            <span className="bg-gray-200 text-gray-500 w-5 h-5 rounded-full flex items-center justify-center text-xs">2</span>
+            Kirim WhatsApp
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4 md:gap-6 text-sm text-gray-600">
+          <button className="hidden sm:flex items-center gap-1 hover:text-gray-900">
+            <HelpCircle size={16} /> Bantuan
+          </button>
+          <button className="hover:text-gray-900">
+            <User size={20} />
+          </button>
+        </div>
+      </header>
+
+      <main className="max-w-4xl mx-auto px-6 md:px-8 mt-8">
+        {/* Intro */}
+        <div className="mb-6">
+          <p className="text-xs font-semibold text-gray-500 tracking-wider uppercase mb-2">
             {galleryData?.client_name ?? 'Galeri Foto'}
-          </h1>
-          {formattedDate && (
-            <p className="text-sm text-gray-500">{formattedDate}</p>
-          )}
-          <p className="text-xs text-gray-400 mt-1">
-            Pilih foto favoritmu, maksimal {maxPhotos} foto.
+          </p>
+          <h1 className="text-3xl font-serif text-gray-900 mb-2">Pilih Foto Favoritmu</h1>
+          <p className="text-gray-500 leading-relaxed text-sm">
+            Tandai foto yang ingin kamu pilih, maksimal <strong>{maxPhotos}</strong> foto. Setelah selesai, klik tombol kirim di bawah.
           </p>
         </div>
-      </div>
 
-      {/* Grid Foto */}
-      <div className="max-w-5xl mx-auto px-6 py-6">
-        {initialPhotos?.length === 0 ? (
-          <p className="text-center text-sm text-gray-400 py-12">
-            Belum ada foto di galeri ini.
+        {/* Search */}
+        <div className="relative w-full mb-6">
+          <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Cari nama foto..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+          />
+        </div>
+
+        {/* Grid Foto */}
+        {filteredPhotos.length === 0 ? (
+          <p className="text-center text-sm text-gray-400 py-16">
+            {initialPhotos.length === 0 ? 'Belum ada foto di galeri ini.' : 'Tidak ada foto yang cocok dengan pencarian.'}
           </p>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {initialPhotos?.map((p) => {
-              const isSelected = selectedPhotos.includes(p.name);
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {filteredPhotos.map((photo) => {
+              const isSelected = selectedPhotos.some((p) => p.name === photo.name);
               const isDisabled = !isSelected && isLimitReached;
 
               return (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => togglePhoto(p.name)}
-                  disabled={isDisabled}
-                  className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all ${
-                    isSelected
-                      ? 'border-[#2a2a2a] ring-2 ring-offset-2 ring-[#2a2a2a]'
-                      : 'border-transparent'
-                  } ${isDisabled ? 'opacity-40 cursor-not-allowed' : 'hover:opacity-90'}`}
+                <div
+                  key={photo.id}
+                  onClick={() => !isDisabled && toggleSelectPhoto(photo)}
+                  className={`relative group aspect-square rounded-xl overflow-hidden ${
+                    isDisabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
+                  }`}
                 >
                   <img
-                    src={p.url}
-                    alt={p.name}
+                    src={photo.url}
+                    alt={photo.name}
                     loading="lazy"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition duration-300 group-hover:scale-105"
                   />
-                  {isSelected && (
-                    <span className="absolute top-2 right-2 w-6 h-6 bg-[#2a2a2a] rounded-full flex items-center justify-center">
-                      <Check size={14} className="text-white" />
-                    </span>
-                  )}
-                </button>
+
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 opacity-80" />
+
+                  <div className="absolute top-3 left-3">
+                    <div className={`w-5 h-5 rounded flex items-center justify-center border transition-colors ${
+                      isSelected ? 'bg-blue-600 border-blue-600' : 'bg-transparent border-white/70 group-hover:border-white'
+                    }`}>
+                      {isSelected && <Check size={14} className="text-white" />}
+                    </div>
+                  </div>
+
+                  <div className="absolute bottom-3 left-3">
+                    <p className="text-white text-xs font-medium tracking-wide">
+                      {photo.name.replace(/\.[^/.]+$/, '')}
+                    </p>
+                  </div>
+                </div>
               );
             })}
           </div>
         )}
-      </div>
+      </main>
 
-      {/* Bottom Bar: Counter + Simpan + WhatsApp */}
+      {/* Bottom Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
-          <div className="text-sm text-gray-600">
-            <span className="font-medium text-gray-900">
-              {selectedPhotos.length}
-            </span>{' '}
-            / {maxPhotos} dipilih
+        <div className="max-w-4xl mx-auto px-6 md:px-8 py-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 text-sm text-gray-600">
+            <div className="flex items-center gap-1.5">
+              <Camera size={16} className="text-gray-400" />
+              {initialPhotos.length} foto
+            </div>
+            <div className="flex items-center gap-1.5">
+              <CheckCircle size={16} className="text-gray-400" />
+              <span className="font-medium text-gray-900">{selectedPhotos.length}</span> / {maxPhotos} dipilih
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-                          {galleryData?.admin_whatsapp && (
-              
-                href={`https://wa.me/${galleryData.admin_whatsapp}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl text-sm font-medium transition-colors"
-              >
-                <MessageCircle size={16} />
-                <span className="hidden sm:inline">Hubungi Admin</span>
-              </a>
-            )}
-            <button
-              onClick={saveSelection}
-              disabled={selectedPhotos.length === 0 || saving}
-              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#2a2a2a] hover:bg-black text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {saving ? (
-                <Loader2 size={16} className="animate-spin" />
-              ) : (
-                'Simpan Pilihan'
-              )}
-            </button>
-          </div>
+          <button
+            onClick={handleSendToWhatsApp}
+            disabled={saving || selectedPhotos.length === 0}
+            className="flex items-center justify-center gap-2 px-5 py-3 bg-[#25D366] hover:bg-[#20ba5a] text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+          >
+            <Send size={16} />
+            {saving ? 'Menyimpan...' : 'Kirim ke WhatsApp'}
+          </button>
         </div>
       </div>
     </div>
