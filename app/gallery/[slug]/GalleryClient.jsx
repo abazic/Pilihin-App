@@ -108,17 +108,18 @@ export default function GalleryClient({ galleryData, initialPhotos }) {
         </div>
 
         <div className="flex items-center gap-4 md:gap-6 text-sm text-gray-600">
-         href={`https://wa.me/${galleryData?.admin_whatsapp}`}
-  target="_blank"
-  rel="noopener noreferrer"
-  className="flex items-center gap-1 hover:text-gray-900 text-sm"
->
-  <HelpCircle size={16} /> Bantuan
-</a>
-          <button className="hover:text-gray-900">
-            <User size={20} />
-          </button>
-        </div>
+  
+    href={`https://wa.me/${galleryData?.admin_whatsapp}`}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="flex items-center gap-1 hover:text-gray-900 text-sm"
+  >
+    <HelpCircle size={16} /> Bantuan
+  </a>
+  <button className="hover:text-gray-900">
+    <User size={20} />
+  </button>
+</div>
       </header>
 
       <main className="max-w-4xl mx-auto px-6 md:px-8 mt-8">
