@@ -76,7 +76,8 @@ export default function HomePage() {
   const [selections, setSelections]             = useState<PhotoSelection[]>([]);
   const [fetchingSelections, setFetchingSelections] = useState<boolean>(false);
   const [expandedSlug, setExpandedSlug]         = useState<string | null>(null); // row expand foto
-
+  const [copiedSelId, setCopiedSelId]   = useState<string | null>(null); // copy teks pilihan
+  
   // ─── Semua fungsi lama tetap sama — hanya tambah fetchSelections ─────────────
 
   const fetchClients = useCallback(async () => {
@@ -255,6 +256,24 @@ export default function HomePage() {
     } catch { alert('Terjadi kesalahan.'); }
   };
 
+  // ← BARU: generate & copy teks pilihan klien (format WA)
+const handleCopySelectionText = (sel: PhotoSelection) => {
+  const clientName  = sel.galleries?.client_name ?? sel.slug;
+  const totalPhotos = sel.selected_photos.length;
+  const fotoList    = sel.selected_photos
+    .map((p, i) => `${i + 1}. ${p.name}`)
+    .join('\n');
+
+  const text =
+    `*Detail Klien:* ${clientName}\n` +
+    `*Total Foto Terpilih:* ${totalPhotos} Foto\n\n` +
+    `*Daftar Nama Foto:*\n${fotoList}`;
+
+  navigator.clipboard.writeText(text);
+  setCopiedSelId(sel.id);
+  setTimeout(() => setCopiedSelId(null), 2000);
+};
+  
   return (
     <div className="min-h-screen bg-[#f7f7f7] font-sans text-gray-800 flex flex-col">
 
@@ -590,19 +609,31 @@ export default function HomePage() {
                           {formatTimeAgo(sel.updated_at)}
                         </td>
 
-                        {/* Toggle expand daftar foto */}
-                        <td className="py-3.5 px-4">
-                          <button
-                            onClick={() => setExpandedSlug(expandedSlug === sel.slug ? null : sel.slug)}
-                            className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors"
-                          >
-                            Lihat Foto
-                            <ChevronDownIcon
-                              size={14}
-                              className={`transition-transform duration-200 ${expandedSlug === sel.slug ? 'rotate-180' : ''}`}
-                            />
-                          </button>
-                        </td>
+                        {/* Toggle expand + Tombol Copy */}
+<td className="py-3.5 px-4">
+  <div className="flex items-center gap-2">
+    <button
+      onClick={() => setExpandedSlug(expandedSlug === sel.slug ? null : sel.slug)}
+      className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors"
+    >
+      Lihat Foto
+      <ChevronDownIcon
+        size={14}
+        className={`transition-transform duration-200 ${expandedSlug === sel.slug ? 'rotate-180' : ''}`}
+      />
+    </button>
+    <button
+      onClick={() => handleCopySelectionText(sel)}
+      className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded-lg transition-colors"
+      title="Salin teks pilihan"
+    >
+      {copiedSelId === sel.id
+        ? <><Check size={12} className="text-emerald-600" /> Tersalin!</>
+        : <><Copy size={12} /> Salin</>
+      }
+    </button>
+  </div>
+</td>
                       </tr>
 
                       {/* Row expand: grid thumbnail foto yang dipilih */}
