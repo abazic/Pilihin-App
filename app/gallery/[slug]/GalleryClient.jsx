@@ -62,7 +62,7 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
   }, [previewIndex, closePreview, showPrev, showNext]);
 
   const handleSendToWhatsApp = async () => {
-    if (selectedPhotos.length === 0 || isLocked) return;
+    if (selectedPhotos.length === 0) return;
     setSaving(true);
     try {
       const response = await fetch("/api/gallery/selection", {
@@ -325,7 +325,7 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
             {!(isLocked && sentViaWa) && (
               <button
                 onClick={handleSendToWhatsApp}
-                disabled={saving || selectedPhotos.length === 0 || isLocked}
+                disabled={saving || selectedPhotos.length === 0}
                 className="flex items-center justify-center gap-2 px-5 py-3 bg-[#25D366] hover:bg-[#20ba5a] text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
               >
                 <Send size={16} />
