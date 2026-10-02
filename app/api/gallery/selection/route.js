@@ -44,19 +44,19 @@ export async function POST(request) {
       );
     }
 
-    // 4. Cek apakah sudah terkunci — tolak perubahan apapun kalau is_locked = true di DB
-    const { data: existingRow } = await supabase
-      .from('photo_selections')
-      .select('id, is_locked')
-      .eq('slug', slug)
-      .maybeSingle();
+   // 4. Cek apakah sudah terkunci — tolak kecuali klien sedang membuka kunci
+const { data: existingRow } = await supabase
+  .from('photo_selections')
+  .select('id, is_locked')
+  .eq('slug', slug)
+  .maybeSingle();
 
-    if (existingRow?.is_locked === true) {
-      return NextResponse.json(
-        { error: 'Pilihan sudah dikunci dan tidak bisa diubah' },
-        { status: 403 }
-      );
-    }
+if (existingRow?.is_locked === true && is_locked !== false) {
+  return NextResponse.json(
+    { error: 'Pilihan sudah dikunci dan tidak bisa diubah' },
+    { status: 403 }
+  );
+}
 
     // 5. Susun payload upsert
     const payload = {
