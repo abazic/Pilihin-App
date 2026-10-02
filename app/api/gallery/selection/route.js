@@ -60,14 +60,14 @@ if (existingRow?.is_locked === true && is_locked !== false) {
 
     // 5. Susun payload upsert
     const payload = {
-      gallery_id: gallery.id,          // pakai id dari DB, bukan dari client (lebih aman)
-      slug,
-      selected_photos: selectedPhotos, // [{name, url}] — full object dari GalleryClient
-      updated_at: new Date().toISOString(),
-      ...(is_locked  === true && { is_locked: true }),
-      ...(sent_via_wa === true && { sent_via_wa: true, sent_at: new Date().toISOString() }),
-    };
-
+  gallery_id: gallery.id,
+  slug,
+  selected_photos: selectedPhotos,
+  updated_at: new Date().toISOString(),
+  ...(is_locked === true  && { is_locked: true }),
+  ...(is_locked === false && { is_locked: false }),  // ← tambah ini
+  ...(sent_via_wa === true && { sent_via_wa: true, sent_at: new Date().toISOString() }),
+};
     // 6. Upsert ke photo_selections (insert pertama kali, update berikutnya)
     const { error: upsertError } = await supabase
       .from('photo_selections')
