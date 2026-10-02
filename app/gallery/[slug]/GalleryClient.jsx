@@ -103,11 +103,11 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
   };
 
   const handleLockSelection = async () => {
-    if (selectedPhotos.length === 0 || isLocked) return;
-    const confirmed = window.confirm(
-      "Kunci pilihan? Setelah dikunci, kamu tidak bisa mengubah pilihan lagi.\n\n" +
-      "Total: " + selectedPhotos.length + " foto dipilih."
-    );
+  if (selectedPhotos.length === 0) return;
+
+  if (isLocked) {
+    // Batalkan kunci
+    const confirmed = window.confirm("Buka kunci pilihan? Kamu bisa mengubah pilihan lagi.");
     if (!confirmed) return;
     setLocking(true);
     try {
@@ -118,21 +118,54 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
           slug: galleryData?.slug,
           gallery_id: galleryData?.id,
           selectedPhotos: selectedPhotos,
-          is_locked: true,
+          is_locked: false,
         }),
       });
       const data = await response.json();
       if (!response.ok) {
-        alert("Gagal mengunci pilihan: " + data.error);
+        alert("Gagal membuka kunci: " + data.error);
         return;
       }
-      setIsLocked(true);
+      setIsLocked(false);
     } catch (error) {
-      console.error("Error locking selection:", error);
+      console.error("Error unlocking selection:", error);
       alert("Terjadi kesalahan jaringan.");
     } finally {
       setLocking(false);
     }
+    return;
+  }
+
+  // Kunci pilihan
+  const confirmed = window.confirm(
+    "Kunci pilihan? Setelah dikunci, kamu tidak bisa mengubah pilihan lagi.\n\n" +
+    "Total: " + selectedPhotos.length + " foto dipilih."
+  );
+  if (!confirmed) return;
+  setLocking(true);
+  try {
+    const response = await fetch("/api/gallery/selection", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        slug: galleryData?.slug,
+        gallery_id: galleryData?.id,
+        selectedPhotos: selectedPhotos,
+        is_locked: true,
+      }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      alert("Gagal mengunci pilihan: " + data.error);
+      return;
+    }
+    setIsLocked(true);
+  } catch (error) {
+    console.error("Error locking selection:", error);
+    alert("Terjadi kesalahan jaringan.");
+  } finally {
+    setLocking(false);
+  }
   };
 
   const previewPhoto = previewIndex !== null ? filteredPhotos[previewIndex] : null;
@@ -277,13 +310,18 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
           <div className="flex items-center gap-2">
             {!isLocked && (
               <button
-                onClick={handleLockSelection}
-                disabled={locking || selectedPhotos.length === 0}
-                className="flex items-center gap-2 px-4 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-              >
-                <Lock size={15} />
-                {locking ? "Mengunci..." : "Kunci Pilihan"}
-              </button>
+  onClick={handleLockSelection}
+  disabled={locking || selectedPhotos.length === 0}
+  className={
+    "flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-white " +
+    (isLocked
+      ? "bg-red-500 hover:bg-red-600"
+      : "bg-amber-500 hover:bg-amber-600")
+  }
+>
+  <Lock size={15} />
+  {locking ? (isLocked ? "Membuka..." : "Mengunci...") : (isLocked ? "Buka Kunci" : "Kunci Pilihan")}
+</button>
             )}
             {!(isLocked && sentViaWa) && (
               <button
