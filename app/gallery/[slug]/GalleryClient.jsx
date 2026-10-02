@@ -308,7 +308,6 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
           </div>
 
           <div className="flex items-center gap-2">
-            {!isLocked && (
               <button
   onClick={handleLockSelection}
   disabled={locking || selectedPhotos.length === 0}
@@ -322,7 +321,7 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
   <Lock size={15} />
   {locking ? (isLocked ? "Membuka..." : "Mengunci...") : (isLocked ? "Buka Kunci" : "Kunci Pilihan")}
 </button>
-            )}
+          
             {!(isLocked && sentViaWa) && (
               <button
                 onClick={handleSendToWhatsApp}
