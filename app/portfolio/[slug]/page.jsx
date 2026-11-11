@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { getPhotosFromGDrive } from '@/lib/gdrive';
 import AppHeader from '@/components/AppHeader';
+import PortfolioImage from '@/components/PortfolioImage';
 import { notFound } from 'next/navigation';
 
 function parseCategories(value) {
@@ -26,7 +27,7 @@ export default async function PortfolioCategoryPage({ params }) {
   const category = categories.find((item) => item.slug === slug);
   if (!category) notFound();
 
-  const photos = await getPhotosFromGDrive(category.folderId, { watermark: true });
+  const photos = await getPhotosFromGDrive(category.folderId);
   const shuffledPhotos = [...photos].sort(() => Math.random() - 0.5);
 
   return (
@@ -50,7 +51,7 @@ export default async function PortfolioCategoryPage({ params }) {
           <div className="columns-2 gap-4 space-y-4 md:columns-3 md:gap-6 md:space-y-6">
             {shuffledPhotos.map((photo, index) => (
               <figure key={photo.id} className="mb-4 break-inside-avoid overflow-hidden md:mb-6">
-                <img
+                <PortfolioImage
                   src={photo.url}
                   alt={photo.name.replace(/\.[^/.]+$/, '')}
                   loading="lazy"
