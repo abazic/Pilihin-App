@@ -201,16 +201,33 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
 </section>
 
 
-      <footer id="contact" className="border-t border-black/10 px-6 py-12">
-        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-4 md:flex-row">
-          <p className="text-sm text-neutral-500">
-            © {new Date().getFullYear()} Pilihin Fotomu
-          </p>
-          <p className="text-sm text-neutral-500">
-            Capturing moments, preserving memories.
-          </p>
-        </div>
-      </footer>
+      
+<footer id="contact" className="border-t border-black/10 px-6 py-16">
+  <div className="mx-auto flex max-w-7xl flex-col justify-between gap-10 md:flex-row md:items-end">
+    <div>
+      <p className="text-xs uppercase tracking-[0.25em] text-neutral-400">
+        Let's Create Memories
+      </p>
+      <h2 className="mt-4 text-3xl font-medium md:text-5xl">
+        Let's talk about your story.
+      </h2>
+      <a
+        href={whatsappContactUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-8 inline-flex items-center gap-3 rounded-full bg-green-600 px-7 py-4 text-sm text-white transition hover:bg-green-700"
+      >
+        Chat via WhatsApp ↗
+      </a>
+    </div>
+
+    <div className="text-sm text-neutral-500 md:text-right">
+      <p>© {new Date().getFullYear()} Pilihin Fotomu</p>
+      <p className="mt-2">Capturing moments, preserving memories.</p>
+    </div>
+  </div>
+</footer>
+
     </main>
   );
 }
