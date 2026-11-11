@@ -39,6 +39,11 @@ export default async function PortfolioCategoryPage({ params }) {
           <p className="mt-5 max-w-xl text-sm leading-7 text-neutral-500 dark:text-neutral-400">
             A collection of moments and stories captured through our lens.
           </p>
+          <div className="mt-7">
+            <a href="/pricelist" className="inline-flex items-center rounded-full bg-[#1c1c1c] px-6 py-3 text-sm font-medium text-white transition hover:bg-neutral-700 dark:bg-[#f5f3ee] dark:text-[#1c1c1c] dark:hover:bg-white">
+              Lihat Pricelist
+            </a>
+          </div>
         </div>
 
         {shuffledPhotos.length > 0 ? (
