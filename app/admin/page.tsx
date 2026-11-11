@@ -914,9 +914,12 @@ export default function HomePage() {
         )}
         {activeTab === 'portfolio' && (
           <section className={`${CARD} rounded-2xl p-6 sm:p-8 space-y-8`}>
-            <div>
-              <h1 className="text-3xl font-serif text-gray-900 dark:text-white mb-2">Edit Portofolio</h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Buat satu kategori untuk setiap jenis layanan. Setiap kategori memiliki judul, folder Google Drive, dan halaman galeri publik sendiri.</p>
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h1 className="text-3xl font-serif text-gray-900 dark:text-white mb-2">Edit Portofolio</h1>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Buat satu kategori untuk setiap jenis layanan. Setiap kategori memiliki judul, folder Google Drive, dan halaman galeri publik sendiri.</p>
+              </div>
+              <Link href="/pricelist" target="_blank" className={`rounded-lg px-4 py-2 text-sm ${BTN_SECONDARY}`}>Lihat Pricelist ↗</Link>
             </div>
 
             <form onSubmit={savePortfolioCategory} className="space-y-4 rounded-xl border border-gray-200 dark:border-neutral-800 p-4 sm:p-5">
