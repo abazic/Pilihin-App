@@ -3,6 +3,7 @@ import { DEFAULT_WHATSAPP_NUMBER } from '@/lib/constants';
 import AppHeader from '@/components/AppHeader';
 import Link from 'next/link';
 import { getPhotosFromGDrive } from '@/lib/gdrive';
+import HeroSlideshow from '@/components/HeroSlideshow';
 export default async function HomePage() {
   const supabase = await createClient();
 
@@ -22,13 +23,6 @@ const whatsappUrl = `https://wa.me/${whatsappNumber}`;
 );
 
 const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
-
-  const { data: heroImageSetting } = await supabase
-    .from('settings')
-    .select('value')
-    .eq('key', 'homepage_hero_image')
-    .maybeSingle();
-  const heroImageUrl = heroImageSetting?.value || 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85';
 
   const { data: portfolioSetting } = await supabase
     .from('settings')
@@ -52,6 +46,20 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
       photos: await getPhotosFromGDrive(category.folderId),
     }))
   );
+
+  const portfolioHeroPhotos = portfolioCategoriesWithPhotos
+    .flatMap((category) => category.photos)
+    .filter((photo) => photo.url);
+
+  // Shuffle once per server render so the opening hero image is random.
+  for (let i = portfolioHeroPhotos.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [portfolioHeroPhotos[i], portfolioHeroPhotos[j]] = [portfolioHeroPhotos[j], portfolioHeroPhotos[i]];
+  }
+
+  const heroPhotos = portfolioHeroPhotos.length > 0
+    ? portfolioHeroPhotos.map((photo) => photo.url)
+    : ['https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85'];
   return (
     <main className="min-h-screen bg-[#faf9f6] text-[#1c1c1c] transition-colors duration-300 dark:bg-[#11110f] dark:text-stone-100">
       <AppHeader
@@ -97,11 +105,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
 
           <div className="relative">
             <div className="aspect-[4/5] overflow-hidden bg-neutral-200 dark:bg-neutral-800">
-              <img
-                src={heroImageUrl}
-                alt="Wedding photography"
-                className="h-full w-full object-cover"
-              />
+              <HeroSlideshow images={heroPhotos} interval={7000} />
             </div>
             <p className="mt-3 text-right text-xs tracking-widest text-neutral-400">
               MOMENTS · STORIES · MEMORIES
