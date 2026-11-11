@@ -132,14 +132,55 @@ export default function HomePage() {
 </section>
 
 
-      <section id="services" className="px-6 py-20">
-        <div className="mx-auto max-w-7xl">
-          <h2 className="text-3xl font-medium">Our Services</h2>
-          <p className="mt-4 text-neutral-500">
-            Wedding · Portrait · Event Photography
-          </p>
-        </div>
-      </section>
+      
+<section id="services" className="bg-[#f1efe9] px-6 py-24">
+  <div className="mx-auto max-w-7xl">
+    <p className="text-xs uppercase tracking-[0.25em] text-neutral-400">
+      What We Do
+    </p>
+
+    <div className="mt-4 flex flex-col justify-between gap-6 md:flex-row md:items-end">
+      <h2 className="max-w-xl text-4xl font-medium leading-tight md:text-6xl">
+        Photography for every chapter of your story.
+      </h2>
+
+      <p className="max-w-sm text-sm leading-7 text-neutral-500">
+        From intimate celebrations to meaningful milestones,
+        we capture every moment with intention.
+      </p>
+    </div>
+
+    <div className="mt-16 grid gap-10 border-t border-black/15 pt-8 md:grid-cols-3">
+      <div>
+        <span className="text-xs text-neutral-400">01 / WEDDING</span>
+        <h3 className="mt-5 text-2xl font-medium">Wedding Photography</h3>
+        <p className="mt-4 text-sm leading-7 text-neutral-500">
+          Mengabadikan setiap momen pernikahan, mulai dari detail kecil
+          hingga momen paling berharga.
+        </p>
+      </div>
+
+      <div>
+        <span className="text-xs text-neutral-400">02 / PORTRAIT</span>
+        <h3 className="mt-5 text-2xl font-medium">Portrait Photography</h3>
+        <p className="mt-4 text-sm leading-7 text-neutral-500">
+          Sesi foto personal untuk menampilkan karakter, ekspresi,
+          dan cerita unik setiap individu.
+        </p>
+      </div>
+
+      <div>
+        <span className="text-xs text-neutral-400">03 / EVENT</span>
+        <h3 className="mt-5 text-2xl font-medium">Event Photography</h3>
+        <p className="mt-4 text-sm leading-7 text-neutral-500">
+          Dokumentasi acara dan perayaan dengan pendekatan visual
+          yang natural dan bercerita.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
 
       <footer id="contact" className="border-t border-black/10 px-6 py-12">
         <div className="mx-auto flex max-w-7xl flex-col justify-between gap-4 md:flex-row">
