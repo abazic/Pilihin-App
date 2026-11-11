@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { getPhotosPageFromGDrive } from '@/lib/gdrive';
 import HeroSlideshow from '@/components/HeroSlideshow';
 import PortfolioImage from '@/components/PortfolioImage';
-import { Instagram, Facebook, Youtube, Music2, Mail, Globe, MessageCircle } from 'lucide-react';
+import { Camera, Globe, Play, Music, Mail, MessageCircle } from 'lucide-react';
 export default async function HomePage() {
   const supabase = await createClient();
 
@@ -242,10 +242,10 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
     <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
       {socialLinks.map((social, index) => {
         const platform = String(social.platform).toLowerCase();
-        const SocialIcon = platform.includes('instagram') ? Instagram
-          : platform.includes('facebook') ? Facebook
-          : platform.includes('youtube') ? Youtube
-          : platform.includes('tiktok') ? Music2
+        const SocialIcon = platform.includes('instagram') ? Camera
+          : platform.includes('facebook') ? Globe
+          : platform.includes('youtube') ? Play
+          : platform.includes('tiktok') ? Music
           : platform.includes('email') || platform.includes('mail') ? Mail
           : Globe;
         return (
