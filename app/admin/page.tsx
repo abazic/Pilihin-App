@@ -76,7 +76,11 @@ export default function HomePage() {
   const [isNotifOpen, setIsNotifOpen]       = useState<boolean>(false);
   const [notifications, setNotifications]   = useState<NotificationItem[]>([]);
   const [isBroadcastOpen, setIsBroadcastOpen] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<'clients' | 'portfolio'>('clients');
+  const [activeTab, setActiveTab] = useState<'clients' | 'portfolio' | 'homepage'>('clients');
+  const [heroImageUrl, setHeroImageUrl] = useState('');
+  const [heroImageLoading, setHeroImageLoading] = useState(false);
+  const [heroImageSaving, setHeroImageSaving] = useState(false);
+  const [heroImageMessage, setHeroImageMessage] = useState('');
   const [portfolioCategories, setPortfolioCategories] = useState<PortfolioCategory[]>([]);
   const [portfolioTitle, setPortfolioTitle] = useState('');
   const [portfolioFolderUrl, setPortfolioFolderUrl] = useState('');
@@ -127,7 +131,52 @@ export default function HomePage() {
     }
   }, []);
 
+
   useEffect(() => { loadPortfolioCategories(); }, [loadPortfolioCategories]);
+
+  useEffect(() => {
+    async function loadHeroImage() {
+      setHeroImageLoading(true);
+      try {
+        const response = await fetch('/api/admin/hero-image');
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Gagal memuat foto utama.');
+        setHeroImageUrl(result.url || '');
+      } catch (error) {
+        setHeroImageMessage(error instanceof Error ? error.message : 'Gagal memuat foto utama.');
+      } finally {
+        setHeroImageLoading(false);
+      }
+    }
+    loadHeroImage();
+  }, []);
+
+  const saveHeroImage = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const url = heroImageUrl.trim();
+    if (!url || !/^https?:\\/\\//i.test(url)) {
+      setHeroImageMessage('Masukkan URL gambar yang valid (http:// atau https://).');
+      return;
+    }
+    setHeroImageSaving(true);
+    setHeroImageMessage('');
+    try {
+      const response = await fetch('/api/admin/hero-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Gagal menyimpan foto utama.');
+      setHeroImageUrl(result.url);
+      setHeroImageMessage('Foto utama homepage berhasil diperbarui.');
+    } catch (error) {
+      setHeroImageMessage(error instanceof Error ? error.message : 'Gagal menyimpan foto utama.');
+    } finally {
+      setHeroImageSaving(false);
+    }
+  };
+
 
   const fetchPortfolioPhotos = async () => {
     if (!portfolioFolderUrl.trim()) {
@@ -420,6 +469,10 @@ export default function HomePage() {
             <button type="button" onClick={() => setActiveTab('portfolio')}
               className={`whitespace-nowrap border-b-2 px-2 py-2 text-sm font-medium transition-colors ${activeTab === 'portfolio' ? 'border-amber-700 text-gray-900 dark:border-amber-400 dark:text-white' : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}>
               Portofolio
+            </button>
+            <button type="button" onClick={() => setActiveTab('homepage')}
+              className={`whitespace-nowrap border-b-2 px-2 py-2 text-sm font-medium transition-colors ${activeTab === 'homepage' ? 'border-amber-700 text-gray-900 dark:border-amber-400 dark:text-white' : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}>
+              Homepage
             </button>
           </>
         }
@@ -832,6 +885,37 @@ export default function HomePage() {
 
           </>
         )}
+        {activeTab === 'homepage' && (
+          <section className={`${CARD} rounded-2xl p-6 sm:p-8 space-y-6`}>
+            <div>
+              <h1 className="text-3xl font-serif text-gray-900 dark:text-white mb-2">Pengaturan Homepage</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Ganti foto utama yang tampil di sisi kanan bagian hero homepage.</p>
+            </div>
+            <form onSubmit={saveHeroImage} className="max-w-3xl space-y-4">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">URL Foto Utama</label>
+                <input type="url" value={heroImageUrl}
+                  onChange={event => { setHeroImageUrl(event.target.value); setHeroImageMessage(''); }}
+                  placeholder="https://contoh.com/foto-utama.jpg" className={INPUT} required />
+                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">Gunakan direct link gambar yang dapat diakses publik. Link halaman preview Google Drive tidak akan tampil sebagai gambar.</p>
+              </div>
+              {heroImageUrl.trim() && (
+                <div className="max-w-sm overflow-hidden rounded-xl border border-gray-200 bg-gray-100 dark:border-neutral-700 dark:bg-neutral-800">
+                  <img src={heroImageUrl} alt="Preview foto utama homepage" className="aspect-[4/5] w-full object-cover" />
+                </div>
+              )}
+              <div className="flex flex-wrap items-center gap-3">
+                <button type="submit" disabled={heroImageSaving || heroImageLoading}
+                  className="rounded-xl bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-gray-700 disabled:opacity-50 dark:bg-white dark:text-gray-900">
+                  {heroImageSaving ? 'Menyimpan...' : 'Simpan Foto Utama'}
+                </button>
+                {heroImageLoading && <span className="text-xs text-gray-500">Memuat pengaturan...</span>}
+              </div>
+              {heroImageMessage && <p className="text-sm text-gray-600 dark:text-gray-300">{heroImageMessage}</p>}
+            </form>
+          </section>
+        )}
+
         {activeTab === 'portfolio' && (
           <section className={`${CARD} rounded-2xl p-6 sm:p-8 space-y-8`}>
             <div>
