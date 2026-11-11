@@ -3,10 +3,44 @@
 import { useEffect, useState } from 'react';
 import PortfolioImage from '@/components/PortfolioImage';
 
-type Photo = { id: string; url: string; name: string };
+type Photo = { id: string; url: string; fullUrl?: string; name: string };
 
-export default function PortfolioGallery({ photos }: { photos: Photo[] }) {
+export default function PortfolioGallery({
+  photos: initialPhotos,
+  folderId,
+  initialPageToken,
+}: {
+  photos: Photo[];
+  folderId: string;
+  initialPageToken: string | null;
+}) {
+  const [photos, setPhotos] = useState(initialPhotos);
+  const [pageToken, setPageToken] = useState(initialPageToken);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [loadError, setLoadError] = useState('');
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
+  const loadMore = async () => {
+    if (!pageToken || isLoadingMore) return;
+    setIsLoadingMore(true);
+    setLoadError('');
+    try {
+      const params = new URLSearchParams({
+        folderId,
+        pageToken,
+        pageSize: '20',
+      });
+      const response = await fetch(`/api/portfolio-photos?${params.toString()}`);
+      if (!response.ok) throw new Error('Gagal memuat foto berikutnya.');
+      const data = await response.json();
+      setPhotos((current) => [...current, ...(data.photos || [])]);
+      setPageToken(data.nextPageToken || null);
+    } catch {
+      setLoadError('Foto berikutnya gagal dimuat. Coba lagi.');
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
 
   const close = () => setActiveIndex(null);
   const previous = () => setActiveIndex((current) => current === null ? null : (current - 1 + photos.length) % photos.length);
@@ -50,6 +84,20 @@ export default function PortfolioGallery({ photos }: { photos: Photo[] }) {
         ))}
       </div>
 
+      {pageToken && (
+        <div className="mt-10 flex flex-col items-center gap-3">
+          {loadError && <p role="alert" className="text-sm text-red-600">{loadError}</p>}
+          <button
+            type="button"
+            onClick={loadMore}
+            disabled={isLoadingMore}
+            className="rounded-full border border-black/15 px-6 py-3 text-sm transition hover:bg-black hover:text-white disabled:cursor-wait disabled:opacity-60 dark:border-white/20 dark:hover:bg-white dark:hover:text-black"
+          >
+            {isLoadingMore ? 'Memuat foto...' : 'Muat foto lainnya'}
+          </button>
+        </div>
+      )}
+
       {activeIndex !== null && (
         <div
           role="dialog"
@@ -73,7 +121,7 @@ export default function PortfolioGallery({ photos }: { photos: Photo[] }) {
           >‹</button>
           <div className="flex h-full w-full items-center justify-center" onClick={(event) => event.stopPropagation()}>
             <img
-              src={photos[activeIndex].url}
+              src={photos[activeIndex].fullUrl || photos[activeIndex].url}
               alt={photos[activeIndex].name.replace(/\.[^/.]+$/, '')}
               draggable={false}
               onContextMenu={(event) => event.preventDefault()}
