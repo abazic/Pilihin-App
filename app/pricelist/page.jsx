@@ -51,7 +51,7 @@ export default async function PricelistPage() {
   const backgroundPhotos = heroPhotos.length ? heroPhotos : ['https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85'];
 
   return (
-    <main className="relative isolate min-h-screen overflow-hidden bg-[#faf9f6] text-[#1c1c1c] dark:bg-[#11110f] dark:text-stone-100">
+    <main className="relative isolate min-h-screen bg-[#faf9f6] text-[#1c1c1c] dark:bg-[#11110f] dark:text-stone-100">
       <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <HeroSlideshow images={backgroundPhotos} interval={12000} />
         <div className="absolute inset-0 bg-[#faf9f6]/80 backdrop-blur-[5px] dark:bg-[#11110f]/80" />
