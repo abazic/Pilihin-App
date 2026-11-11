@@ -4,6 +4,7 @@ import AppHeader from '@/components/AppHeader';
 import Link from 'next/link';
 import { getPhotosFromGDrive } from '@/lib/gdrive';
 import HeroSlideshow from '@/components/HeroSlideshow';
+import PortfolioImage from '@/components/PortfolioImage';
 export default async function HomePage() {
   const supabase = await createClient();
 
@@ -43,7 +44,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
   const portfolioCategoriesWithPhotos = await Promise.all(
     portfolioCategories.map(async (category) => ({
       ...category,
-      photos: await getPhotosFromGDrive(category.folderId, { watermark: true }),
+      photos: await getPhotosFromGDrive(category.folderId),
     }))
   );
 
@@ -76,19 +77,28 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
         }
       />
 
-      <section className="mx-auto max-w-7xl px-6 pb-20 pt-16 md:pt-24">
-        <div className="grid items-center gap-12 md:grid-cols-2">
-          <div>
+      <section className="relative isolate mx-auto max-w-7xl overflow-hidden px-6 py-16 md:min-h-[720px] md:py-24">
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-full md:w-[72%]">
+          <div className="absolute inset-0">
+            <HeroSlideshow images={heroPhotos} interval={12000} />
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-r from-[#faf9f6] via-[#faf9f6]/75 to-transparent dark:from-[#11110f] dark:via-[#11110f]/65" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#faf9f6] via-transparent to-[#faf9f6]/25 dark:from-[#11110f] dark:via-transparent dark:to-[#11110f]/20" />
+          <div className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-[#faf9f6] to-transparent dark:from-[#11110f]" />
+        </div>
+
+        <div className="relative z-10 flex min-h-[520px] items-center md:min-h-[570px]">
+          <div className="max-w-2xl md:w-[62%]">
             <p className="mb-6 text-xs uppercase tracking-[0.3em] text-amber-800 dark:text-amber-400">
               Photography & Visual Storytelling
             </p>
 
             <h1 className="text-5xl font-medium leading-[1.1] tracking-tight md:text-7xl">
               Every moment deserves to be{" "}
-              <span className="text-neutral-400 dark:text-neutral-500 dark:text-neutral-400">remembered.</span>
+              <span className="text-neutral-400 dark:text-neutral-500">remembered.</span>
             </h1>
 
-            <p className="mt-8 max-w-md text-base leading-7 text-neutral-500">
+            <p className="mt-8 max-w-md text-base leading-7 text-neutral-600 dark:text-neutral-300">
               Mengabadikan momen berharga menjadi cerita visual
               yang dapat kamu kenang selamanya.
             </p>
@@ -100,16 +110,10 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
               Explore Portfolio ↗
             </a>
           </div>
-
-          <div className="relative">
-            <div className="aspect-[4/5] overflow-hidden bg-neutral-200 dark:bg-neutral-800">
-              <HeroSlideshow images={heroPhotos} interval={7000} />
-            </div>
-            <p className="mt-3 text-right text-xs tracking-widest text-neutral-400">
-              MOMENTS · STORIES · MEMORIES
-            </p>
-          </div>
         </div>
+        <p className="absolute bottom-6 right-8 z-10 text-right text-xs tracking-widest text-neutral-500 dark:text-neutral-300">
+          MOMENTS · STORIES · MEMORIES
+        </p>
       </section>
 
       
@@ -138,7 +142,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
             <Link key={category.slug} href={`/portfolio/${category.slug}`} className="group block overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-white/10 dark:bg-[#1b1b18]">
               <div className="relative overflow-hidden bg-neutral-200 dark:bg-neutral-800">
                 {cover ? (
-                  <img src={cover.url} alt={category.title} loading="lazy"
+                  <PortfolioImage src={cover.url} alt={category.title} loading="lazy"
                     className="aspect-[4/3] w-full object-cover transition duration-700 group-hover:scale-105" />
                 ) : (
                   <div className="flex aspect-[3/4] items-center justify-center p-6 text-center text-neutral-500 dark:text-neutral-400">
