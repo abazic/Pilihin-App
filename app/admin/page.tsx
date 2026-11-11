@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { extractFolderId } from '@/lib/gdrive';
 import { DEFAULT_WHATSAPP_NUMBER } from '@/lib/constants';
 import BroadcastModal from '@/components/BroadcastModal';
+import ThemeToggle from '@/components/ThemeToggle';
 import { 
   FileText, Bell, ChevronDown, User as UserIcon, Calendar, 
   Link as LinkIcon, ExternalLink, Trash2, Copy, Check, Plus,
@@ -286,6 +287,7 @@ const handleCopySelectionText = (sel: PhotoSelection) => {
           </div>
         </div>
         <div className="flex items-center gap-4 relative">
+          <ThemeToggle />
           <div className="relative">
             <button type="button" onClick={() => { setIsBroadcastOpen(true); setIsNotifOpen(false); setIsProfileOpen(false); }}
               className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors" title="Broadcast">
