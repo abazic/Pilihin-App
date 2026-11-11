@@ -1,4 +1,5 @@
-
+import { createClient } from '@/lib/supabase/server';
+import { DEFAULT_WHATSAPP_NUMBER } from '@/lib/constants';
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-[#faf9f6] text-[#1c1c1c]">
