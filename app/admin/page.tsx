@@ -349,11 +349,11 @@ export default function HomePage() {
     try {
       const cleanSocialLinks = socialLinks.map(item => ({ platform: item.platform.trim(), url: item.url.trim() })).filter(item => item.platform && item.url);
       const { error } = await supabase.from('settings').upsert([
-        { key: 'whatsapp_number', value: adminInfo.whatsapp.replace(/\\D/g, ''), updated_at: new Date().toISOString() },
+        { key: 'whatsapp_number', value: adminInfo.whatsapp.replace(/\D/g, ''), updated_at: new Date().toISOString() },
         { key: 'social_media_links', value: JSON.stringify(cleanSocialLinks), updated_at: new Date().toISOString() },
       ]);
       if (error) alert('Gagal menyimpan: ' + error.message);
-      else { setAdminInfo(prev => ({ ...prev, whatsapp: prev.whatsapp.replace(/\\D/g, '') })); setSocialLinks(cleanSocialLinks); alert('Kontak berhasil diperbarui!'); setIsEditingAdmin(false); }
+      else { setAdminInfo(prev => ({ ...prev, whatsapp: prev.whatsapp.replace(/\D/g, '') })); setSocialLinks(cleanSocialLinks); alert('Kontak berhasil diperbarui!'); setIsEditingAdmin(false); }
     } catch { alert('Terjadi kesalahan.'); }
   };
 
