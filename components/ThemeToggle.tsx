@@ -25,7 +25,7 @@ export default function ThemeToggle() {
       aria-label="Ganti tema"
       className="rounded-lg p-2 text-stone-600 hover:bg-black/5 dark:text-stone-300 dark:hover:bg-white/10"
     >
-      {dark ? <Sun size={18} /> : <Moon size={18} />}
+      {dark ? <Moon size={18} /> : <Sun size={18} />}
     </button>
   );
 }
