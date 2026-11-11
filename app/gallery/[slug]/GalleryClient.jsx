@@ -7,7 +7,7 @@ import {
   Send, Maximize2, X, ChevronLeft, ChevronRight,
   Lock, CheckCircle2,
 } from "lucide-react";
-import ThemeToggle from "@/components/ThemeToggle";
+import AppHeader from "@/components/AppHeader";
 
 export default function GalleryClient({ galleryData, initialPhotos, existingSelection }) {
   const [selectedPhotos, setSelectedPhotos] = useState(() => {
@@ -175,39 +175,28 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
 
   return (
     <div className="min-h-screen bg-[#f7f7f7] dark:bg-[#0f0f0f] font-sans text-gray-800 dark:text-gray-200 pb-28">
-      <header className="bg-[#f7f7f7] dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800 px-6 md:px-8 py-4 flex items-center justify-between sticky top-0 z-20">
-        <div className="flex items-center gap-2">
-          <span className="font-serif italic text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Pilihin Fotomu</span>
-          <span className="hidden sm:inline text-[10px] uppercase tracking-widest text-gray-400 dark:text-gray-500 font-semibold border-l border-gray-300 dark:border-neutral-700 pl-2 ml-2">
-            by Abazic
-          </span>
-        </div>
-
-        <div className="flex items-center gap-4 md:gap-6 text-sm text-gray-600 dark:text-gray-300">
-          <ThemeToggle />
-          {isLocked && (
-            <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 text-xs font-semibold bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 px-2.5 py-1 rounded-full">
-              <Lock size={12} /> Terkunci
-            </span>
-          )}
-          {sentViaWa && !isLocked && (
-            <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 px-2.5 py-1 rounded-full">
-              <CheckCircle2 size={12} /> Terkirim ke WA
-            </span>
-          )}
-          <a
-            href={"https://wa.me/" + (galleryData?.admin_whatsapp ?? "")}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1 hover:text-gray-900 dark:hover:text-white text-sm"
-          >
-            <HelpCircle size={16} /> Bantuan
-          </a>
-          <button className="hover:text-gray-900 dark:hover:text-white">
-            <User size={20} />
-          </button>
-        </div>
-      </header>
+      <AppHeader
+        actions={
+          <div className="flex items-center gap-3 md:gap-6 text-sm text-gray-600 dark:text-gray-300">
+            {isLocked && (
+              <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 text-xs font-semibold bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 px-2.5 py-1 rounded-full">
+                <Lock size={12} /> Terkunci
+              </span>
+            )}
+            {sentViaWa && !isLocked && (
+              <span className="hidden sm:flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 px-2.5 py-1 rounded-full">
+                <CheckCircle2 size={12} /> Terkirim ke WA
+              </span>
+            )}
+            <a href={"https://wa.me/" + (galleryData?.admin_whatsapp ?? "")} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-gray-900 dark:hover:text-white text-sm">
+              <HelpCircle size={16} /> Bantuan
+            </a>
+            <button className="hidden sm:block hover:text-gray-900 dark:hover:text-white" aria-label="Profil">
+              <User size={20} />
+            </button>
+          </div>
+        }
+      />
 
       <main className="max-w-4xl mx-auto px-6 md:px-8 mt-8">
         <div className="mb-6">
