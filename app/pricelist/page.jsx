@@ -35,7 +35,7 @@ export default async function PricelistPage() {
 
   return (
     <main className="min-h-screen bg-[#faf9f6] text-[#1c1c1c] dark:bg-[#11110f] dark:text-stone-100">
-      <AppHeader navigation={<><a href="/#portfolio" className="hover:text-amber-700">Portfolio</a><a href="/pricelist" className="text-amber-700 dark:text-amber-400">Pricelist</a><a href="/#services" className="hover:text-amber-700">Services</a><a href="/#contact" className="hover:text-amber-700">Contact</a></>} actions={<a href="/login" className="rounded-full border border-black/20 px-4 py-2 text-sm dark:border-white/20">Client Login</a>} />
+      <AppHeader navigation={<><a href="/#portfolio" className="hover:text-amber-700">Portfolio</a><a href="/pricelist" className="text-amber-700 dark:text-amber-400">Pricelist</a><a href="/#services" className="hover:text-amber-700">Services</a><a href="/#contact" className="hover:text-amber-700">Contact</a></>} actions={<a href="/admin" className="rounded-full bg-black px-4 py-2 text-sm text-white dark:bg-stone-100 dark:text-neutral-900">Dashboard</a>} />
       <section className="mx-auto max-w-7xl px-6 pb-16 pt-20 md:pt-28">
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-xs uppercase tracking-[0.3em] text-amber-800 dark:text-amber-400">Photography & Visual Stories · Pricing</p>
