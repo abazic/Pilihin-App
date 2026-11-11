@@ -1,6 +1,19 @@
 import { createClient } from '@/lib/supabase/server';
 import { DEFAULT_WHATSAPP_NUMBER } from '@/lib/constants';
 export default async function HomePage() {
+  const supabase = await createClient();
+
+const { data } = await supabase
+  .from('settings')
+  .select('value')
+  .eq('key', 'whatsapp_number')
+  .maybeSingle();
+
+const whatsappNumber = (
+  data?.value || DEFAULT_WHATSAPP_NUMBER
+).replace(/\D/g, '');
+
+const whatsappUrl = `https://wa.me/${whatsappNumber}`;
   return (
     <main className="min-h-screen bg-[#faf9f6] text-[#1c1c1c]">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
