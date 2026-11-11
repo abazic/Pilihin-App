@@ -21,43 +21,51 @@ export default function HomePage() {
         </a>
       </nav>
 
-      <section className="mx-auto max-w-7xl px-6 pb-24 pt-20 md:pt-32">
-        <p className="mb-6 text-xs uppercase tracking-[0.3em] text-amber-800">
-          Photography & Visual Storytelling
-        </p>
+      <section className="mx-auto max-w-7xl px-6 pb-20 pt-16 md:pt-24">
+        <div className="grid items-center gap-12 md:grid-cols-2">
+          <div>
+            <p className="mb-6 text-xs uppercase tracking-[0.3em] text-amber-800">
+              Photography & Visual Storytelling
+            </p>
 
-        <h1 className="max-w-4xl text-5xl font-medium leading-[1.1] tracking-tight md:text-8xl">
-          Every moment
-          <br />
-          deserves to be
-          <br />
-          <span className="text-neutral-400">remembered.</span>
-        </h1>
+            <h1 className="text-5xl font-medium leading-[1.1] tracking-tight md:text-7xl">
+              Every moment deserves to be{" "}
+              <span className="text-neutral-400">remembered.</span>
+            </h1>
 
-        <div className="mt-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <p className="max-w-md text-base leading-7 text-neutral-500">
-            Mengabadikan momen berharga menjadi cerita visual
-            yang dapat kamu kenang selamanya.
-          </p>
+            <p className="mt-8 max-w-md text-base leading-7 text-neutral-500">
+              Mengabadikan momen berharga menjadi cerita visual
+              yang dapat kamu kenang selamanya.
+            </p>
 
-          <a
-            href="#portfolio"
-            className="w-fit rounded-full bg-black px-7 py-4 text-sm text-white transition hover:bg-neutral-700"
-          >
-            Explore Portfolio ↗
-          </a>
+            <a
+              href="#portfolio"
+              className="mt-8 inline-block rounded-full bg-black px-7 py-4 text-sm text-white transition hover:bg-neutral-700"
+            >
+              Explore Portfolio ↗
+            </a>
+          </div>
+
+          <div className="relative">
+            <div className="aspect-[4/5] overflow-hidden bg-neutral-200">
+              <img
+                src="https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85"
+                alt="Wedding photography"
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <p className="mt-3 text-right text-xs tracking-widest text-neutral-400">
+              MOMENTS · STORIES · MEMORIES
+            </p>
+          </div>
         </div>
       </section>
 
-      <section
-        id="portfolio"
-        className="border-t border-black/10 px-6 py-20"
-      >
+      <section id="portfolio" className="border-t border-black/10 px-6 py-20">
         <div className="mx-auto max-w-7xl">
           <p className="text-xs uppercase tracking-[0.25em] text-neutral-400">
             Selected Works
           </p>
-
           <h2 className="mt-4 text-3xl font-medium md:text-5xl">
             Stories worth keeping.
           </h2>
@@ -73,10 +81,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <footer
-        id="contact"
-        className="border-t border-black/10 px-6 py-12"
-      >
+      <footer id="contact" className="border-t border-black/10 px-6 py-12">
         <div className="mx-auto flex max-w-7xl flex-col justify-between gap-4 md:flex-row">
           <p className="text-sm text-neutral-500">
             © {new Date().getFullYear()} Pilihin Fotomu
