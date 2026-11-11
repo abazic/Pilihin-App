@@ -33,7 +33,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
   let socialLinks = [];
   try {
     const parsed = typeof socialSetting?.value === 'string' ? JSON.parse(socialSetting.value) : socialSetting?.value;
-    socialLinks = Array.isArray(parsed) ? parsed.filter((item) => item?.platform && typeof item?.url === 'string' && /^https?:\\/\\//i.test(item.url)) : [];
+    socialLinks = Array.isArray(parsed) ? parsed.filter((item) => item?.platform && typeof item?.url === 'string' && /^https?:\/\//i.test(item.url)) : [];
   } catch { socialLinks = []; }
 
   const { data: portfolioSetting } = await supabase
