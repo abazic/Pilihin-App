@@ -14,6 +14,11 @@ const whatsappNumber = (
 ).replace(/\D/g, '');
 
 const whatsappUrl = `https://wa.me/${whatsappNumber}`;
+  const whatsappMessage = encodeURIComponent(
+  'Halo Pilihin Fotomu, saya ingin bertanya tentang layanan fotografi.'
+);
+
+const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
   return (
     <main className="min-h-screen bg-[#faf9f6] text-[#1c1c1c]">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
