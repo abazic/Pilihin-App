@@ -154,7 +154,7 @@ export default function HomePage() {
   const saveHeroImage = async (event: React.FormEvent) => {
     event.preventDefault();
     const url = heroImageUrl.trim();
-    if (!url || !/^https?:\\/\\//i.test(url)) {
+    if (!url) {
       setHeroImageMessage('Masukkan URL gambar yang valid (http:// atau https://).');
       return;
     }
