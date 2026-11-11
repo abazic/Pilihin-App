@@ -15,6 +15,24 @@ import {
   Lock, Send, Image, ChevronDown as ChevronDownIcon,
 } from 'lucide-react';
 
+const DEFAULT_PRICELIST = {
+  title: 'Graduation Photoshoot 2026',
+  subtitle: 'Rayakan perjalanan panjangmu lewat foto yang layak untuk dikenang.',
+  packages: [
+    { name: 'Solo Graduate', price: 'Rp 250K', detail: '1 Graduate', duration: '1 jam', locations: '1 lokasi', photos: '20 foto edited', extras: 'Unlimited shots' },
+    { name: 'Duo Graduate', price: 'Rp 400K', detail: '2 Graduates', duration: '2 jam', locations: '2 lokasi', photos: '30 foto edited', extras: 'Unlimited shots' },
+    { name: 'Group Session', price: 'Rp 700K', detail: '3–5 Graduates', duration: '2 jam', locations: '2 lokasi', photos: '60 foto edited', extras: 'Unlimited shots' },
+    { name: 'Large Group', price: 'Rp 900K', detail: '6–10 Graduates', duration: '2 jam', locations: '2 lokasi', photos: '100 foto edited', extras: 'Unlimited shots' },
+    { name: 'Extended Group', price: 'Rp 100K/person', detail: '>10 Graduates', duration: '3–4 jam', locations: '1 lokasi', photos: '100 foto edited', extras: 'Unlimited shots' },
+  ],
+  addons: [{ name: 'Extra 60 menit', price: '+Rp 100K' }, { name: 'Extra lokasi', price: '+Rp 100K' }, { name: 'Extra 10 foto edited', price: '+Rp 50K' }, { name: 'Same Day Edit', price: '+Rp 300K' }, { name: 'Family >5 orang', price: '+Rp 50K/orang' }],
+  video: { name: 'Shoot & Edit', price: 'Rp 600K', description: 'Video dokumentasi graduation' },
+  whatsappMessage: 'Halo kak, bisa booking foto graduation?',
+};
+type PricePackage = { name: string; price: string; detail: string; duration: string; locations: string; photos: string; extras: string };
+type PriceAddon = { name: string; price: string };
+type PricelistData = { title: string; subtitle: string; packages: PricePackage[]; addons: PriceAddon[]; video: { name: string; price: string; description: string }; whatsappMessage: string };
+
 // ─── Interface ────────────────────────────────────────────────────────────────
 interface FormDataState {
   clientName: string; eventDate: string; gdriveUrl: string;
@@ -76,7 +94,7 @@ export default function HomePage() {
   const [isNotifOpen, setIsNotifOpen]       = useState<boolean>(false);
   const [notifications, setNotifications]   = useState<NotificationItem[]>([]);
   const [isBroadcastOpen, setIsBroadcastOpen] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<'clients' | 'portfolio'>('clients');
+  const [activeTab, setActiveTab] = useState<'clients' | 'portfolio' | 'pricelist'>('clients');
   const [portfolioCategories, setPortfolioCategories] = useState<PortfolioCategory[]>([]);
   const [portfolioTitle, setPortfolioTitle] = useState('');
   const [portfolioFolderUrl, setPortfolioFolderUrl] = useState('');
@@ -85,6 +103,9 @@ export default function HomePage() {
   const [portfolioSaving, setPortfolioSaving] = useState(false);
   const [portfolioMessage, setPortfolioMessage] = useState('');
   const [editingPortfolioSlug, setEditingPortfolioSlug] = useState<string | null>(null);
+  const [pricelist, setPricelist] = useState<PricelistData>(DEFAULT_PRICELIST);
+  const [pricelistSaving, setPricelistSaving] = useState(false);
+  const [pricelistMessage, setPricelistMessage] = useState('');
 
 
   const [selections, setSelections]                 = useState<PhotoSelection[]>([]);
@@ -129,6 +150,33 @@ export default function HomePage() {
 
 
   useEffect(() => { loadPortfolioCategories(); }, [loadPortfolioCategories]);
+
+  const loadPricelist = useCallback(async () => {
+    try {
+      const response = await fetch('/api/admin/pricelist');
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Gagal memuat pricelist.');
+      setPricelist({ ...DEFAULT_PRICELIST, ...result.pricelist });
+    } catch (error) { setPricelistMessage(error instanceof Error ? error.message : 'Gagal memuat pricelist.'); }
+  }, []);
+
+  useEffect(() => { loadPricelist(); }, [loadPricelist]);
+
+  const savePricelist = async () => {
+    setPricelistSaving(true); setPricelistMessage('');
+    try {
+      const response = await fetch('/api/admin/pricelist', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pricelist }) });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Gagal menyimpan pricelist.');
+      setPricelist({ ...DEFAULT_PRICELIST, ...result.pricelist });
+      setPricelistMessage('Pricelist berhasil disimpan dan halaman publik diperbarui.');
+    } catch (error) { setPricelistMessage(error instanceof Error ? error.message : 'Gagal menyimpan pricelist.'); }
+    finally { setPricelistSaving(false); }
+  };
+
+  const updatePricePackage = (index: number, field: keyof PricePackage, value: string) => setPricelist(prev => ({ ...prev, packages: prev.packages.map((item, i) => i === index ? { ...item, [field]: value } : item) }));
+  const updatePriceAddon = (index: number, field: keyof PriceAddon, value: string) => setPricelist(prev => ({ ...prev, addons: prev.addons.map((item, i) => i === index ? { ...item, [field]: value } : item) }));
+
 
   const fetchPortfolioPhotos = async () => {
     if (!portfolioFolderUrl.trim()) {
@@ -421,6 +469,10 @@ export default function HomePage() {
             <button type="button" onClick={() => setActiveTab('portfolio')}
               className={`whitespace-nowrap border-b-2 px-2 py-2 text-sm font-medium transition-colors ${activeTab === 'portfolio' ? 'border-amber-700 text-gray-900 dark:border-amber-400 dark:text-white' : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}>
               Portofolio
+            </button>
+            <button type="button" onClick={() => setActiveTab('pricelist')}
+              className={`whitespace-nowrap border-b-2 px-2 py-2 text-sm font-medium transition-colors ${activeTab === 'pricelist' ? 'border-amber-700 text-gray-900 dark:border-amber-400 dark:text-white' : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}>
+              Pricelist
             </button>
 
           </>
@@ -833,6 +885,32 @@ export default function HomePage() {
 
 
           </>
+        )}
+        {activeTab === 'pricelist' && (
+          <section className={`${CARD} rounded-2xl p-6 sm:p-8 space-y-8`}>
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div><h1 className="text-3xl font-serif text-gray-900 dark:text-white">Edit Pricelist</h1><p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Kelola paket, harga, add-ons, dan CTA booking. Perubahan tampil di halaman publik /pricelist.</p></div>
+              <Link href="/pricelist" target="_blank" className={`rounded-lg px-4 py-2 text-sm ${BTN_SECONDARY}`}>Preview halaman ↗</Link>
+            </div>
+            <div className="space-y-4 rounded-xl border border-gray-200 dark:border-neutral-800 p-4">
+              <h2 className="font-semibold">Konten utama</h2>
+              <label className="block text-sm">Judul<input value={pricelist.title} onChange={e=>setPricelist(p=>({...p,title:e.target.value}))} className={`${INPUT} mt-2`} /></label>
+              <label className="block text-sm">Subjudul<textarea rows={2} value={pricelist.subtitle} onChange={e=>setPricelist(p=>({...p,subtitle:e.target.value}))} className={`${INPUT} mt-2`} /></label>
+              <label className="block text-sm">Pesan WhatsApp booking<textarea rows={2} value={pricelist.whatsappMessage} onChange={e=>setPricelist(p=>({...p,whatsappMessage:e.target.value}))} className={`${INPUT} mt-2`} /></label>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between"><h2 className="text-xl font-semibold">Photo Packages</h2><button type="button" onClick={()=>setPricelist(p=>({...p,packages:[...p.packages,{name:'Paket Baru',price:'',detail:'',duration:'',locations:'',photos:'',extras:''}]}))} className={`rounded-lg px-3 py-2 text-sm ${BTN_SECONDARY}`}><Plus size={14} className="inline mr-1"/>Tambah paket</button></div>
+              {pricelist.packages.map((item,i)=><div key={i} className="rounded-xl border border-gray-200 dark:border-neutral-800 p-4 space-y-3">
+                <div className="flex justify-between"><span className="text-xs font-semibold text-gray-400">PAKET {i+1}</span><button type="button" onClick={()=>setPricelist(p=>({...p,packages:p.packages.filter((_,j)=>j!==i)}))} className="text-xs text-red-500">Hapus</button></div>
+                <div className="grid gap-3 sm:grid-cols-2"><label className="text-xs">Nama paket<input value={item.name} onChange={e=>updatePricePackage(i,'name',e.target.value)} className={`${INPUT} mt-1`}/></label><label className="text-xs">Harga<input value={item.price} onChange={e=>updatePricePackage(i,'price',e.target.value)} className={`${INPUT} mt-1`}/></label><label className="text-xs">Target peserta<input value={item.detail} onChange={e=>updatePricePackage(i,'detail',e.target.value)} className={`${INPUT} mt-1`}/></label><label className="text-xs">Durasi<input value={item.duration} onChange={e=>updatePricePackage(i,'duration',e.target.value)} className={`${INPUT} mt-1`}/></label><label className="text-xs">Lokasi<input value={item.locations} onChange={e=>updatePricePackage(i,'locations',e.target.value)} className={`${INPUT} mt-1`}/></label><label className="text-xs">Foto edited<input value={item.photos} onChange={e=>updatePricePackage(i,'photos',e.target.value)} className={`${INPUT} mt-1`}/></label><label className="text-xs sm:col-span-2">Keterangan tambahan<input value={item.extras} onChange={e=>updatePricePackage(i,'extras',e.target.value)} className={`${INPUT} mt-1`}/></label></div>
+              </div>)}
+            </div>
+            <div className="space-y-4"><div className="flex items-center justify-between"><h2 className="text-xl font-semibold">Add-ons</h2><button type="button" onClick={()=>setPricelist(p=>({...p,addons:[...p.addons,{name:'Add-on baru',price:''}]}))} className={`rounded-lg px-3 py-2 text-sm ${BTN_SECONDARY}`}><Plus size={14} className="inline mr-1"/>Tambah add-on</button></div>
+              {pricelist.addons.map((item,i)=><div key={i} className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]"><input aria-label="Nama add-on" value={item.name} onChange={e=>updatePriceAddon(i,'name',e.target.value)} className={INPUT}/><input aria-label="Harga add-on" value={item.price} onChange={e=>updatePriceAddon(i,'price',e.target.value)} className={INPUT}/><button type="button" onClick={()=>setPricelist(p=>({...p,addons:p.addons.filter((_,j)=>j!==i)}))} className="rounded-lg px-3 text-sm text-red-500">Hapus</button></div>)}
+            </div>
+            <div className="space-y-4 rounded-xl border border-gray-200 dark:border-neutral-800 p-4"><h2 className="text-xl font-semibold">Video Package</h2><div className="grid gap-3 sm:grid-cols-2"><label className="text-sm">Nama<input value={pricelist.video.name} onChange={e=>setPricelist(p=>({...p,video:{...p.video,name:e.target.value}}))} className={`${INPUT} mt-1`}/></label><label className="text-sm">Harga<input value={pricelist.video.price} onChange={e=>setPricelist(p=>({...p,video:{...p.video,price:e.target.value}}))} className={`${INPUT} mt-1`}/></label><label className="text-sm sm:col-span-2">Deskripsi<input value={pricelist.video.description} onChange={e=>setPricelist(p=>({...p,video:{...p.video,description:e.target.value}}))} className={`${INPUT} mt-1`}/></label></div></div>
+            <div className="flex flex-wrap items-center gap-3 border-t border-gray-100 pt-5 dark:border-neutral-800"><button type="button" onClick={savePricelist} disabled={pricelistSaving} className="rounded-xl bg-gray-900 px-6 py-3 text-sm font-semibold text-white disabled:opacity-50 dark:bg-white dark:text-gray-900">{pricelistSaving?'Menyimpan...':'Simpan Pricelist'}</button>{pricelistMessage&&<p className="text-sm text-gray-600 dark:text-gray-300">{pricelistMessage}</p>}</div>
+          </section>
         )}
         {activeTab === 'portfolio' && (
           <section className={`${CARD} rounded-2xl p-6 sm:p-8 space-y-8`}>
