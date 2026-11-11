@@ -52,7 +52,8 @@ export async function GET(_request, { params }) {
       return new NextResponse('Preview foto tidak tersedia.', { status: 404 });
     }
 
-    const imageResponse = await fetch(metadata.thumbnailLink, { next: { revalidate: 3600 } });
+    const thumbnailUrl = metadata.thumbnailLink.replace(/=s\\d+/, '=s1600');
+    const imageResponse = await fetch(thumbnailUrl, { next: { revalidate: 3600 } });
     if (!imageResponse.ok) {
       return new NextResponse('Gagal mengambil preview foto.', { status: 502 });
     }
@@ -68,7 +69,7 @@ export async function GET(_request, { params }) {
     const safeHeight = Math.max(1, Math.min(height, 10000));
     const imageData = `data:${contentType};base64,${imageBuffer.toString('base64')}`;
 
-    // Watermark is composed into the delivered image response, not added as a removable page overlay.
+    // The public response displays a repeating watermark over the preview. This deters casual reuse but is not DRM.
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${safeWidth}" height="${safeHeight}" viewBox="0 0 ${safeWidth} ${safeHeight}">
       <image x="0" y="0" width="${safeWidth}" height="${safeHeight}" preserveAspectRatio="none" xlink:href="${imageData}"/>
       <defs><pattern id="wm" width="420" height="220" patternUnits="userSpaceOnUse" patternTransform="rotate(-28)">
