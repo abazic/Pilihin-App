@@ -253,6 +253,15 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
       >
         Chat via WhatsApp ↗
       </a>
+      {socialLinks.length > 0 && (
+        <div className="mt-6 flex flex-wrap gap-3">
+          {socialLinks.map((social, index) => (
+            <a key={`${social.platform}-${index}`} href={social.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center rounded-full border border-black/15 px-5 py-2.5 text-sm text-neutral-700 transition hover:border-amber-700 hover:text-amber-800 dark:border-white/15 dark:text-neutral-200 dark:hover:border-amber-400 dark:hover:text-amber-400">
+              {social.platform} ↗
+            </a>
+          ))}
+        </div>
+      )}
     </div>
 
     <div className="text-sm text-neutral-500 md:text-right">
