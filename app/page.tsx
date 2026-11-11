@@ -61,16 +61,76 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="portfolio" className="border-t border-black/10 px-6 py-20">
-        <div className="mx-auto max-w-7xl">
-          <p className="text-xs uppercase tracking-[0.25em] text-neutral-400">
-            Selected Works
-          </p>
-          <h2 className="mt-4 text-3xl font-medium md:text-5xl">
-            Stories worth keeping.
-          </h2>
+      
+<section id="portfolio" className="border-t border-black/10 px-6 py-24">
+  <div className="mx-auto max-w-7xl">
+    <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+      <div>
+        <p className="text-xs uppercase tracking-[0.25em] text-neutral-400">
+          Selected Works
+        </p>
+        <h2 className="mt-4 text-4xl font-medium md:text-6xl">
+          Stories worth keeping.
+        </h2>
+      </div>
+
+      <p className="max-w-xs text-sm leading-6 text-neutral-500">
+        A collection of moments, emotions, and stories captured through our lens.
+      </p>
+    </div>
+
+    <div className="mt-12 grid gap-5 md:grid-cols-2">
+      <div className="group">
+        <div className="aspect-[4/5] overflow-hidden bg-neutral-200">
+          <img
+            src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1000&q=85"
+            alt="Wedding photography"
+            className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+          />
         </div>
-      </section>
+        <h3 className="mt-4 text-lg font-medium">Wedding Stories</h3>
+        <p className="mt-1 text-sm text-neutral-400">Love · Celebration · Memories</p>
+      </div>
+
+      <div className="group md:mt-24">
+        <div className="aspect-[4/5] overflow-hidden bg-neutral-200">
+          <img
+            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1000&q=85"
+            alt="Portrait photography"
+            className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+          />
+        </div>
+        <h3 className="mt-4 text-lg font-medium">Portrait Sessions</h3>
+        <p className="mt-1 text-sm text-neutral-400">Personality · Expression · Identity</p>
+      </div>
+
+      <div className="group">
+        <div className="aspect-[4/5] overflow-hidden bg-neutral-200">
+          <img
+            src="https://images.unsplash.com/photo-1507504031003-b417219a0dde?auto=format&fit=crop&w=1000&q=85"
+            alt="Event photography"
+            className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+          />
+        </div>
+        <h3 className="mt-4 text-lg font-medium">Event Moments</h3>
+        <p className="mt-1 text-sm text-neutral-400">People · Energy · Experiences</p>
+      </div>
+
+      <div className="group md:mt-24">
+        <div className="aspect-[4/5] overflow-hidden bg-neutral-200">
+          <img
+            src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1000&q=85"
+            alt="Wedding couple photography"
+            className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+          />
+        </div>
+        <h3 className="mt-4 text-lg font-medium">Pre-Wedding</h3>
+        <p className="mt-1 text-sm text-neutral-400">Connection · Romance · Story</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 
       <section id="services" className="px-6 py-20">
         <div className="mx-auto max-w-7xl">
