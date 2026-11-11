@@ -122,15 +122,15 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
     </div>
 
     {portfolioCategoriesWithPhotos.length > 0 ? (
-      <div className="mt-12 grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {portfolioCategoriesWithPhotos.map((category, index) => {
           const cover = category.photos[0];
           return (
-            <Link key={category.slug} href={`/portfolio/${category.slug}`} className={`group block ${index % 3 === 1 ? 'lg:mt-20' : ''}`}>
+            <Link key={category.slug} href={`/portfolio/${category.slug}`} className="group block overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-white/10 dark:bg-[#1b1b18]">
               <div className="relative overflow-hidden bg-neutral-200 dark:bg-neutral-800">
                 {cover ? (
                   <img src={cover.url} alt={category.title} loading="lazy"
-                    className={`w-full object-cover transition duration-700 group-hover:scale-105 ${index % 3 === 1 ? 'aspect-[4/5]' : 'aspect-[3/4]'}`} />
+                    className="aspect-[4/3] w-full object-cover transition duration-700 group-hover:scale-105" />
                 ) : (
                   <div className="flex aspect-[3/4] items-center justify-center p-6 text-center text-neutral-500 dark:text-neutral-400">
                     <span className="font-serif text-2xl">{category.title}</span>
@@ -140,11 +140,13 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
                   {String(index + 1).padStart(2, '0')} / Selected Work
                 </span>
               </div>
-              <div className="mt-4 flex items-center justify-between gap-3">
-                <h3 className="text-lg font-medium transition-colors group-hover:text-neutral-500">{category.title}</h3>
-                <span aria-hidden="true" className="text-lg transition-transform group-hover:translate-x-1">↗</span>
+              <div className="p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="text-lg font-medium transition-colors group-hover:text-amber-700 dark:group-hover:text-amber-400">{category.title}</h3>
+                  <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-black/10 text-lg transition-all group-hover:border-amber-700 group-hover:bg-amber-700 group-hover:text-white dark:border-white/15 dark:group-hover:border-amber-400 dark:group-hover:bg-amber-400 dark:group-hover:text-neutral-900">↗</span>
+                </div>
+                <p className="mt-2 text-xs tracking-wide text-neutral-400">{category.photos.length} photographs</p>
               </div>
-              <p className="mt-1 text-xs text-neutral-400">{category.photos.length} photographs</p>
             </Link>
           );
         })}
