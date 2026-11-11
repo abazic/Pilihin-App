@@ -72,10 +72,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
           </>
         }
         actions={
-          <>
-            <a href="/login" className="rounded-full border border-black/20 px-5 py-2 text-sm transition hover:bg-black hover:text-white dark:border-white/20 dark:hover:bg-stone-100 dark:hover:text-stone-900">Client Login</a>
-            <a href="/admin" className="rounded-full bg-black px-5 py-2 text-sm text-white transition hover:bg-neutral-700 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-white">Admin Login</a>
-          </>
+          <a href="/admin" className="rounded-full bg-black px-5 py-2 text-sm text-white transition hover:bg-neutral-700 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-white">Dashboard</a>
         }
       />
 
