@@ -16,7 +16,7 @@ const DEFAULT_PRICELIST = {
     { name: 'Extra 10 foto edited', price: '+Rp 50K' }, { name: 'Same Day Edit', price: '+Rp 300K' },
     { name: 'Family >5 orang', price: '+Rp 50K/orang' },
   ],
-  video: { name: 'Shoot & Edit', price: 'Rp 600K', description: 'Video dokumentasi graduation' },
+  video: { name: 'Shoot & Edit', price: 'Rp 600K', duration: '', description: 'Video dokumentasi graduation' },
   whatsappMessage: 'Halo kak, bisa booking foto graduation?',
 };
 
@@ -50,9 +50,9 @@ export default async function PricelistPage() {
             </div><a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="mt-7 rounded-full bg-black px-5 py-3 text-center text-sm text-white transition hover:bg-neutral-700 dark:bg-stone-100 dark:text-neutral-900">Book Package ↗</a>
           </article>)}
         </div>
-        <section className="mt-20 grid gap-12 md:grid-cols-[1.2fr_0.8fr]">
+        <section className="mt-20 grid gap-12 md:grid-cols-[0.8fr_1.2fr]">
+          <div className="rounded-2xl bg-[#eeeae2] p-7 dark:bg-[#24231f]"><p className="text-xs uppercase tracking-[0.25em] text-neutral-400">Video Package</p><h2 className="mt-4 font-serif text-3xl">{prices.video?.name || 'Shoot & Edit'}</h2><p className="mt-3 text-sm leading-6 text-neutral-500 dark:text-neutral-400">{prices.video?.description}</p><div className="mt-5 space-y-2 text-sm text-neutral-600 dark:text-neutral-300">{prices.video?.duration && <p className="flex gap-2"><span className="text-amber-700">✦</span>Durasi video: {prices.video.duration}</p>}</div><p className="mt-6 text-3xl font-medium">{prices.video?.price}</p><a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="mt-7 inline-flex rounded-full bg-black px-6 py-3 text-sm text-white dark:bg-stone-100 dark:text-neutral-900">Book Video ↗</a></div>
           <div><p className="text-xs uppercase tracking-[0.25em] text-neutral-400">Customize your session</p><h2 className="mt-3 font-serif text-3xl md:text-4xl">Add-ons</h2><div className="mt-7 divide-y divide-black/10 dark:divide-white/10">{prices.addons.map((item,i)=><div key={i} className="flex items-center justify-between gap-4 py-4 text-sm"><span>{item.name}</span><span className="font-medium">{item.price}</span></div>)}</div></div>
-          <div className="rounded-2xl bg-[#eeeae2] p-7 dark:bg-[#24231f]"><p className="text-xs uppercase tracking-[0.25em] text-neutral-400">Video Package</p><h2 className="mt-4 font-serif text-3xl">{prices.video?.name || 'Shoot & Edit'}</h2><p className="mt-3 text-sm leading-6 text-neutral-500 dark:text-neutral-400">{prices.video?.description}</p><p className="mt-6 text-3xl font-medium">{prices.video?.price}</p><a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="mt-7 inline-flex rounded-full bg-black px-6 py-3 text-sm text-white dark:bg-stone-100 dark:text-neutral-900">Book Video ↗</a></div>
         </section>
         <div className="mt-20 border-t border-black/10 pt-10 text-center dark:border-white/10"><p className="text-sm text-neutral-500">Setiap momen, setiap cerita, layak untuk dikenang.</p><a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex rounded-full bg-amber-700 px-8 py-4 text-sm text-white transition hover:bg-amber-800">Book Now via WhatsApp ↗</a></div>
       </section>
