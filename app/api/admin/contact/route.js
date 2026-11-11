@@ -42,7 +42,7 @@ export async function POST(request) {
     for (const entry of entries) {
       const { data: existing, error: readError } = await supabase
         .from('settings')
-        .select('id')
+        .select('key')
         .eq('key', entry.key)
         .limit(1)
         .maybeSingle();
