@@ -39,10 +39,25 @@ export async function POST(request) {
       { key: 'social_media_links', value: JSON.stringify(socialLinks), updated_at: now },
     ];
 
-    const { error } = await supabase.from('settings').upsert(entries, { onConflict: 'key' });
-    if (error) {
-      console.error('Contact settings write failed:', error);
-      return NextResponse.json({ error: 'Supabase menolak penyimpanan: ' + error.message }, { status: 500 });
+    for (const entry of entries) {
+      const { data: existing, error: readError } = await supabase
+        .from('settings')
+        .select('id')
+        .eq('key', entry.key)
+        .limit(1)
+        .maybeSingle();
+      if (readError) {
+        console.error('Contact settings read failed:', readError);
+        return NextResponse.json({ error: 'Gagal membaca pengaturan: ' + readError.message }, { status: 500 });
+      }
+
+      const result = existing
+        ? await supabase.from('settings').update({ value: entry.value, updated_at: now }).eq('key', entry.key)
+        : await supabase.from('settings').insert(entry);
+      if (result.error) {
+        console.error('Contact settings write failed:', result.error);
+        return NextResponse.json({ error: 'Supabase menolak penyimpanan: ' + result.error.message }, { status: 500 });
+      }
     }
 
     return NextResponse.json({ success: true, whatsapp, socialLinks });
