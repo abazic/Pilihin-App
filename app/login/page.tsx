@@ -98,13 +98,13 @@ export default function LoginPage() {
         {/* Logo & Judul */}
         <div className="text-center mb-8">
           <div className="flex flex-col items-center mb-4">
-            <span className="font-serif italic text-3xl font-bold tracking-tight text-gray-900">Pilihin Fotomu</span>
+            <span className="font-serif italic text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Pilihin Fotomu</span>
             <span className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">by Abazic</span>
           </div>
-          <h1 className="text-xl font-medium text-gray-800">
+          <h1 className="text-xl font-medium text-gray-800 dark:text-gray-100">
             {isResetMode ? 'Reset Password' : 'Login Admin'}
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             {isResetMode 
               ? 'Masukkan email untuk menerima link reset.' 
               : 'Masuk untuk mengelola klien dan galeri.'}
@@ -113,12 +113,12 @@ export default function LoginPage() {
 
         {/* Notifikasi */}
         {error && (
-          <div className="mb-6 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 text-center">
+          <div className="mb-6 p-3 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-300 text-sm rounded-lg border border-red-100 dark:border-red-900 text-center">
             {error}
           </div>
         )}
         {successMsg && (
-          <div className="mb-6 p-3 bg-green-50 text-green-700 text-sm rounded-lg border border-green-100 text-center">
+          <div className="mb-6 p-3 bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-300 text-sm rounded-lg border border-green-100 dark:border-green-900 text-center">
             {successMsg}
           </div>
         )}
@@ -127,14 +127,14 @@ export default function LoginPage() {
         {isResetMode ? (
           <form onSubmit={handleResetPassword} className="space-y-5">
             <div>
-              <label className="block text-sm text-gray-700 mb-2">Email</label>
+              <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">Email</label>
               <input
   type="email"
   value={email}
   onChange={(e) => setEmail(e.target.value)}
   placeholder="admin@pilihin-app.com"
   required
-  className="w-full p-3 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-gray-200 focus:border-gray-500 outline-none transition-all"
+  className="w-full p-3 border border-gray-300 dark:border-neutral-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-gray-200 dark:focus:ring-neutral-700 focus:border-gray-500 dark:focus:border-neutral-500 outline-none transition-all"
 />
             </div>
 
@@ -158,7 +158,7 @@ export default function LoginPage() {
                 setError('');
                 setSuccessMsg('');
               }}
-              className="w-full flex items-center justify-center gap-2 py-3 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 py-3 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 text-gray-700 dark:text-gray-200 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
             >
               <ArrowLeft size={16} /> Kembali ke Login
             </button>
@@ -166,19 +166,19 @@ export default function LoginPage() {
         ) : (
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label className="block text-sm text-gray-700 mb-2">Email</label>
+              <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">Email</label>
               <input 
                 type="email" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@pilihin-app.com"
                 required
-              className="w-full p-3 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-gray-200 focus:border-gray-500 outline-none transition-all"              />
+              className="w-full p-3 border border-gray-300 dark:border-neutral-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-gray-200 dark:focus:ring-neutral-700 focus:border-gray-500 dark:focus:border-neutral-500 outline-none transition-all"              />
             </div>
             
             <div>
               <div className="flex justify-between items-center mb-2">
-                <label className="block text-sm text-gray-700">Password</label>
+                <label className="block text-sm text-gray-700 dark:text-gray-300">Password</label>
                 <button
                   type="button"
                   onClick={() => {
@@ -186,7 +186,7 @@ export default function LoginPage() {
                     setError('');
                     setSuccessMsg('');
                   }}
-                  className="text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors"
+                  className="text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
                   Lupa password?
                 </button>
@@ -197,7 +197,7 @@ export default function LoginPage() {
   onChange={(e) => setPassword(e.target.value)}
   placeholder="••••••••"
   required
-  className="w-full p-3 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-gray-200 focus:border-gray-500 outline-none transition-all"
+  className="w-full p-3 border border-gray-300 dark:border-neutral-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-neutral-950 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-gray-200 dark:focus:ring-neutral-700 focus:border-gray-500 dark:focus:border-neutral-500 outline-none transition-all"
 />
             </div>
 
