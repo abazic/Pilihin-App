@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { extractFolderId } from '@/lib/gdrive';
 import { DEFAULT_WHATSAPP_NUMBER } from '@/lib/constants';
 import BroadcastModal from '@/components/BroadcastModal';
-import ThemeToggle from '@/components/ThemeToggle';
+import AppHeader from '@/components/AppHeader';
 import {
   FileText, Bell, ChevronDown, User as UserIcon, Calendar,
   Link as LinkIcon, ExternalLink, Trash2, Copy, Check, Plus,
@@ -268,16 +268,9 @@ export default function HomePage() {
     <div className="min-h-screen bg-[#f7f7f7] dark:bg-[#0f0f0f] font-sans text-gray-800 dark:text-gray-200 flex flex-col">
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <header className="bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800 h-20 px-6 sm:px-12 flex items-center justify-between sticky top-0 z-30 shadow-sm">
-        <div className="flex items-center gap-6">
-          <div className="flex flex-col">
-            <span className="font-serif italic text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Pilihin Fotomu</span>
-            <span className="text-[9px] uppercase tracking-widest text-gray-400 dark:text-gray-500 font-semibold">by Abazic</span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4 relative">
-          <ThemeToggle />
+      <AppHeader actions={
+        <>
+          <div className="flex items-center gap-4 relative">
 
           <div className="relative">
             <button type="button"
@@ -378,7 +371,9 @@ export default function HomePage() {
             )}
           </div>
         </div>
-      </header>
+
+        </>
+      } />
 
       {/* ── Main ───────────────────────────────────────────────────────────── */}
       <main className="flex-1 p-6 sm:p-10 max-w-7xl mx-auto w-full space-y-10">
