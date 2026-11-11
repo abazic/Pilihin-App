@@ -46,7 +46,7 @@ export default async function PortfolioCategoryPage({ params }) {
           </div>
         </div>
 
-        {shuffledPhotos.length > 0 ? (
+        {photos.length > 0 ? (
           <PortfolioGallery
             photos={photos}
             folderId={category.folderId}
