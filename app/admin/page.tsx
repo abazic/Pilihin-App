@@ -28,6 +28,7 @@ interface ClientItem {
   max_photos: number | null; event_date: string | null;
   expire_date: string | null; notes: string | null; created_at?: string;
 }
+interface PortfolioCategory { title: string; slug: string; folderId: string; }
 interface PhotoSelection {
   id: string;
   gallery_id: number;
@@ -76,11 +77,14 @@ export default function HomePage() {
   const [notifications, setNotifications]   = useState<NotificationItem[]>([]);
   const [isBroadcastOpen, setIsBroadcastOpen] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'clients' | 'portfolio'>('clients');
+  const [portfolioCategories, setPortfolioCategories] = useState<PortfolioCategory[]>([]);
+  const [portfolioTitle, setPortfolioTitle] = useState('');
   const [portfolioFolderUrl, setPortfolioFolderUrl] = useState('');
   const [portfolioPhotos, setPortfolioPhotos] = useState<{ id: string; name: string; url: string }[]>([]);
   const [portfolioLoading, setPortfolioLoading] = useState(false);
   const [portfolioSaving, setPortfolioSaving] = useState(false);
   const [portfolioMessage, setPortfolioMessage] = useState('');
+  const [editingPortfolioSlug, setEditingPortfolioSlug] = useState<string | null>(null);
 
 
   const [selections, setSelections]                 = useState<PhotoSelection[]>([]);
@@ -112,13 +116,18 @@ export default function HomePage() {
     }
   }, [supabase]);
 
-  useEffect(() => {
-    async function loadPortfolioFolder() {
-      const { data } = await supabase.from('settings').select('value').eq('key', 'portfolio_folder_id').maybeSingle();
-      if (data?.value) setPortfolioFolderUrl(`https://drive.google.com/drive/folders/${data.value}`);
+  const loadPortfolioCategories = useCallback(async () => {
+    try {
+      const response = await fetch('/api/admin/portfolio');
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Gagal memuat kategori portofolio.');
+      setPortfolioCategories(result.categories || []);
+    } catch (error) {
+      setPortfolioMessage(error instanceof Error ? error.message : 'Gagal memuat kategori portofolio.');
     }
-    loadPortfolioFolder();
-  }, [supabase]);
+  }, []);
+
+  useEffect(() => { loadPortfolioCategories(); }, [loadPortfolioCategories]);
 
   const fetchPortfolioPhotos = async () => {
     if (!portfolioFolderUrl.trim()) {
@@ -132,7 +141,7 @@ export default function HomePage() {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Gagal mengambil foto.');
       setPortfolioPhotos(result.photos || []);
-      setPortfolioMessage(result.photos?.length ? `${result.photos.length} foto berhasil ditemukan.` : 'Folder terbaca, tetapi belum ada foto yang ditemukan.');
+      setPortfolioMessage(result.photos?.length ? `${result.photos.length} foto ditemukan.` : 'Folder terbaca, tetapi belum ada foto yang ditemukan.');
     } catch (error) {
       setPortfolioMessage(error instanceof Error ? error.message : 'Terjadi kesalahan saat mengambil foto.');
     } finally {
@@ -140,25 +149,99 @@ export default function HomePage() {
     }
   };
 
-  const savePortfolioFolder = async () => {
+  const savePortfolioCategory = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const title = portfolioTitle.trim();
     const folderId = extractFolderId(portfolioFolderUrl);
-    if (!folderId) {
-      setPortfolioMessage('Link atau ID folder Google Drive tidak valid.');
+    if (!title || !folderId) {
+      setPortfolioMessage('Judul dan link folder Google Drive wajib diisi dengan benar.');
       return;
     }
+    const slug = title.toLowerCase().normalize('NFKD').replace(/[\\u0300-\\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const duplicate = portfolioCategories.some(item => item.slug === slug && item.slug !== editingPortfolioSlug);
+    if (duplicate) {
+      setPortfolioMessage('Judul tersebut sudah digunakan. Pilih judul lain.');
+      return;
+    }
+    const next = editingPortfolioSlug
+      ? portfolioCategories.map(item => item.slug === editingPortfolioSlug ? { title, slug, folderId } : item)
+      : [...portfolioCategories, { title, slug, folderId }];
     setPortfolioSaving(true);
     setPortfolioMessage('');
     try {
-      const { error } = await supabase.from('settings').upsert({
-        key: 'portfolio_folder_id',
-        value: folderId,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'key' });
-      if (error) throw error;
-      setPortfolioMessage('Folder portofolio berhasil disimpan.');
-      await fetchPortfolioPhotos();
+      const response = await fetch('/api/admin/portfolio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ categories: next })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Gagal menyimpan portofolio.');
+      setPortfolioCategories(result.categories || next);
+      setPortfolioTitle('');
+      setPortfolioFolderUrl('');
+      setPortfolioPhotos([]);
+      setEditingPortfolioSlug(null);
+      setPortfolioMessage('Kategori portofolio berhasil disimpan.');
     } catch (error) {
-      setPortfolioMessage(error instanceof Error ? error.message : 'Gagal menyimpan folder portofolio.');
+      setPortfolioMessage(error instanceof Error ? error.message : 'Gagal menyimpan portofolio.');
+    } finally {
+      setPortfolioSaving(false);
+    }
+  };
+
+  const editPortfolioCategory = (category: PortfolioCategory) => {
+    setEditingPortfolioSlug(category.slug);
+    setPortfolioTitle(category.title);
+    setPortfolioFolderUrl(`https://drive.google.com/drive/folders/${category.folderId}`);
+    setPortfolioPhotos([]);
+    setPortfolioMessage('');
+  };
+
+  const deletePortfolioCategory = async (slug: string) => {
+    if (!window.confirm('Hapus kategori portofolio ini dari homepage? Foto di Google Drive tidak akan ikut terhapus.')) return;
+    const next = portfolioCategories.filter(item => item.slug !== slug);
+    setPortfolioSaving(true);
+    try {
+      const response = await fetch('/api/admin/portfolio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ categories: next })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Gagal menghapus kategori.');
+      setPortfolioCategories(result.categories || next);
+      if (editingPortfolioSlug === slug) {
+        setEditingPortfolioSlug(null);
+        setPortfolioTitle('');
+        setPortfolioFolderUrl('');
+        setPortfolioPhotos([]);
+      }
+      setPortfolioMessage('Kategori portofolio berhasil dihapus.');
+    } catch (error) {
+      setPortfolioMessage(error instanceof Error ? error.message : 'Gagal menghapus kategori.');
+    } finally {
+      setPortfolioSaving(false);
+    }
+  };
+
+  const movePortfolioCategory = async (index: number, direction: -1 | 1) => {
+    const target = index + direction;
+    if (target < 0 || target >= portfolioCategories.length) return;
+    const next = [...portfolioCategories];
+    [next[index], next[target]] = [next[target], next[index]];
+    setPortfolioSaving(true);
+    try {
+      const response = await fetch('/api/admin/portfolio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ categories: next })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Gagal mengubah urutan.');
+      setPortfolioCategories(result.categories || next);
+      setPortfolioMessage('Urutan portofolio diperbarui.');
+    } catch (error) {
+      setPortfolioMessage(error instanceof Error ? error.message : 'Gagal mengubah urutan.');
     } finally {
       setPortfolioSaving(false);
     }
@@ -747,34 +830,55 @@ export default function HomePage() {
           </>
         )}
         {activeTab === 'portfolio' && (
-          <section className={`${CARD} rounded-2xl p-6 sm:p-8 space-y-6`}>
+          <section className={`${CARD} rounded-2xl p-6 sm:p-8 space-y-8`}>
             <div>
               <h1 className="text-3xl font-serif text-gray-900 dark:text-white mb-2">Edit Portofolio</h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Foto portofolio diambil langsung dari folder Google Drive dan ditampilkan di homepage dengan layout galeri masonry.</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Buat satu kategori untuk setiap jenis layanan. Setiap kategori memiliki judul, folder Google Drive, dan halaman galeri publik sendiri.</p>
             </div>
-            <div className="space-y-3">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Link Folder Google Drive</label>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <input value={portfolioFolderUrl} onChange={e => setPortfolioFolderUrl(e.target.value)} placeholder="https://drive.google.com/drive/folders/..." className={INPUT} />
-                <button type="button" onClick={fetchPortfolioPhotos} disabled={portfolioLoading} className="shrink-0 rounded-xl px-5 py-2.5 text-sm font-semibold bg-gray-100 text-gray-800 hover:bg-gray-200 disabled:opacity-50 dark:bg-neutral-800 dark:text-gray-100 dark:hover:bg-neutral-700">{portfolioLoading ? 'Memuat...' : 'Preview Foto'}</button>
-                <button type="button" onClick={savePortfolioFolder} disabled={portfolioSaving} className="shrink-0 rounded-xl px-5 py-2.5 text-sm font-semibold bg-gray-900 text-white hover:bg-gray-700 disabled:opacity-50 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200">{portfolioSaving ? 'Menyimpan...' : 'Simpan Folder'}</button>
-              </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Pastikan folder dapat diakses oleh Google Drive API yang digunakan aplikasi.</p>
-              {portfolioMessage && <p className="text-sm text-gray-600 dark:text-gray-300">{portfolioMessage}</p>}
-            </div>
-            {portfolioPhotos.length > 0 && (
+
+            <form onSubmit={savePortfolioCategory} className="space-y-4 rounded-xl border border-gray-200 dark:border-neutral-800 p-4 sm:p-5">
+              <h2 className="font-semibold text-gray-900 dark:text-white">{editingPortfolioSlug ? 'Edit Kategori Portofolio' : 'Tambah Kategori Portofolio'}</h2>
               <div>
-                <div className="flex items-center justify-between mb-4"><h2 className="font-semibold text-gray-900 dark:text-white">Preview Foto</h2><span className="text-xs text-gray-500 dark:text-gray-400">{portfolioPhotos.length} foto</span></div>
-                <div className="columns-2 sm:columns-3 lg:columns-4 gap-3 space-y-3">
-                  {portfolioPhotos.map((photo, index) => (
-                    <div key={photo.id} className="mb-3 break-inside-avoid overflow-hidden rounded-xl bg-gray-100 dark:bg-neutral-800">
-                      <img src={photo.url} alt={photo.name} loading="lazy" className={`w-full object-cover ${index % 4 === 0 ? 'aspect-[3/4]' : index % 4 === 1 ? 'aspect-square' : index % 4 === 2 ? 'aspect-[4/5]' : 'aspect-[5/4]'}`} />
-                      <p className="truncate px-2 py-2 text-[11px] text-gray-600 dark:text-gray-300">{photo.name}</p>
-                    </div>
-                  ))}
-                </div>
+                <label className="mb-2 block text-sm text-gray-700 dark:text-gray-300">Nama / Judul Portofolio</label>
+                <input value={portfolioTitle} onChange={e => setPortfolioTitle(e.target.value)} placeholder="Contoh: Graduation Sessions" className={INPUT} required />
               </div>
-            )}
+              <div>
+                <label className="mb-2 block text-sm text-gray-700 dark:text-gray-300">Link Folder Google Drive</label>
+                <input value={portfolioFolderUrl} onChange={e => setPortfolioFolderUrl(e.target.value)} placeholder="https://drive.google.com/drive/folders/..." className={INPUT} required />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button type="button" onClick={fetchPortfolioPhotos} disabled={portfolioLoading || !portfolioFolderUrl.trim()} className={`rounded-xl px-4 py-2.5 text-sm font-semibold ${BTN_SECONDARY} disabled:opacity-50`}>{portfolioLoading ? 'Memuat foto...' : 'Preview Folder'}</button>
+                <button type="submit" disabled={portfolioSaving} className="rounded-xl bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-gray-700 disabled:opacity-50 dark:bg-white dark:text-gray-900">{portfolioSaving ? 'Menyimpan...' : editingPortfolioSlug ? 'Simpan Perubahan' : 'Tambah Portofolio'}</button>
+                {editingPortfolioSlug && <button type="button" onClick={() => { setEditingPortfolioSlug(null); setPortfolioTitle(''); setPortfolioFolderUrl(''); setPortfolioPhotos([]); setPortfolioMessage(''); }} className={`rounded-xl px-4 py-2.5 text-sm ${BTN_SECONDARY}`}>Batal Edit</button>}
+              </div>
+              {portfolioMessage && <p className="text-sm text-gray-600 dark:text-gray-300">{portfolioMessage}</p>}
+              {portfolioPhotos.length > 0 && (
+                <div className="pt-3">
+                  <p className="mb-3 text-xs text-gray-500 dark:text-gray-400">{portfolioPhotos.length} foto ditemukan. Preview susunan foto:</p>
+                  <div className="columns-2 sm:columns-3 lg:columns-4 gap-3 space-y-3">
+                    {portfolioPhotos.map((photo, index) => <div key={photo.id} className="mb-3 break-inside-avoid overflow-hidden rounded-lg bg-gray-100 dark:bg-neutral-800"><img src={photo.url} alt={photo.name} loading="lazy" className={`w-full object-cover ${index % 4 === 0 ? 'aspect-[3/4]' : index % 4 === 1 ? 'aspect-square' : index % 4 === 2 ? 'aspect-[4/5]' : 'aspect-[5/4]'}`} /><p className="truncate px-2 py-2 text-[11px] text-gray-600 dark:text-gray-300">{photo.name}</p></div>)}
+                  </div>
+                </div>
+              )}
+            </form>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between gap-3"><h2 className="text-lg font-semibold text-gray-900 dark:text-white">Daftar Kategori</h2><span className="text-xs text-gray-500 dark:text-gray-400">Urutan pertama tampil sebagai unggulan</span></div>
+              {portfolioCategories.length === 0 ? (
+                <p className="rounded-xl border border-dashed border-gray-300 dark:border-neutral-700 p-6 text-center text-sm text-gray-500 dark:text-gray-400">Belum ada kategori. Tambahkan kategori pertama melalui formulir di atas.</p>
+              ) : portfolioCategories.map((category, index) => (
+                <div key={category.slug} className="flex flex-col gap-3 rounded-xl border border-gray-200 dark:border-neutral-800 p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0"><p className="font-medium text-gray-900 dark:text-white">{index === 0 ? '★ ' : ''}{category.title}</p><p className="mt-1 truncate text-xs text-gray-500 dark:text-gray-400">/portfolio/{category.slug}</p></div>
+                  <div className="flex flex-wrap gap-2">
+                    <button type="button" onClick={() => movePortfolioCategory(index, -1)} disabled={index === 0 || portfolioSaving} className={`rounded-lg px-3 py-2 text-xs ${BTN_SECONDARY} disabled:opacity-40`}>Naik</button>
+                    <button type="button" onClick={() => movePortfolioCategory(index, 1)} disabled={index === portfolioCategories.length - 1 || portfolioSaving} className={`rounded-lg px-3 py-2 text-xs ${BTN_SECONDARY} disabled:opacity-40`}>Turun</button>
+                    <button type="button" onClick={() => editPortfolioCategory(category)} className={`rounded-lg px-3 py-2 text-xs ${BTN_SECONDARY}`}>Edit</button>
+                    <button type="button" onClick={() => deletePortfolioCategory(category.slug)} disabled={portfolioSaving} className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600 hover:bg-red-100 disabled:opacity-40 dark:bg-red-950/30 dark:text-red-400">Hapus</button>
+                    <Link href={`/portfolio/${category.slug}`} target="_blank" className={`rounded-lg px-3 py-2 text-xs ${BTN_SECONDARY}`}>Lihat Halaman</Link>
+                  </div>
+                </div>
+              ))}
+            </div>
           </section>
         )}
       </main>
