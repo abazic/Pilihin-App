@@ -31,3 +31,37 @@ with check (
       and profiles.role = 'admin'
   )
 );
+
+
+-- Public homepage hero image read access.
+drop policy if exists "Public can read homepage hero image" on public.settings;
+create policy "Public can read homepage hero image"
+on public.settings
+for select
+to anon
+using (key = 'homepage_hero_image');
+
+-- Admin-only management for the homepage hero image setting.
+drop policy if exists "Admins can manage homepage hero image" on public.settings;
+create policy "Admins can manage homepage hero image"
+on public.settings
+for all
+to authenticated
+using (
+  key = 'homepage_hero_image'
+  and exists (
+    select 1
+    from public.profiles
+    where profiles.id = auth.uid()
+      and profiles.role = 'admin'
+  )
+)
+with check (
+  key = 'homepage_hero_image'
+  and exists (
+    select 1
+    from public.profiles
+    where profiles.id = auth.uid()
+      and profiles.role = 'admin'
+  )
+);
