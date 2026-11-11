@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { getPhotosFromGDrive } from '@/lib/gdrive';
 import AppHeader from '@/components/AppHeader';
-import PortfolioImage from '@/components/PortfolioImage';
+import PortfolioGallery from '@/components/PortfolioGallery';
 import { notFound } from 'next/navigation';
 
 function parseCategories(value) {
@@ -48,24 +48,16 @@ export default async function PortfolioCategoryPage({ params }) {
         </div>
 
         {shuffledPhotos.length > 0 ? (
-          <div className="columns-2 gap-4 space-y-4 md:columns-3 md:gap-6 md:space-y-6">
-            {shuffledPhotos.map((photo, index) => (
-              <figure key={photo.id} className="mb-4 break-inside-avoid overflow-hidden md:mb-6">
-                <PortfolioImage
-                  src={photo.url}
-                  alt={photo.name.replace(/\.[^/.]+$/, '')}
-                  loading="lazy"
-                  className={`w-full object-cover transition duration-700 hover:scale-[1.02] ${index % 4 === 0 ? 'aspect-[3/4]' : index % 4 === 1 ? 'aspect-square' : index % 4 === 2 ? 'aspect-[4/5]' : 'aspect-[5/4]'}`}
-                />
-              </figure>
-            ))}
-          </div>
+          <PortfolioGallery photos={shuffledPhotos.map((photo) => ({
+            id: photo.id,
+            url: photo.url,
+            name: photo.name,
+          }))} />
         ) : (
           <p className="border-y border-black/10 py-16 text-center text-sm text-neutral-500 dark:border-white/10 dark:text-neutral-400">
             Belum ada foto di folder portofolio ini.
           </p>
         )}
-      </section>
     </main>
   );
 }
