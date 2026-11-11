@@ -43,7 +43,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
   const portfolioCategoriesWithPhotos = await Promise.all(
     portfolioCategories.map(async (category) => ({
       ...category,
-      photos: await getPhotosFromGDrive(category.folderId),
+      photos: await getPhotosFromGDrive(category.folderId, { watermark: true }),
     }))
   );
 
