@@ -112,7 +112,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
         {shuffledPortfolioPhotos.map((photo, index) => (
           <div key={photo.id} className="group mb-5 break-inside-avoid overflow-hidden">
             <div className="overflow-hidden bg-neutral-200 dark:bg-neutral-800">
-              <img src={photo.url} alt={photo.name.replace(/\\.[^/.]+$/, '')} loading="lazy"
+              <img src={photo.url} alt={photo.name.replace(/\.[^/.]+$/, '')} loading="lazy"
                 className={`w-full object-cover transition duration-700 group-hover:scale-105 ${index % 4 === 0 ? 'aspect-[3/4]' : index % 4 === 1 ? 'aspect-square' : index % 4 === 2 ? 'aspect-[4/5]' : 'aspect-[5/4]'}`} />
             </div>
           </div>
