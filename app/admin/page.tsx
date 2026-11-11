@@ -11,7 +11,7 @@ import AppHeader from '@/components/AppHeader';
 import {
   FileText, Bell, ChevronDown, User as UserIcon, Calendar,
   Link as LinkIcon, ExternalLink, Trash2, Copy, Check, Plus,
-  Phone, MessageSquare, CheckCircle2, Edit2, ListFilter, Megaphone,
+  Phone, MessageSquare, CheckCircle2, ListFilter, Megaphone,
   Lock, Send, Image, ChevronDown as ChevronDownIcon,
 } from 'lucide-react';
 
@@ -90,11 +90,10 @@ export default function HomePage() {
   const [fetchingClients, setFetchingClients] = useState<boolean>(false);
   const [adminInfo, setAdminInfo] = useState({ name: 'Admin Pilihin Fotomu', whatsapp: DEFAULT_WHATSAPP_NUMBER });
   const [isProfileOpen, setIsProfileOpen]   = useState<boolean>(false);
-  const [isEditingAdmin, setIsEditingAdmin] = useState<boolean>(false);
   const [isNotifOpen, setIsNotifOpen]       = useState<boolean>(false);
   const [notifications, setNotifications]   = useState<NotificationItem[]>([]);
   const [isBroadcastOpen, setIsBroadcastOpen] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<'clients' | 'portfolio' | 'pricelist'>('clients');
+  const [activeTab, setActiveTab] = useState<'clients' | 'portfolio' | 'pricelist' | 'contact'>('clients');
   const [portfolioCategories, setPortfolioCategories] = useState<PortfolioCategory[]>([]);
   const [portfolioTitle, setPortfolioTitle] = useState('');
   const [portfolioFolderUrl, setPortfolioFolderUrl] = useState('');
@@ -480,6 +479,10 @@ export default function HomePage() {
               className={`whitespace-nowrap border-b-2 px-2 py-2 text-sm font-medium transition-colors ${activeTab === 'portfolio' ? 'border-amber-700 text-gray-900 dark:border-amber-400 dark:text-white' : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}>
               Portofolio
             </button>
+            <button type="button" onClick={() => setActiveTab('contact')}
+              className={`whitespace-nowrap border-b-2 px-2 py-2 text-sm font-medium transition-colors ${activeTab === 'contact' ? 'border-amber-700 text-gray-900 dark:border-amber-400 dark:text-white' : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}>
+              Edit Contact
+            </button>
             <button type="button" onClick={() => setActiveTab('pricelist')}
               className={`whitespace-nowrap border-b-2 px-2 py-2 text-sm font-medium transition-colors ${activeTab === 'pricelist' ? 'border-amber-700 text-gray-900 dark:border-amber-400 dark:text-white' : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}>
               Pricelist
@@ -551,49 +554,17 @@ export default function HomePage() {
 
             {isProfileOpen && (
               <div className="absolute right-0 mt-3 w-[min(22rem,calc(100vw-2rem))] bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl shadow-xl z-40 p-4 space-y-4 max-h-[80vh] overflow-y-auto">
-                <div className="flex justify-between items-center pb-3 border-b border-gray-100 dark:border-neutral-800">
+                <div className="pb-3 border-b border-gray-100 dark:border-neutral-800">
                   <h4 className="font-semibold text-sm text-gray-900 dark:text-white">Profil Admin</h4>
-                  <button onClick={() => setIsEditingAdmin(!isEditingAdmin)} className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white flex items-center gap-1">
-                    <Edit2 size={12} /> {isEditingAdmin ? 'Batal' : 'Edit'}
-                  </button>
                 </div>
-                {isEditingAdmin ? (
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-[11px] text-gray-500 dark:text-gray-400 block mb-1">Nama Admin</label>
-                      <input type="text" value={adminInfo.name} onChange={e => setAdminInfo({ ...adminInfo, name: e.target.value })}
-                        className="w-full text-xs p-2 border border-gray-300 dark:border-neutral-700 rounded-lg outline-none focus:border-black dark:focus:border-neutral-500 bg-white dark:bg-neutral-950 text-gray-900 dark:text-gray-100" />
-                    </div>
-                    <div>
-                      <label className="text-[11px] text-gray-500 dark:text-gray-400 block mb-1">No. WhatsApp (Tanpa +)</label>
-                      <input type="text" value={adminInfo.whatsapp} onChange={e => setAdminInfo({ ...adminInfo, whatsapp: e.target.value })}
-                        className="w-full text-xs p-2 border border-gray-300 dark:border-neutral-700 rounded-lg outline-none focus:border-black dark:focus:border-neutral-500 bg-white dark:bg-neutral-950 text-gray-900 dark:text-gray-100" />
-                    </div>
-                    <div className="border-t border-gray-100 pt-3 dark:border-neutral-800 space-y-2">
-                      <div className="flex items-center justify-between"><p className="text-[11px] font-semibold text-gray-700 dark:text-gray-200">Social Media</p><button type="button" onClick={() => setSocialLinks(prev => [...prev, { platform: '', url: '' }])} className="text-[11px] text-amber-700 dark:text-amber-400">+ Tambah</button></div>
-                      {socialLinks.map((item, index) => <div key={index} className="space-y-1 rounded-lg border border-gray-200 p-2 dark:border-neutral-700">
-                        <div className="flex gap-2"><input aria-label="Nama platform" placeholder="Instagram / TikTok" value={item.platform} onChange={e => setSocialLinks(prev => prev.map((social, i) => i === index ? { ...social, platform: e.target.value } : social))} className="min-w-0 flex-1 text-xs p-2 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-950 text-gray-900 dark:text-gray-100" /><button type="button" onClick={() => setSocialLinks(prev => prev.filter((_, i) => i !== index))} className="px-2 text-xs text-red-500">Hapus</button></div>
-                        <input aria-label="URL social media" placeholder="https://..." value={item.url} onChange={e => setSocialLinks(prev => prev.map((social, i) => i === index ? { ...social, url: e.target.value } : social))} className="w-full text-xs p-2 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-950 text-gray-900 dark:text-gray-100" />
-                      </div>)}
-                      {socialLinks.length === 0 && <p className="text-[10px] text-gray-400">Belum ada akun social media.</p>}
-                    </div>
-                    <button onClick={handleSaveAdminProfile} className="w-full py-1.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg text-xs font-medium">Simpan Kontak</button>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 rounded-lg"><Phone size={16} /></div>
+                    <div><p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase font-bold tracking-wider">WhatsApp Studio</p><p className="text-xs font-mono font-medium text-gray-800 dark:text-gray-200">+{adminInfo.whatsapp}</p></div>
                   </div>
-                ) : (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 rounded-lg"><Phone size={16} /></div>
-                      <div>
-                        <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase font-bold tracking-wider">WhatsApp Studio</p>
-                        <p className="text-xs font-mono font-medium text-gray-800 dark:text-gray-200">+{adminInfo.whatsapp}</p>
-                      </div>
-                    </div>
-                    <a href={`https://wa.me/${adminInfo.whatsapp}`} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-medium transition-colors">
-                      <MessageSquare size={14} /> Buka WhatsApp
-                    </a>
-                  </div>
-                )}
+                  <a href={`https://wa.me/${adminInfo.whatsapp}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-medium transition-colors"><MessageSquare size={14} /> Buka WhatsApp</a>
+                  <button type="button" onClick={() => { setActiveTab('contact'); setIsProfileOpen(false); }} className={`w-full rounded-lg px-3 py-2 text-xs font-medium ${BTN_SECONDARY}`}>Kelola Kontak</button>
+                </div>
               </div>
             )}
           </div>
@@ -903,6 +874,41 @@ export default function HomePage() {
 
 
           </>
+        )}
+        {activeTab === 'contact' && (
+          <section className={`${CARD} rounded-2xl p-6 sm:p-8 space-y-6`}>
+            <div>
+              <h1 className="text-3xl font-serif text-gray-900 dark:text-white">Edit Contact</h1>
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Kelola nomor WhatsApp admin dan tautan social media yang tampil di bagian Contact website.</p>
+            </div>
+            <div className="max-w-2xl space-y-5">
+              <div className="rounded-xl border border-gray-200 p-4 dark:border-neutral-800">
+                <h2 className="mb-3 font-semibold text-gray-900 dark:text-white">WhatsApp Admin</h2>
+                <label className="block text-sm text-gray-700 dark:text-gray-300">Nomor WhatsApp (kode negara, tanpa tanda +)
+                  <input type="tel" value={adminInfo.whatsapp} onChange={e => setAdminInfo(prev => ({ ...prev, whatsapp: e.target.value }))} placeholder="6281234567890" className={`${INPUT} mt-2`} />
+                </label>
+                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">Contoh: 6281234567890. Hanya angka yang akan disimpan.</p>
+              </div>
+              <div className="rounded-xl border border-gray-200 p-4 dark:border-neutral-800 space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div><h2 className="font-semibold text-gray-900 dark:text-white">Social Media</h2><p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Tambahkan nama platform dan URL profil lengkap.</p></div>
+                  <button type="button" onClick={() => setSocialLinks(prev => [...prev, { platform: '', url: '' }])} className={`rounded-lg px-3 py-2 text-xs ${BTN_SECONDARY}`}><Plus size={13} className="mr-1 inline" />Tambah</button>
+                </div>
+                {socialLinks.map((item, index) => (
+                  <div key={index} className="grid gap-2 rounded-lg border border-gray-200 p-3 dark:border-neutral-700 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)_auto]">
+                    <input aria-label="Nama platform" placeholder="Instagram / TikTok" value={item.platform} onChange={e => setSocialLinks(prev => prev.map((social, i) => i === index ? { ...social, platform: e.target.value } : social))} className={INPUT} />
+                    <input aria-label="URL social media" type="url" placeholder="https://..." value={item.url} onChange={e => setSocialLinks(prev => prev.map((social, i) => i === index ? { ...social, url: e.target.value } : social))} className={INPUT} />
+                    <button type="button" onClick={() => setSocialLinks(prev => prev.filter((_, i) => i !== index))} className="rounded-lg px-3 py-2 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30">Hapus</button>
+                  </div>
+                ))}
+                {socialLinks.length === 0 && <p className="rounded-lg border border-dashed border-gray-300 p-4 text-center text-sm text-gray-400 dark:border-neutral-700">Belum ada akun social media. Klik Tambah untuk menambahkan.</p>}
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <button type="button" onClick={handleSaveAdminProfile} className="rounded-xl bg-gray-900 px-6 py-3 text-sm font-semibold text-white hover:bg-gray-700 dark:bg-white dark:text-gray-900">Simpan Contact</button>
+                <a href={`https://wa.me/${adminInfo.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className={`rounded-xl px-5 py-3 text-sm ${BTN_SECONDARY}`}>Tes WhatsApp ↗</a>
+              </div>
+            </div>
+          </section>
         )}
         {activeTab === 'pricelist' && (
           <section className={`${CARD} rounded-2xl p-6 sm:p-8 space-y-8`}>
