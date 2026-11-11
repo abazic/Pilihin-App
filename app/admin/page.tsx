@@ -347,7 +347,7 @@ export default function HomePage() {
 
   const handleSaveAdminProfile = async () => {
     try {
-      const cleanSocialLinks = socialLinks.map(item => ({ platform: item.platform.trim(), url: item.url.trim() })).filter(item => item.platform && /^https?:\\/\\//i.test(item.url));
+      const cleanSocialLinks = socialLinks.map(item => ({ platform: item.platform.trim(), url: item.url.trim() })).filter(item => item.platform && /^https?:\/\//i.test(item.url));
       const { error } = await supabase.from('settings').upsert([
         { key: 'whatsapp_number', value: adminInfo.whatsapp.replace(/\D/g, ''), updated_at: new Date().toISOString() },
         { key: 'social_media_links', value: JSON.stringify(cleanSocialLinks), updated_at: new Date().toISOString() },
