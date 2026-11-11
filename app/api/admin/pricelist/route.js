@@ -20,7 +20,7 @@ const DEFAULT_PRICELIST = {
     { name: 'Same Day Edit', price: '+Rp 300K' },
     { name: 'Family >5 orang', price: '+Rp 50K/orang' },
   ],
-  video: { name: 'Shoot & Edit', price: 'Rp 600K', description: 'Video dokumentasi graduation' },
+  video: { name: 'Shoot & Edit', price: 'Rp 600K', duration: '', description: 'Video dokumentasi graduation' },
   whatsappMessage: 'Halo kak, bisa booking foto graduation?',
 };
 
