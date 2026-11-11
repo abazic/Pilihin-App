@@ -346,14 +346,25 @@ export default function HomePage() {
 
   const handleSaveAdminProfile = async () => {
     try {
-      const cleanSocialLinks = socialLinks.map(item => ({ platform: item.platform.trim(), url: item.url.trim() })).filter(item => item.platform && /^https?:\/\//i.test(item.url));
-      const { error } = await supabase.from('settings').upsert([
-        { key: 'whatsapp_number', value: adminInfo.whatsapp.replace(/\D/g, ''), updated_at: new Date().toISOString() },
-        { key: 'social_media_links', value: JSON.stringify(cleanSocialLinks), updated_at: new Date().toISOString() },
-      ]);
-      if (error) alert('Gagal menyimpan: ' + error.message);
-      else { setAdminInfo(prev => ({ ...prev, whatsapp: prev.whatsapp.replace(/\D/g, '') })); setSocialLinks(cleanSocialLinks); alert('Kontak berhasil diperbarui!'); }
-    } catch { alert('Terjadi kesalahan.'); }
+      const cleanSocialLinks = socialLinks
+        .map(item => ({ platform: item.platform.trim(), url: item.url.trim() }))
+        .filter(item => item.platform && /^https?:\/\//i.test(item.url));
+      const response = await fetch('/api/admin/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          whatsapp: adminInfo.whatsapp.replace(/\D/g, ''),
+          socialLinks: cleanSocialLinks,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Gagal menyimpan kontak.');
+      setAdminInfo(prev => ({ ...prev, whatsapp: result.whatsapp }));
+      setSocialLinks(result.socialLinks);
+      alert('Kontak berhasil diperbarui!');
+    } catch (error) {
+      alert(error instanceof Error ? 'Gagal menyimpan contact: ' + error.message : 'Terjadi kesalahan saat menyimpan contact.');
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
