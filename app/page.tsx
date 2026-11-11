@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { DEFAULT_WHATSAPP_NUMBER } from '@/lib/constants';
-import ThemeToggle from '@/components/ThemeToggle';
+import AppHeader from '@/components/AppHeader';
 export default async function HomePage() {
   const supabase = await createClient();
 
@@ -22,37 +22,21 @@ const whatsappUrl = `https://wa.me/${whatsappNumber}`;
 const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
   return (
     <main className="min-h-screen bg-[#faf9f6] text-[#1c1c1c] transition-colors duration-300 dark:bg-[#11110f] dark:text-stone-100">
-      <nav className="sticky top-0 z-50 mx-auto flex max-w-7xl items-center justify-between border-b border-black/5 bg-[#faf9f6]/95 px-6 py-6 shadow-sm backdrop-blur-md dark:border-white/10 dark:bg-[#11110f]/95">
-        <a href="/" className="text-xl font-semibold tracking-tight dark:text-stone-100">
-          Pilihin Fotomu<span className="text-amber-700">.</span>
-        </a>
-
-        <div className="hidden items-center gap-8 text-sm md:flex">
-          <a className="transition-colors hover:text-amber-700 dark:text-stone-300 dark:hover:text-amber-400" href="#portfolio">Portfolio</a>
-          <a className="transition-colors hover:text-amber-700 dark:text-stone-300 dark:hover:text-amber-400" href="#services">Services</a>
-          <a className="transition-colors hover:text-amber-700 dark:text-stone-300 dark:hover:text-amber-400" href="#contact">Contact</a>
-        </div>
-
-        
-<div className="flex items-center gap-3">
-  <ThemeToggle />
-
-  <a
-    href="/login"
-    className="rounded-full border border-black/20 px-5 py-2 text-sm transition hover:bg-black hover:text-white dark:border-white/20 dark:hover:bg-stone-100 dark:hover:text-stone-900"
-  >
-    Client Login
-  </a>
-
-  <a
-    href="/admin"
-    className="rounded-full bg-black px-5 py-2 text-sm text-white transition hover:bg-neutral-700 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-white"
-  >
-    Admin Login
-  </a>
-</div>
-
-      </nav>
+      <AppHeader
+        navigation={
+          <>
+            <a className="transition-colors hover:text-amber-700 dark:text-stone-300 dark:hover:text-amber-400" href="#portfolio">Portfolio</a>
+            <a className="transition-colors hover:text-amber-700 dark:text-stone-300 dark:hover:text-amber-400" href="#services">Services</a>
+            <a className="transition-colors hover:text-amber-700 dark:text-stone-300 dark:hover:text-amber-400" href="#contact">Contact</a>
+          </>
+        }
+        actions={
+          <>
+            <a href="/login" className="rounded-full border border-black/20 px-5 py-2 text-sm transition hover:bg-black hover:text-white dark:border-white/20 dark:hover:bg-stone-100 dark:hover:text-stone-900">Client Login</a>
+            <a href="/admin" className="rounded-full bg-black px-5 py-2 text-sm text-white transition hover:bg-neutral-700 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-white">Admin Login</a>
+          </>
+        }
+      />
 
       <section className="mx-auto max-w-7xl px-6 pb-20 pt-16 md:pt-24">
         <div className="grid items-center gap-12 md:grid-cols-2">
