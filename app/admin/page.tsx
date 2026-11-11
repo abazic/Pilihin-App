@@ -69,4 +69,484 @@ export default function HomePage() {
   const [loading, setLoading]         = useState<boolean>(false);
   const [clientsList, setClientsList] = useState<ClientItem[]>([]);
   const [fetchingClients, setFetchingClients] = useState<boolean>(false);
-  const [adminInfo, setAdminInfo] = useState({ name: 'Admin Pilihin
+  const [adminInfo, setAdminInfo] = useState({ name: 'Admin Pilihin Fotomu', whatsapp: DEFAULT_WHATSAPP_NUMBER });
+  const [isProfileOpen, setIsProfileOpen]   = useState<boolean>(false);
+  const [isEditingAdmin, setIsEditingAdmin] = useState<boolean>(false);
+  const [isNotifOpen, setIsNotifOpen]       = useState<boolean>(false);
+  const [notifications, setNotifications]   = useState<NotificationItem[]>([]);
+  const [isBroadcastOpen, setIsBroadcastOpen] = useState<boolean>(false);
+
+  const [selections, setSelections]                 = useState<PhotoSelection[]>([]);
+  const [fetchingSelections, setFetchingSelections] = useState<boolean>(false);
+  const [expandedSlug, setExpandedSlug]             = useState<string | null>(null);
+  const [copiedSelId, setCopiedSelId]               = useState<string | null>(null);
+
+  const fetchClients = useCallback(async () => {
+    setFetchingClients(true);
+    try {
+      const { data, error } = await supabase
+        .from('galleries').select('*').order('created_at', { ascending: false });
+      if (!error && data) setClientsList(data);
+    } catch (err) { console.error('Gagal mengambil daftar klien:', err); }
+    finally { setFetchingClients(false); }
+  }, [supabase]);
+
+  const fetchSelections = useCallback(async () => {
+    setFetchingSelections(true);
+    try {
+      const { data, error } = await supabase
+        .from('photo_selections')
+        .select(`*, galleries ( client_name, max_photos )`)
+        .order('updated_at', { ascending: false });
+      if (!error && data) setSelections(data as PhotoSelection[]);
+      else if (error) console.error('Gagal fetch selections:', error);
+    } finally {
+      setFetchingSelections(false);
+    }
+  }, [supabase]);
+
+  useEffect(() => { fetchClients(); }, [fetchClients]);
+  useEffect(() => { fetchSelections(); }, [fetchSelections]);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('photo-selections-realtime')
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'photo_selections' },
+        () => fetchSelections()
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [fetchSelections, supabase]);
+
+  const fetchNotifications = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('notifications').select('*').order('created_at', { ascending: false }).limit(20);
+    if (!error && data) {
+      setNotifications(data.map(n => ({
+        id: n.id, title: n.title, desc: n.body,
+        time: formatTimeAgo(n.created_at), read: n.read,
+      })));
+    }
+  }, [supabase]);
+
+  useEffect(() => {
+    fetchNotifications();
+    const channel = supabase.channel('notifications-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, () => fetchNotifications())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [fetchNotifications, supabase]);
+
+  useEffect(() => {
+    async function loadAdminSettings() {
+      const { data, error } = await supabase.from('settings').select('value').eq('key', 'whatsapp_number').single();
+      if (!error && data?.value) setAdminInfo(prev => ({ ...prev, whatsapp: data.value }));
+    }
+    loadAdminSettings();
+  }, [supabase]);
+
+  const handleSaveAdminProfile = async () => {
+    try {
+      const { error } = await supabase.from('settings').upsert({
+        key: 'whatsapp_number', value: adminInfo.whatsapp, updated_at: new Date().toISOString()
+      });
+      if (error) alert('Gagal menyimpan: ' + error.message);
+      else { alert('Profil berhasil diperbarui!'); setIsEditingAdmin(false); }
+    } catch { alert('Terjadi kesalahan.'); }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (name === 'clientName') {
+      setCreatedSlug(`${value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`);
+    }
+  };
+
+  const formatDateString = (dateStr: string | null) => {
+    if (!dateStr) return '-';
+    try { return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }); }
+    catch { return dateStr; }
+  };
+
+  const handleResetForm = () => {
+    setFormData({ clientName: '', eventDate: '', gdriveUrl: '', maxPhotos: '', expireDate: '', notes: '' });
+    setCreatedSlug(''); setEditingId(null);
+  };
+
+  const handleEditClient = (client: ClientItem) => {
+    setEditingId(client.id);
+    setFormData({
+      clientName: client.client_name || '', eventDate: client.event_date || '',
+      gdriveUrl: client.folder_id ? `https://drive.google.com/drive/folders/${client.folder_id}` : '',
+      maxPhotos: client.max_photos || '', expireDate: client.expire_date || '', notes: client.notes || ''
+    });
+    setCreatedSlug(client.slug);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDeleteClientFromList = async (id: string | number) => {
+    if (!window.confirm('Apakah Anda yakin ingin menghapus data klien ini?')) return;
+    try {
+      const { error } = await supabase.from('galleries').delete().eq('id', id);
+      if (error) alert('Gagal menghapus: ' + error.message);
+      else { alert('Klien berhasil dihapus.'); if (editingId === id) handleResetForm(); fetchClients(); }
+    } catch { alert('Terjadi kesalahan.'); }
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.clientName || !formData.gdriveUrl) { alert('Mohon isi Nama Klien dan Link Google Drive!'); return; }
+    setLoading(true);
+    try {
+      const folderId = extractFolderId(formData.gdriveUrl);
+      const generatedSlug = createdSlug || `${formData.clientName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
+      const payload = {
+        client_name: formData.clientName, folder_id: folderId, slug: generatedSlug,
+        max_photos: formData.maxPhotos ? Number(formData.maxPhotos) : null,
+        event_date: formData.eventDate || null, expire_date: formData.expireDate || null, notes: formData.notes || null
+      };
+      if (editingId) {
+        const { error } = await supabase.from('galleries').update(payload).eq('id', editingId);
+        if (error) alert('Gagal memperbarui: ' + error.message);
+        else { alert('Berhasil diperbarui!'); handleResetForm(); fetchClients(); }
+      } else {
+        const { error } = await supabase.from('galleries').insert([payload]);
+        if (error) alert('Gagal menyimpan: ' + error.message);
+        else {
+          setCreatedSlug(generatedSlug);
+          await supabase.from('notifications').insert([{ title: 'Klien Baru Berhasil Dibuat', body: `Galeri untuk "${formData.clientName}" siap digunakan.`, read: false }]);
+          alert('Berhasil disimpan!'); handleResetForm(); fetchClients();
+        }
+      }
+    } catch (err: unknown) {
+      alert(err instanceof Error ? `Terjadi kesalahan: ${err.message}` : 'Terjadi kesalahan.');
+    } finally { setLoading(false); }
+  };
+
+  const handleCopyLink = (slug: string) => {
+    if (!slug) return;
+    navigator.clipboard.writeText(`${window.location.origin}/gallery/${slug}`);
+    setCopiedSlug(slug);
+    setTimeout(() => setCopiedSlug(null), 2000);
+  };
+
+  const markAllNotifsRead = async () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    await supabase.from('notifications').update({ read: true }).eq('read', false);
+  };
+
+  const unreadNotifCount = notifications.filter(n => !n.read).length;
+
+  const handleDuplicateClient = async (client: ClientItem) => {
+    try {
+      const generatedSlug = `${client.client_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
+      const { error } = await supabase.from('galleries').insert([{
+        client_name: `${client.client_name} (Copy)`, folder_id: client.folder_id, slug: generatedSlug,
+        max_photos: client.max_photos, event_date: client.event_date, expire_date: client.expire_date, notes: client.notes
+      }]);
+      if (error) alert('Gagal menduplikat: ' + error.message);
+      else { alert('Berhasil diduplikat!'); fetchClients(); }
+    } catch { alert('Terjadi kesalahan.'); }
+  };
+
+  const handleCopySelectionText = (sel: PhotoSelection) => {
+    const clientName  = sel.galleries?.client_name ?? sel.slug;
+    const totalPhotos = sel.selected_photos.length;
+    const fotoList    = sel.selected_photos.map((p, i) => `${i + 1}. ${p.name}`).join('\n');
+    const text =
+      `*Detail Klien:* ${clientName}\n` +
+      `*Total Foto Terpilih:* ${totalPhotos} Foto\n\n` +
+      `*Daftar Nama Foto:*\n${fotoList}`;
+    navigator.clipboard.writeText(text);
+    setCopiedSelId(sel.id);
+    setTimeout(() => setCopiedSelId(null), 2000);
+  };
+
+  return (
+    <div className="min-h-screen bg-[#f7f7f7] dark:bg-[#0f0f0f] font-sans text-gray-800 dark:text-gray-200 flex flex-col">
+
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      <header className="bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800 h-20 px-6 sm:px-12 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+        <div className="flex items-center gap-6">
+          <div className="flex flex-col">
+            <span className="font-serif italic text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Pilihin Fotomu</span>
+            <span className="text-[9px] uppercase tracking-widest text-gray-400 dark:text-gray-500 font-semibold">by Abazic</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4 relative">
+          <ThemeToggle />
+
+          <div className="relative">
+            <button type="button"
+              onClick={() => { setIsBroadcastOpen(true); setIsNotifOpen(false); setIsProfileOpen(false); }}
+              className={`p-2 rounded-full transition-colors ${BTN_GHOST}`} title="Broadcast">
+              <Megaphone size={20} />
+            </button>
+          </div>
+
+          <div className="relative">
+            <button type="button"
+              onClick={() => { setIsNotifOpen(!isNotifOpen); setIsProfileOpen(false); }}
+              className={`p-2 rounded-full relative transition-colors ${BTN_GHOST}`}>
+              <Bell size={20} />
+              {unreadNotifCount > 0 && <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-neutral-900" />}
+            </button>
+
+            {isNotifOpen && (
+              <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl shadow-xl z-40 overflow-hidden">
+                <div className="p-4 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between bg-gray-50 dark:bg-neutral-800/50">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-semibold text-sm text-gray-900 dark:text-white">Notifikasi</h4>
+                    {unreadNotifCount > 0 && <span className="text-[10px] bg-red-100 dark:bg-red-950 text-red-600 dark:text-red-400 px-2 py-0.5 rounded-full font-bold">{unreadNotifCount} Baru</span>}
+                  </div>
+                  {unreadNotifCount > 0 && (
+                    <button onClick={markAllNotifsRead} className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1">
+                      <CheckCircle2 size={12} /> Tandai dibaca
+                    </button>
+                  )}
+                </div>
+                <div className="max-h-80 overflow-y-auto divide-y divide-gray-100 dark:divide-neutral-800">
+                  {notifications.length === 0
+                    ? <p className="p-4 text-xs text-gray-400 dark:text-gray-500 text-center">Tidak ada notifikasi.</p>
+                    : notifications.map(n => (
+                      <div key={n.id} className={`p-3.5 hover:bg-gray-50 dark:hover:bg-neutral-800/60 transition-colors ${!n.read ? 'bg-blue-50/30 dark:bg-blue-950/20' : ''}`}>
+                        <div className="flex justify-between items-start mb-1">
+                          <span className="text-xs font-semibold text-gray-900 dark:text-white">{n.title}</span>
+                          <span className="text-[10px] text-gray-400 dark:text-gray-500">{n.time}</span>
+                        </div>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">{n.desc}</p>
+                      </div>
+                    ))
+                  }
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="relative">
+            <button onClick={() => { setIsProfileOpen(!isProfileOpen); setIsNotifOpen(false); }}
+              className="flex items-center gap-3 p-1.5 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-xl transition-colors cursor-pointer">
+              <img src="https://i.pravatar.cc/150?img=33" alt="Admin" className="w-8 h-8 rounded-full border border-gray-200 dark:border-neutral-700" />
+              <div className="text-left hidden sm:block">
+                <p className="text-xs font-semibold text-gray-800 dark:text-gray-100 leading-none">{adminInfo.name}</p>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">+{adminInfo.whatsapp}</p>
+              </div>
+              <ChevronDown size={14} className="text-gray-400 dark:text-gray-500" />
+            </button>
+
+            {isProfileOpen && (
+              <div className="absolute right-0 mt-3 w-72 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl shadow-xl z-40 p-4 space-y-4">
+                <div className="flex justify-between items-center pb-3 border-b border-gray-100 dark:border-neutral-800">
+                  <h4 className="font-semibold text-sm text-gray-900 dark:text-white">Profil Admin</h4>
+                  <button onClick={() => setIsEditingAdmin(!isEditingAdmin)} className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white flex items-center gap-1">
+                    <Edit2 size={12} /> {isEditingAdmin ? 'Batal' : 'Edit'}
+                  </button>
+                </div>
+                {isEditingAdmin ? (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-[11px] text-gray-500 dark:text-gray-400 block mb-1">Nama Admin</label>
+                      <input type="text" value={adminInfo.name} onChange={e => setAdminInfo({ ...adminInfo, name: e.target.value })}
+                        className="w-full text-xs p-2 border border-gray-300 dark:border-neutral-700 rounded-lg outline-none focus:border-black dark:focus:border-neutral-500 bg-white dark:bg-neutral-950 text-gray-900 dark:text-gray-100" />
+                    </div>
+                    <div>
+                      <label className="text-[11px] text-gray-500 dark:text-gray-400 block mb-1">No. WhatsApp (Tanpa +)</label>
+                      <input type="text" value={adminInfo.whatsapp} onChange={e => setAdminInfo({ ...adminInfo, whatsapp: e.target.value })}
+                        className="w-full text-xs p-2 border border-gray-300 dark:border-neutral-700 rounded-lg outline-none focus:border-black dark:focus:border-neutral-500 bg-white dark:bg-neutral-950 text-gray-900 dark:text-gray-100" />
+                    </div>
+                    <button onClick={handleSaveAdminProfile} className="w-full py-1.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg text-xs font-medium">Simpan Profil</button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 rounded-lg"><Phone size={16} /></div>
+                      <div>
+                        <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase font-bold tracking-wider">WhatsApp Studio</p>
+                        <p className="text-xs font-mono font-medium text-gray-800 dark:text-gray-200">+{adminInfo.whatsapp}</p>
+                      </div>
+                    </div>
+                    <a href={`https://wa.me/${adminInfo.whatsapp}`} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-medium transition-colors">
+                      <MessageSquare size={14} /> Buka WhatsApp
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* ── Main ───────────────────────────────────────────────────────────── */}
+      <main className="flex-1 p-6 sm:p-10 max-w-7xl mx-auto w-full space-y-10">
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-serif text-gray-900 dark:text-white mb-1">{editingId ? 'Edit Data Klien' : 'Form Data Klien'}</h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">{editingId ? 'Perbarui data klien dan klik simpan.' : 'Isi formulir di bawah ini untuk membuatkan link galeri pemilihan foto klien.'}</p>
+          </div>
+          {editingId && (
+            <button onClick={handleResetForm} className={`flex items-center justify-center gap-2 px-4 py-2 text-xs font-medium rounded-xl shadow-sm transition-all self-start sm:self-auto border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-neutral-800`}>
+              <Plus size={15} /> Buat Klien Baru
+            </button>
+          )}
+        </div>
+
+        <form onSubmit={handleSave} className="space-y-6">
+          <div className={`${CARD} p-6 rounded-2xl`}>
+            <h2 className="flex items-center gap-2 font-semibold text-gray-900 dark:text-white mb-6"><UserIcon size={18} className="text-gray-400 dark:text-gray-500" /> Informasi Klien</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">Nama Klien *</label>
+                <input type="text" name="clientName" value={formData.clientName} onChange={handleInputChange} placeholder="Contoh: Ahmad Rizki & Keluarga" required className={INPUT} />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">Tanggal Acara</label>
+                <div className="relative">
+                  <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" />
+                  <input type="date" name="eventDate" value={formData.eventDate} onChange={handleInputChange} className={`${INPUT} pl-9 pr-4 py-2.5 dark:scheme-dark`} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className={`${CARD} p-6 rounded-2xl`}>
+            <h2 className="flex items-center gap-2 font-semibold text-gray-900 dark:text-white mb-6"><LinkIcon size={18} className="text-gray-400 dark:text-gray-500" /> Pengaturan Galeri</h2>
+            <div className="mb-6">
+              <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">Link Google Drive *</label>
+              <div className="flex gap-2">
+                <input type="url" name="gdriveUrl" value={formData.gdriveUrl} onChange={handleInputChange} placeholder="https://drive.google.com/drive/folders/..." required className={`${INPUT} flex-1 text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-neutral-950`} />
+                <button type="button" onClick={() => formData.gdriveUrl && window.open(formData.gdriveUrl, '_blank')}
+                  className="p-2.5 border border-gray-300 dark:border-neutral-700 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-neutral-800" title="Buka Drive">
+                  <ExternalLink size={18} />
+                </button>
+              </div>
+            </div>
+            <div className="mb-6">
+              <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">Link Slug / Galeri {editingId && '(Bisa diubah)'}</label>
+              <div className="flex gap-2">
+                <input type="text" value={createdSlug} onChange={e => setCreatedSlug(e.target.value)} placeholder="nama-klien-1234"
+                  className={`${INPUT} flex-1 font-mono text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-neutral-950`} />
+                {editingId && (
+                  <button type="button"
+                    onClick={() => setCreatedSlug(`${formData.clientName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`)}
+                    className="p-2.5 border border-gray-300 dark:border-neutral-700 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-neutral-800" title="Generate Ulang">🔄</button>
+                )}
+              </div>
+              <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1">Preview: /gallery/{createdSlug}</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-2">
+              <div>
+                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">Maksimum Foto yang Bisa Dipilih</label>
+                <input type="number" name="maxPhotos" value={formData.maxPhotos} onChange={handleInputChange} placeholder="20" className={INPUT} />
+                <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1">Batas jumlah foto pilihan klien.</p>
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">Masa Berlaku Link</label>
+                <div className="relative">
+                  <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" />
+                  <input type="date" name="expireDate" value={formData.expireDate} onChange={handleInputChange} className={`${INPUT} pl-9 pr-4 py-2.5 dark:scheme-dark`} />
+                </div>
+                <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1">Tanggal akses galeri ditutup.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className={`${CARD} p-6 rounded-2xl`}>
+            <h2 className="flex items-center gap-2 font-semibold text-gray-900 dark:text-white mb-4"><FileText size={18} className="text-gray-400 dark:text-gray-500" /> Catatan <span className="text-gray-400 dark:text-gray-500 font-normal text-sm">(Opsional)</span></h2>
+            <textarea name="notes" value={formData.notes} onChange={handleInputChange} maxLength={500} placeholder="Contoh: Mohon pilih foto terbaik dan hindari foto blur." rows={4}
+              className={`${INPUT} p-3 resize-none text-gray-700 dark:text-gray-200`} />
+            <div className="text-right text-[11px] text-gray-400 dark:text-gray-500 mt-1">{formData.notes.length}/500</div>
+          </div>
+
+          <div className="flex items-center justify-between pt-2">
+            <button type="button" onClick={handleResetForm} className="flex items-center gap-2 px-4 py-2.5 text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-950/70 rounded-xl text-sm font-medium border border-red-100 dark:border-red-900 transition-colors">
+              <Trash2 size={16} /> Reset Form
+            </button>
+            <div className="flex gap-3">
+              <button type="button" onClick={handleResetForm} className="px-5 py-2.5 text-gray-700 dark:text-gray-200 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-800 rounded-xl text-sm font-medium transition-colors">Batal</button>
+              <button type="submit" disabled={loading} className="flex items-center gap-2 px-6 py-2.5 text-white bg-[#2a2a2a] dark:bg-neutral-100 dark:text-neutral-900 hover:bg-black dark:hover:bg-white rounded-xl text-sm font-medium transition-colors disabled:opacity-50 shadow-sm">
+                {loading ? 'Menyimpan...' : editingId ? 'Perbarui Data Klien' : 'Simpan Klien Baru'}
+              </button>
+            </div>
+          </div>
+        </form>
+
+        {/* ── Tabel klien ─────────────────────────────────────────────────── */}
+        <section className={`${CARD} rounded-2xl p-6 sm:p-8 space-y-6`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 dark:border-neutral-800 pb-5">
+            <div>
+              <h2 className="text-xl font-serif text-gray-900 dark:text-white flex items-center gap-2"><ListFilter size={20} className="text-gray-500 dark:text-gray-400" /> Ringkasan Klien & Link Galeri</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Klik <span className="font-semibold text-gray-700 dark:text-gray-200">Edit</span> untuk memperbarui informasi klien.</p>
+            </div>
+            <button onClick={fetchClients} className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-colors self-start sm:self-auto ${BTN_SECONDARY}`}>Refresh Daftar</button>
+          </div>
+
+          {fetchingClients ? (
+            <div className="text-center py-12 text-sm text-gray-400 dark:text-gray-500">Memuat data klien...</div>
+          ) : clientsList.length === 0 ? (
+            <div className="text-center py-12 text-sm text-gray-400 dark:text-gray-500">Belum ada data klien.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[700px]">
+                <thead>
+                  <tr className="border-b border-gray-200 dark:border-neutral-800">
+                    <th className={TH}>Nama Klien</th><th className={TH}>Tanggal Acara</th>
+                    <th className={TH}>Maks. Foto</th><th className={TH}>Masa Berlaku</th>
+                    <th className={TH}>Link Galeri</th><th className={`${TH} text-right`}>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-neutral-800 text-sm">
+                  {clientsList.map(client => (
+                    <tr key={client.id} className="hover:bg-gray-50/80 dark:hover:bg-neutral-800/50 transition-colors">
+                      <td className="py-3.5 px-4 font-medium text-gray-900 dark:text-white">{client.client_name}</td>
+                      <td className="py-3.5 px-4 text-gray-600 dark:text-gray-300">{formatDateString(client.event_date)}</td>
+                      <td className="py-3.5 px-4 text-gray-600 dark:text-gray-300">{client.max_photos ? `${client.max_photos} Foto` : '-'}</td>
+                      <td className="py-3.5 px-4 text-gray-600 dark:text-gray-300">{formatDateString(client.expire_date)}</td>
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-mono text-blue-600 dark:text-blue-400 truncate max-w-[150px]">/gallery/{client.slug}</span>
+                          <button onClick={() => handleCopyLink(client.slug)} className="p-1 hover:bg-gray-200 dark:hover:bg-neutral-700 rounded text-gray-500 dark:text-gray-400 transition-colors" title="Salin Link">
+                            {copiedSlug === client.slug ? <Check size={14} className="text-emerald-600 dark:text-emerald-400" /> : <Copy size={14} />}
+                          </button>
+                          <Link href={`/gallery/${client.slug}`} target="_blank" className="p-1 hover:bg-gray-200 dark:hover:bg-neutral-700 rounded text-gray-500 dark:text-gray-400 transition-colors" title="Buka Galeri"><ExternalLink size={14} /></Link>
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button onClick={() => handleEditClient(client)} className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-colors ${BTN_SECONDARY}`}>Edit</button>
+                          <button onClick={() => handleDuplicateClient(client)} className="px-2.5 py-1 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-950/70 rounded-lg transition-colors">Duplikat</button>
+                          <button onClick={() => handleDeleteClientFromList(client.id)} className="p-1.5 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors" title="Hapus"><Trash2 size={14} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+
+        {/* ── Pilihan Foto Klien ──────────────────────────────────────────── */}
+        <section className={`${CARD} rounded-2xl p-6 sm:p-8 space-y-6`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 dark:border-neutral-800 pb-5">
+            <div>
+              <h2 className="text-xl font-serif text-gray-900 dark:text-white flex items-center gap-2">
+                <Image size={20} className="text-gray-500 dark:text-gray-400" /> Pilihan Foto Klien
+              </h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Foto yang sudah dipilih dan/atau dikunci oleh klien. Update otomatis secara realtime.
+              </p>
+            </div>
+            <button onClick={fetchSelections} className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-colors self-start sm:self-auto ${BTN_SECONDARY}`}>
+              Refresh
+            </button>
+          </div>
+
+          {fetchingSelections ? (
+            <div className="text-center py-12 text-sm text-gray-400 dark:text-gray-500">Memuat pilihan foto...</div>
+          ) : selections.length === 0 ? (
+            <div className="text-center py-12 text-sm text-gray-400 dark:text-gray-500">
