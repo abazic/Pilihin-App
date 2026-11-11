@@ -26,7 +26,7 @@ export default async function PortfolioCategoryPage({ params }) {
   const category = categories.find((item) => item.slug === slug);
   if (!category) notFound();
 
-  const photos = await getPhotosFromGDrive(category.folderId);
+  const photos = await getPhotosFromGDrive(category.folderId, { watermark: true });
   const shuffledPhotos = [...photos].sort(() => Math.random() - 0.5);
 
   return (
