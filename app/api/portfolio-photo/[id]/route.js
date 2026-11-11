@@ -52,13 +52,13 @@ export async function GET(_request, { params }) {
       return new NextResponse('Preview foto tidak tersedia.', { status: 404 });
     }
 
-    const thumbnailUrl = metadata.thumbnailLink.replace(/=s\\d+/, '=s1600');
+    const thumbnailUrl = metadata.thumbnailLink.replace(/=s\d+/, '=s1600');
     const imageResponse = await fetch(thumbnailUrl, { next: { revalidate: 3600 } });
     if (!imageResponse.ok) {
       return new NextResponse('Gagal mengambil preview foto.', { status: 502 });
     }
 
-    const contentType = imageResponse.headers.get('content-type') || 'image/jpeg';
+    const contentType = (imageResponse.headers.get('content-type') || 'image/jpeg').split(';')[0].trim().toLowerCase();
     if (!/^image\/(jpeg|jpg|png|webp)$/.test(contentType)) {
       return new NextResponse('Format foto tidak didukung.', { status: 415 });
     }
