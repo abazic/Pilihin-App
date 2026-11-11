@@ -43,9 +43,7 @@ export default function PortfolioGallery({ photos }: { photos: Photo[] }) {
                 src={photo.url}
                 alt={photo.name.replace(/\.[^/.]+$/, '')}
                 loading="lazy"
-                className={`w-full object-cover transition duration-700 hover:scale-[1.02] ${
-                  ['aspect-[3/4]', 'aspect-square', 'aspect-[4/5]', 'aspect-[5/4]', 'aspect-[2/3]'][index % 5]
-                }`}
+                className="block h-auto w-full object-contain transition duration-700 hover:scale-[1.02]"
               />
             </button>
           </figure>
@@ -57,7 +55,7 @@ export default function PortfolioGallery({ photos }: { photos: Photo[] }) {
           role="dialog"
           aria-modal="true"
           aria-label="Tampilan foto portfolio"
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-transparent p-4 md:p-8"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/65 p-4 backdrop-blur-md md:p-8"
           onClick={close}
           onContextMenu={(event) => event.preventDefault()}
         >
