@@ -247,14 +247,16 @@ Aturan data:
 - Pastikan build/typecheck/test baseline.
 
 ### Phase 1 — Public website
-- Ubah `/` menjadi homepage vendor.
+- [x] Ubah `/` menjadi homepage vendor.
 - Bangun layout publik: navbar, footer, container, typography.
-- Implementasikan Portfolio dan Pricelist.
+- [x] Implementasikan Portfolio: kategori, kartu portfolio di homepage, dan halaman detail kategori.
+- [ ] Implementasikan Pricelist.
 - Tambahkan About, Services, Contact sesuai kebutuhan.
 - Pastikan halaman publik mengambil data yang aman.
 
 ### Phase 2 — Admin CMS
-- Tambahkan CRUD portfolio.
+- [x] Tambahkan pengelolaan kategori portfolio (tambah, edit, hapus, dan urutkan kategori berbasis folder Google Drive).
+- [ ] Tambahkan CRUD project portfolio secara terpisah.
 - Tambahkan CRUD pricelist dan add-on.
 - Tambahkan vendor settings.
 - Hubungkan konten admin ke halaman publik.
