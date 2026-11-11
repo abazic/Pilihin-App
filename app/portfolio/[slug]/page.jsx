@@ -58,6 +58,7 @@ export default async function PortfolioCategoryPage({ params }) {
             Belum ada foto di folder portofolio ini.
           </p>
         )}
+      </section>
     </main>
   );
 }
