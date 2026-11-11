@@ -21,7 +21,7 @@ const whatsappUrl = `https://wa.me/${whatsappNumber}`;
 const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
   return (
     <main className="min-h-screen bg-[#faf9f6] text-[#1c1c1c]">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
+      <nav className="sticky top-0 z-50 mx-auto flex max-w-7xl items-center justify-between border-b border-black/5 bg-[#faf9f6]/95 px-6 py-6 shadow-sm backdrop-blur-md">
         <a href="/" className="text-xl font-semibold tracking-tight">
           Pilihin Fotomu<span className="text-amber-700">.</span>
         </a>
