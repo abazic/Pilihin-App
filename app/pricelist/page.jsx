@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import AppHeader from '@/components/AppHeader';
+import { getPhotosPageFromGDrive } from '@/lib/gdrive';
+import HeroSlideshow from '@/components/HeroSlideshow';
 
 const DEFAULT_PRICELIST = {
   title: 'Graduation Photoshoot 2026',
@@ -33,8 +35,27 @@ export default async function PricelistPage() {
   const wa = String(waSetting?.value || process.env.NEXT_PUBLIC_DEFAULT_WHATSAPP || '201553538819').replace(/\\D/g, '');
   const bookingUrl = `https://wa.me/${wa}?text=${encodeURIComponent(prices.whatsappMessage || 'Halo, saya ingin booking sesi foto.')}`;
 
+  const { data: portfolioSetting } = await supabase.from('settings').select('value').eq('key', 'portfolio_categories').maybeSingle();
+  let categories = [];
+  try {
+    const parsed = typeof portfolioSetting?.value === 'string' ? JSON.parse(portfolioSetting.value) : portfolioSetting?.value;
+    categories = Array.isArray(parsed) ? parsed : [];
+  } catch { categories = []; }
+  const heroPhotos = (await Promise.all(
+    categories.map(async (category) => getPhotosPageFromGDrive(category.folderId, { pageSize: 5, imageSize: 900 }))
+  )).flatMap((result) => result.photos || []).filter((photo) => photo.url).map((photo) => photo.url);
+  for (let i = heroPhotos.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [heroPhotos[i], heroPhotos[j]] = [heroPhotos[j], heroPhotos[i]];
+  }
+  const backgroundPhotos = heroPhotos.length ? heroPhotos : ['https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85'];
+
   return (
-    <main className="min-h-screen bg-[#faf9f6] text-[#1c1c1c] dark:bg-[#11110f] dark:text-stone-100">
+    <main className="relative isolate min-h-screen overflow-hidden bg-[#faf9f6] text-[#1c1c1c] dark:bg-[#11110f] dark:text-stone-100">
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <HeroSlideshow images={backgroundPhotos} interval={12000} />
+        <div className="absolute inset-0 bg-[#faf9f6]/80 backdrop-blur-[5px] dark:bg-[#11110f]/80" />
+      </div>
       <AppHeader navigation={<><a href="/" className="hover:text-amber-700">Home</a><a href="/pricelist" className="text-amber-700 dark:text-amber-400">Pricelist</a><a href="/#portfolio" className="hover:text-amber-700">Portfolio</a><a href="/#services" className="hover:text-amber-700">Service</a><a href="/#contact" className="hover:text-amber-700">Contact</a></>} actions={<a href="/admin" className="rounded-full bg-black px-4 py-2 text-sm text-white dark:bg-stone-100 dark:text-neutral-900">Dashboard</a>} />
       <section className="mx-auto max-w-7xl px-6 pb-16 pt-20 md:pt-28">
         <div className="mx-auto max-w-3xl text-center">
