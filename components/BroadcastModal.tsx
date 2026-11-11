@@ -56,7 +56,7 @@ export default function BroadcastModal({
   // Default template
   const defaultTemplate: BroadcastTemplate = {
     greeting: 'Halo Kak, foto-foto hasil sesi kemarin sudah bisa dipilih yaa.\n\nSilakan buka link sesuai nama masing-masing:',
-    instruction: '\n\n**Cara memilih foto:**\n\n1. Buka link sesuai nama.\n2. Pilih foto yang ingin diedit dengan menekan tanda pilih.\n3. Maksimal **13 foto**.\n4. Setelah selesai, pastikan pilihan sudah tersimpan/terkirim.\n\nKalau ada foto yang ingin ditanyakan atau ada kendala saat memilih, langsung chat saya ya.\n\nTerima kasih!',
+    instruction: '\n\n*Cara memilih foto:*\n\n1. Buka link sesuai nama.\n2. Pilih foto yang ingin diedit dengan menekan tanda pilih.\n3. Maksimal *13 foto*.\n4. Setelah selesai, pastikan pilihan sudah tersimpan/terkirim.\n\nKalau ada foto yang ingin ditanyakan atau ada kendala saat memilih, langsung chat saya ya.\n\nTerima kasih!',
     closing: ''
   };
 
@@ -98,7 +98,7 @@ export default function BroadcastModal({
     // Add links
     selected.forEach(client => {
       const galleryUrl = `${appBaseUrl}/gallery/${client.slug}`;
-      message += `\n📸 **${client.client_name}**\n${galleryUrl}`;
+      message += `\n📸 *${client.client_name}*\n${galleryUrl}`;
     });
 
     message += defaultTemplate.instruction;
