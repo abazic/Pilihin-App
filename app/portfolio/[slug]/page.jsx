@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
-import { getPhotosFromGDrive } from '@/lib/gdrive';
+import { getPhotosPageFromGDrive } from '@/lib/gdrive';
 import AppHeader from '@/components/AppHeader';
 import PortfolioGallery from '@/components/PortfolioGallery';
 import { notFound } from 'next/navigation';
@@ -27,8 +27,7 @@ export default async function PortfolioCategoryPage({ params }) {
   const category = categories.find((item) => item.slug === slug);
   if (!category) notFound();
 
-  const photos = await getPhotosFromGDrive(category.folderId);
-  const shuffledPhotos = [...photos].sort(() => Math.random() - 0.5);
+  const { photos, nextPageToken } = await getPhotosPageFromGDrive(category.folderId, { pageSize: 20, imageSize: 500 });
 
   return (
     <main className="min-h-screen bg-[#faf9f6] text-[#1c1c1c] dark:bg-[#11110f] dark:text-[#f5f3ee]">
@@ -48,11 +47,11 @@ export default async function PortfolioCategoryPage({ params }) {
         </div>
 
         {shuffledPhotos.length > 0 ? (
-          <PortfolioGallery photos={shuffledPhotos.map((photo) => ({
-            id: photo.id,
-            url: photo.url,
-            name: photo.name,
-          }))} />
+          <PortfolioGallery
+            photos={photos}
+            folderId={category.folderId}
+            initialPageToken={nextPageToken}
+          />
         ) : (
           <p className="border-y border-black/10 py-16 text-center text-sm text-neutral-500 dark:border-white/10 dark:text-neutral-400">
             Belum ada foto di folder portofolio ini.
