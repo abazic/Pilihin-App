@@ -25,6 +25,17 @@ const whatsappUrl = `https://wa.me/${whatsappNumber}`;
 
 const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
 
+  const { data: socialSetting } = await supabase
+    .from('settings')
+    .select('value')
+    .eq('key', 'social_media_links')
+    .maybeSingle();
+  let socialLinks = [];
+  try {
+    const parsed = typeof socialSetting?.value === 'string' ? JSON.parse(socialSetting.value) : socialSetting?.value;
+    socialLinks = Array.isArray(parsed) ? parsed.filter((item) => item?.platform && item?.url) : [];
+  } catch { socialLinks = []; }
+
   const { data: portfolioSetting } = await supabase
     .from('settings')
     .select('value')
