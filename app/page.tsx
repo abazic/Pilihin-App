@@ -91,7 +91,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
           <div className="relative">
             <div className="aspect-[4/5] overflow-hidden bg-neutral-200 dark:bg-neutral-800">
               <img
-                src="https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85"
+                src={heroImageUrl}
                 alt="Wedding photography"
                 className="h-full w-full object-cover"
               />
