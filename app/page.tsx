@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { getPhotosPageFromGDrive } from '@/lib/gdrive';
 import HeroSlideshow from '@/components/HeroSlideshow';
 import PortfolioImage from '@/components/PortfolioImage';
+import { Instagram, Facebook, Youtube, Music2, Mail, Globe, MessageCircle } from 'lucide-react';
 export default async function HomePage() {
   const supabase = await createClient();
 
@@ -236,37 +237,39 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
 
 
       
-<footer id="contact" className="border-t border-black/10 px-6 py-16">
-  <div className="mx-auto flex max-w-7xl flex-col justify-between gap-10 md:flex-row md:items-end">
-    <div>
-      <p className="text-xs uppercase tracking-[0.25em] text-neutral-400">
-        Let's Create Memories
-      </p>
-      <h2 className="mt-4 text-3xl font-medium md:text-5xl">
-        Let's talk about your story.
-      </h2>
-      <a
-        href={whatsappContactUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-8 inline-flex items-center gap-3 rounded-full bg-green-600 px-7 py-4 text-sm text-white transition hover:bg-green-700"
-      >
-        Chat via WhatsApp ↗
-      </a>
-      {socialLinks.length > 0 && (
-        <div className="mt-6 flex flex-wrap gap-3">
-          {socialLinks.map((social, index) => (
-            <a key={`${social.platform}-${index}`} href={social.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center rounded-full border border-black/15 px-5 py-2.5 text-sm text-neutral-700 transition hover:border-amber-700 hover:text-amber-800 dark:border-white/15 dark:text-neutral-200 dark:hover:border-amber-400 dark:hover:text-amber-400">
-              {social.platform} ↗
-            </a>
-          ))}
-        </div>
-      )}
+<footer id="contact" className="border-t border-black/10 px-6 py-12 dark:border-white/10">
+  <div className="mx-auto flex max-w-7xl flex-col gap-8 md:flex-row md:items-center md:justify-between">
+    <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
+      {socialLinks.map((social, index) => {
+        const platform = String(social.platform).toLowerCase();
+        const SocialIcon = platform.includes('instagram') ? Instagram
+          : platform.includes('facebook') ? Facebook
+          : platform.includes('youtube') ? Youtube
+          : platform.includes('tiktok') ? Music2
+          : platform.includes('email') || platform.includes('mail') ? Mail
+          : Globe;
+        return (
+          <a key={`${social.platform}-${index}`} href={social.url} target="_blank" rel="noopener noreferrer"
+            aria-label={social.platform} title={social.platform}
+            className="inline-flex items-center gap-2 text-sm text-neutral-600 transition hover:text-amber-700 dark:text-neutral-300 dark:hover:text-amber-400">
+            <SocialIcon size={19} strokeWidth={1.8} />
+            <span>{social.platform}</span>
+          </a>
+        );
+      })}
     </div>
 
-    <div className="text-sm text-neutral-500 md:text-right">
+    <a href={whatsappContactUrl} target="_blank" rel="noopener noreferrer"
+      className="inline-flex items-center gap-2 self-start text-sm font-medium text-green-700 transition hover:text-green-800 md:self-auto dark:text-green-400 dark:hover:text-green-300">
+      <MessageCircle size={20} strokeWidth={1.8} />
+      <span>Chat Admin WhatsApp</span>
+      <span aria-hidden="true">↗</span>
+    </a>
+  </div>
+  <div className="mx-auto mt-10 max-w-7xl border-t border-black/10 pt-5 text-xs text-neutral-500 dark:border-white/10">
+    <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
       <p>© {new Date().getFullYear()} Pilihin Fotomu</p>
-      <p className="mt-2">Capturing moments, preserving memories.</p>
+      <p>Capturing moments, preserving memories.</p>
     </div>
   </div>
 </footer>
