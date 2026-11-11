@@ -410,7 +410,20 @@ export default function HomePage() {
     <div className="min-h-screen bg-[#f7f7f7] dark:bg-[#0f0f0f] font-sans text-gray-800 dark:text-gray-200 flex flex-col">
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <AppHeader actions={
+      <AppHeader
+        navigation={
+          <>
+            <button type="button" onClick={() => setActiveTab('clients')}
+              className={`whitespace-nowrap border-b-2 px-2 py-2 text-sm font-medium transition-colors ${activeTab === 'clients' ? 'border-amber-700 text-gray-900 dark:border-amber-400 dark:text-white' : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}>
+              Data Klien
+            </button>
+            <button type="button" onClick={() => setActiveTab('portfolio')}
+              className={`whitespace-nowrap border-b-2 px-2 py-2 text-sm font-medium transition-colors ${activeTab === 'portfolio' ? 'border-amber-700 text-gray-900 dark:border-amber-400 dark:text-white' : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}>
+              Portofolio
+            </button>
+          </>
+        }
+        actions={
         <>
           <div className="flex items-center gap-4 relative">
 
@@ -519,16 +532,6 @@ export default function HomePage() {
 
       {/* ── Main ───────────────────────────────────────────────────────────── */}
       <main className="flex-1 p-6 sm:p-10 max-w-7xl mx-auto w-full space-y-10">
-        <div className="flex flex-wrap gap-2 border-b border-gray-200 dark:border-neutral-800 pb-4">
-          <button type="button" onClick={() => setActiveTab('clients')}
-            className={`rounded-xl px-5 py-3 text-sm font-semibold transition-colors ${activeTab === 'clients' ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900' : 'bg-white text-gray-600 hover:bg-gray-100 dark:bg-neutral-900 dark:text-gray-300 dark:hover:bg-neutral-800'}`}>
-            Form Data Klien
-          </button>
-          <button type="button" onClick={() => setActiveTab('portfolio')}
-            className={`rounded-xl px-5 py-3 text-sm font-semibold transition-colors ${activeTab === 'portfolio' ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900' : 'bg-white text-gray-600 hover:bg-gray-100 dark:bg-neutral-900 dark:text-gray-300 dark:hover:bg-neutral-800'}`}>
-            Edit Portofolio
-          </button>
-        </div>
         {activeTab === 'clients' && (
           <>
 
