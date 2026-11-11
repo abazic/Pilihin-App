@@ -23,6 +23,13 @@ const whatsappUrl = `https://wa.me/${whatsappNumber}`;
 
 const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
 
+  const { data: heroImageSetting } = await supabase
+    .from('settings')
+    .select('value')
+    .eq('key', 'homepage_hero_image')
+    .maybeSingle();
+  const heroImageUrl = heroImageSetting?.value || 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=85';
+
   const { data: portfolioSetting } = await supabase
     .from('settings')
     .select('value')
