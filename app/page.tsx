@@ -169,20 +169,20 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
 
     <div className="mt-16 grid gap-10 border-t border-black/15 dark:border-white/15 pt-8 md:grid-cols-3">
       <div>
-        <span className="text-xs text-neutral-400">01 / WEDDING</span>
-        <h3 className="mt-5 text-2xl font-medium">Wedding Photography</h3>
+        <span className="text-xs text-neutral-400">01 / GRADUATION</span>
+        <h3 className="mt-5 text-2xl font-medium">Graduation Photography</h3>
         <p className="mt-4 text-sm leading-7 text-neutral-500">
-          Mengabadikan setiap momen pernikahan, mulai dari detail kecil
-          hingga momen paling berharga.
+          Mengabadikan momen kelulusan, mulai dari potret wisuda
+          hingga kebersamaan bersama keluarga dan sahabat.
         </p>
       </div>
 
       <div>
-        <span className="text-xs text-neutral-400">02 / PORTRAIT</span>
-        <h3 className="mt-5 text-2xl font-medium">Portrait Photography</h3>
+        <span className="text-xs text-neutral-400">02 / WEDDING</span>
+        <h3 className="mt-5 text-2xl font-medium">Wedding Photography</h3>
         <p className="mt-4 text-sm leading-7 text-neutral-500">
-          Sesi foto personal untuk menampilkan karakter, ekspresi,
-          dan cerita unik setiap individu.
+          Mengabadikan setiap momen pernikahan, mulai dari detail kecil
+          hingga momen paling berharga.
         </p>
       </div>
 
