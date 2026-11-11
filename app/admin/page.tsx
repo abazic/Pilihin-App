@@ -902,12 +902,12 @@ export default function HomePage() {
               </div>
               <div className="rounded-xl border border-gray-200 p-4 dark:border-neutral-800 space-y-3">
                 <div className="flex items-center justify-between gap-3">
-                  <div><h2 className="font-semibold text-gray-900 dark:text-white">Social Media</h2><p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Tambahkan nama platform dan URL profil lengkap.</p></div>
+                  <div><h2 className="font-semibold text-gray-900 dark:text-white">Social Media</h2><p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Isi nama akun yang akan ditampilkan dan URL profil. Ikon akan dikenali otomatis dari URL.</p></div>
                   <button type="button" onClick={() => setSocialLinks(prev => [...prev, { platform: '', url: '' }])} className={`rounded-lg px-3 py-2 text-xs ${BTN_SECONDARY}`}><Plus size={13} className="mr-1 inline" />Tambah</button>
                 </div>
                 {socialLinks.map((item, index) => (
                   <div key={index} className="grid gap-2 rounded-lg border border-gray-200 p-3 dark:border-neutral-700 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)_auto]">
-                    <input aria-label="Nama platform" placeholder="Instagram / TikTok" value={item.platform} onChange={e => setSocialLinks(prev => prev.map((social, i) => i === index ? { ...social, platform: e.target.value } : social))} className={INPUT} />
+                    <input aria-label="Nama akun" placeholder="@pilihinfotomu" value={item.platform} onChange={e => setSocialLinks(prev => prev.map((social, i) => i === index ? { ...social, platform: e.target.value } : social))} className={INPUT} />
                     <input aria-label="URL social media" type="url" placeholder="https://..." value={item.url} onChange={e => setSocialLinks(prev => prev.map((social, i) => i === index ? { ...social, url: e.target.value } : social))} className={INPUT} />
                     <button type="button" onClick={() => setSocialLinks(prev => prev.filter((_, i) => i !== index))} className="rounded-lg px-3 py-2 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30">Hapus</button>
                   </div>
