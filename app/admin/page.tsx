@@ -546,7 +546,145 @@ export default function HomePage() {
             </button>
           </div>
 
-          {fetchingSelections ? (
+                    {fetchingSelections ? (
             <div className="text-center py-12 text-sm text-gray-400 dark:text-gray-500">Memuat pilihan foto...</div>
           ) : selections.length === 0 ? (
             <div className="text-center py-12 text-sm text-gray-400 dark:text-gray-500">
+              Belum ada klien yang mengirimkan pilihan foto.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[750px]">
+                <thead>
+                  <tr className="border-b border-gray-200 dark:border-neutral-800">
+                    <th className={TH}>Klien</th>
+                    <th className={TH}>Foto Dipilih</th>
+                    <th className={TH}>Status</th>
+                    <th className={TH}>Dikirim via WA</th>
+                    <th className={TH}>Terakhir Update</th>
+                    <th className={TH}>Detail</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-neutral-800 text-sm">
+                  {selections.map(sel => (
+                    <Fragment key={sel.id}>
+                      <tr className="hover:bg-gray-50/80 dark:hover:bg-neutral-800/50 transition-colors">
+                        <td className="py-3.5 px-4 font-medium text-gray-900 dark:text-white">
+                          <div>{sel.galleries?.client_name ?? sel.slug}</div>
+                          <div className="text-[11px] font-mono text-gray-400 dark:text-gray-500">/gallery/{sel.slug}</div>
+                        </td>
+
+                        <td className="py-3.5 px-4">
+                          <span className="font-semibold text-gray-900 dark:text-white">{sel.selected_photos.length}</span>
+                          {sel.galleries?.max_photos && (
+                            <span className="text-gray-400 dark:text-gray-500"> / {sel.galleries.max_photos}</span>
+                          )}
+                          <span className="text-gray-400 dark:text-gray-500 text-xs ml-1">foto</span>
+                        </td>
+
+                        <td className="py-3.5 px-4">
+                          {sel.is_locked ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900 rounded-full text-[11px] font-semibold">
+                              <Lock size={10} /> Terkunci
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-gray-400 rounded-full text-[11px] font-semibold">
+                              Belum Dikunci
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="py-3.5 px-4">
+                          {sel.sent_via_wa ? (
+                            <div>
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900 rounded-full text-[11px] font-semibold">
+                                <Send size={10} /> Sudah Dikirim
+                              </span>
+                              {sel.sent_at && (
+                                <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-1 ml-1">{formatTimeAgo(sel.sent_at)}</div>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-gray-500 rounded-full text-[11px]">
+                              Belum Dikirim
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="py-3.5 px-4 text-gray-500 dark:text-gray-400 text-xs">
+                          {formatTimeAgo(sel.updated_at)}
+                        </td>
+
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => setExpandedSlug(expandedSlug === sel.slug ? null : sel.slug)}
+                              className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium transition-colors"
+                            >
+                              Lihat Foto
+                              <ChevronDownIcon
+                                size={14}
+                                className={`transition-transform duration-200 ${expandedSlug === sel.slug ? 'rotate-180' : ''}`}
+                              />
+                            </button>
+                            <button
+                              onClick={() => handleCopySelectionText(sel)}
+                              className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg transition-colors ${BTN_SECONDARY}`}
+                              title="Salin teks pilihan"
+                            >
+                              {copiedSelId === sel.id
+                                ? <><Check size={12} className="text-emerald-600 dark:text-emerald-400" /> Tersalin!</>
+                                : <><Copy size={12} /> Salin</>
+                              }
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+
+                      {expandedSlug === sel.slug && (
+                        <tr>
+                          <td colSpan={6} className="px-4 pb-5 pt-1 bg-gray-50/60 dark:bg-neutral-950/60">
+                            {sel.selected_photos.length === 0 ? (
+                              <p className="text-xs text-gray-400 dark:text-gray-500 py-3">Belum ada foto dipilih.</p>
+                            ) : (
+                              <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-8 gap-2 mt-2">
+                                {sel.selected_photos.map((photo, idx) => (
+                                  <div key={idx} className="group relative aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-neutral-700 bg-gray-100 dark:bg-neutral-800">
+                                    <img
+                                      src={photo.url}
+                                      alt={photo.name}
+                                      loading="lazy"
+                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                                    />
+                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-end">
+                                      <p className="text-white text-[9px] font-medium px-1.5 py-1 w-full truncate opacity-0 group-hover:opacity-100 transition-opacity">
+                                        {photo.name.replace(/\.[^/.]+$/, '')}
+                                      </p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+
+      </main>
+
+      <BroadcastModal
+        isOpen={isBroadcastOpen}
+        onClose={() => setIsBroadcastOpen(false)}
+        clientsList={clientsList}
+        adminWhatsapp={adminInfo.whatsapp}
+        appBaseUrl={typeof window !== 'undefined' ? window.location.origin : 'https://pilihin-app.vercel.app'}
+      />
+    </div>
+  );
+}
