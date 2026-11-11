@@ -276,11 +276,10 @@ const handleCopySelectionText = (sel: PhotoSelection) => {
 };
   
   return (
-    <div className="min-h-screen bg-[#f7f7f7] font-sans text-gray-800 flex flex-col">
+    <div className="min-h-screen bg-[#f7f7f7] dark:bg-[#0f0f0f] font-sans text-gray-800 dark:text-gray-200 flex flex-col">
 
       {/* ── Header (tidak berubah) ─────────────────────────────────────────────── */}
-      <header className="bg-white border-b border-gray-200 h-20 px-6 sm:px-12 flex items-center justify-between sticky top-0 z-30 shadow-sm">
-        <div className="flex items-center gap-6">
+      <header className="bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800 h-20 px-6 sm:px-12 flex items-center justify-between sticky top-0 z-30 shadow-sm">        <div className="flex items-center gap-6">
           <div className="flex flex-col">
             <span className="font-serif italic text-2xl font-bold tracking-tight text-gray-900">Pilihin Fotomu</span>
             <span className="text-[9px] uppercase tracking-widest text-gray-400 font-semibold">by Abazic</span>
