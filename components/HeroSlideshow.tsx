@@ -10,6 +10,7 @@ interface HeroSlideshowProps {
 export default function HeroSlideshow({ images, interval = 12000 }: HeroSlideshowProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [previousIndex, setPreviousIndex] = useState<number | null>(null);
+  const [isFading, setIsFading] = useState(false);
 
   useEffect(() => {
     if (images.length < 2) return;
@@ -26,8 +27,18 @@ export default function HeroSlideshow({ images, interval = 12000 }: HeroSlidesho
 
   useEffect(() => {
     if (previousIndex === null) return;
-    const cleanup = window.setTimeout(() => setPreviousIndex(null), 1900);
-    return () => window.clearTimeout(cleanup);
+
+    setIsFading(false);
+    const frame = window.requestAnimationFrame(() => setIsFading(true));
+    const cleanup = window.setTimeout(() => {
+      setPreviousIndex(null);
+      setIsFading(false);
+    }, 1900);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(cleanup);
+    };
   }, [previousIndex]);
 
   const image = images[activeIndex];
@@ -45,7 +56,7 @@ export default function HeroSlideshow({ images, interval = 12000 }: HeroSlidesho
           alt=""
           draggable={false}
           aria-hidden="true"
-          className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-[1800ms] ease-in-out"
+          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-[1800ms] ease-in-out ${isFading ? 'opacity-0' : 'opacity-100'}`}
         />
       )}
       <img
@@ -53,7 +64,7 @@ export default function HeroSlideshow({ images, interval = 12000 }: HeroSlidesho
         src={image}
         alt="Pilihin Fotomu portfolio photography"
         draggable={false}
-        className="absolute inset-0 h-full w-full object-cover opacity-100 transition-opacity duration-[1800ms] ease-in-out"
+        className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-[1800ms] ease-in-out ${previousIndex !== null && !isFading ? 'opacity-0' : 'opacity-100'}`}
       />
     </div>
   );
