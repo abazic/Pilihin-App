@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { DEFAULT_WHATSAPP_NUMBER } from '@/lib/constants';
 import AppHeader from '@/components/AppHeader';
+import Link from 'next/link';
 import { getPhotosFromGDrive } from '@/lib/gdrive';
 export default async function HomePage() {
   const supabase = await createClient();
@@ -25,12 +26,25 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
   const { data: portfolioSetting } = await supabase
     .from('settings')
     .select('value')
-    .eq('key', 'portfolio_folder_id')
+    .eq('key', 'portfolio_categories')
     .maybeSingle();
-  const portfolioPhotos = portfolioSetting?.value
-    ? await getPhotosFromGDrive(portfolioSetting.value)
-    : [];
-  const shuffledPortfolioPhotos = [...portfolioPhotos].sort(() => Math.random() - 0.5);
+
+  let portfolioCategories = [];
+  try {
+    const parsed = typeof portfolioSetting?.value === 'string'
+      ? JSON.parse(portfolioSetting.value)
+      : portfolioSetting?.value;
+    portfolioCategories = Array.isArray(parsed) ? parsed : [];
+  } catch {
+    portfolioCategories = [];
+  }
+
+  const portfolioCategoriesWithPhotos = await Promise.all(
+    portfolioCategories.map(async (category) => ({
+      ...category,
+      photos: await getPhotosFromGDrive(category.folderId),
+    }))
+  );
   return (
     <main className="min-h-screen bg-[#faf9f6] text-[#1c1c1c] transition-colors duration-300 dark:bg-[#11110f] dark:text-stone-100">
       <AppHeader
@@ -107,24 +121,38 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
       </p>
     </div>
 
-    {shuffledPortfolioPhotos.length > 0 ? (
-      <div className="mt-12 columns-2 md:columns-3 gap-5 space-y-5">
-        {shuffledPortfolioPhotos.map((photo, index) => (
-          <div key={photo.id} className="group mb-5 break-inside-avoid overflow-hidden">
-            <div className="overflow-hidden bg-neutral-200 dark:bg-neutral-800">
-              <img src={photo.url} alt={photo.name.replace(/\.[^/.]+$/, '')} loading="lazy"
-                className={`w-full object-cover transition duration-700 group-hover:scale-105 ${index % 4 === 0 ? 'aspect-[3/4]' : index % 4 === 1 ? 'aspect-square' : index % 4 === 2 ? 'aspect-[4/5]' : 'aspect-[5/4]'}`} />
-            </div>
-          </div>
-        ))}
+    {portfolioCategoriesWithPhotos.length > 0 ? (
+      <div className="mt-12 grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+        {portfolioCategoriesWithPhotos.map((category, index) => {
+          const cover = category.photos[0];
+          return (
+            <Link key={category.slug} href={`/portfolio/${category.slug}`} className={`group block ${index % 3 === 1 ? 'lg:mt-20' : ''}`}>
+              <div className="relative overflow-hidden bg-neutral-200 dark:bg-neutral-800">
+                {cover ? (
+                  <img src={cover.url} alt={category.title} loading="lazy"
+                    className={`w-full object-cover transition duration-700 group-hover:scale-105 ${index % 3 === 1 ? 'aspect-[4/5]' : 'aspect-[3/4]'}`} />
+                ) : (
+                  <div className="flex aspect-[3/4] items-center justify-center p-6 text-center text-neutral-500 dark:text-neutral-400">
+                    <span className="font-serif text-2xl">{category.title}</span>
+                  </div>
+                )}
+                <span className="absolute left-4 top-4 bg-[#faf9f6]/90 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-neutral-700 backdrop-blur dark:bg-[#11110f]/85 dark:text-neutral-200">
+                  {String(index + 1).padStart(2, '0')} / Selected Work
+                </span>
+              </div>
+              <div className="mt-4 flex items-center justify-between gap-3">
+                <h3 className="text-lg font-medium transition-colors group-hover:text-neutral-500">{category.title}</h3>
+                <span aria-hidden="true" className="text-lg transition-transform group-hover:translate-x-1">↗</span>
+              </div>
+              <p className="mt-1 text-xs text-neutral-400">{category.photos.length} photographs</p>
+            </Link>
+          );
+        })}
       </div>
     ) : (
-      <div className="mt-12 grid gap-5 md:grid-cols-2">
-        <div className="group"><div className="aspect-[4/5] overflow-hidden bg-neutral-200"><img src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1000&q=85" alt="Graduation photography" className="h-full w-full object-cover" /></div><h3 className="mt-4 text-lg font-medium">Graduation Sessions</h3><p className="mt-1 text-sm text-neutral-400">Achievement · Celebration · Memories</p></div>
-        <div className="group md:mt-24"><div className="aspect-[4/5] overflow-hidden bg-neutral-200"><img src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1000&q=85" alt="Wedding photography" className="h-full w-full object-cover" /></div><h3 className="mt-4 text-lg font-medium">Wedding Stories</h3><p className="mt-1 text-sm text-neutral-400">Love · Celebration · Memories</p></div>
-        <div className="group"><div className="aspect-[4/5] overflow-hidden bg-neutral-200"><img src="https://images.unsplash.com/photo-1507504031003-b417219a0dde?auto=format&fit=crop&w=1000&q=85" alt="Event photography" className="h-full w-full object-cover" /></div><h3 className="mt-4 text-lg font-medium">Event Moments</h3><p className="mt-1 text-sm text-neutral-400">People · Energy · Experiences</p></div>
-        <div className="group md:mt-24"><div className="aspect-[4/5] overflow-hidden bg-neutral-200"><img src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1000&q=85" alt="Wedding couple photography" className="h-full w-full object-cover" /></div><h3 className="mt-4 text-lg font-medium">Pre-Wedding</h3><p className="mt-1 text-sm text-neutral-400">Connection · Romance · Story</p></div>
-      </div>
+      <p className="mt-12 border-y border-black/10 py-16 text-center text-sm text-neutral-500 dark:border-white/10 dark:text-neutral-400">
+        Portofolio akan segera hadir.
+      </p>
     )}
   </div>
 </section>
