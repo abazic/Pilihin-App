@@ -50,8 +50,7 @@ export async function POST(request) {
   slug,
   selected_photos: selectedPhotos,
   updated_at: new Date().toISOString(),
-  ...(is_locked === true  && { is_locked: true }),
-  ...(is_locked === false && { is_locked: false }),  // ← tambah ini
+  is_locked: false,
   ...(sent_via_wa === true && { sent_via_wa: true, sent_at: new Date().toISOString() }),
 };
     // 6. Upsert ke photo_selections (insert pertama kali, update berikutnya)
