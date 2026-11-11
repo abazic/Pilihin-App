@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import AppHeader from '@/components/AppHeader';
 import { Lock, Mail, ArrowLeft } from 'lucide-react';
 
 export default function LoginPage() {
@@ -89,8 +90,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7] flex items-center justify-center p-6">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+    <div className="min-h-screen bg-[#f7f7f7] dark:bg-[#11110f]">
+      <AppHeader />
+      <main className="flex min-h-[calc(100vh-5rem)] items-center justify-center p-6">
+      <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
         
         {/* Logo & Judul */}
         <div className="text-center mb-8">
@@ -213,6 +216,7 @@ export default function LoginPage() {
         )}
 
       </div>
+      </main>
     </div>
   );
 }
