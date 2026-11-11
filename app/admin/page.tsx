@@ -106,6 +106,7 @@ export default function HomePage() {
   const [pricelist, setPricelist] = useState<PricelistData>(DEFAULT_PRICELIST);
   const [pricelistSaving, setPricelistSaving] = useState(false);
   const [pricelistMessage, setPricelistMessage] = useState('');
+  const [socialLinks, setSocialLinks] = useState<{ platform: string; url: string }[]>([]);
 
 
   const [selections, setSelections]                 = useState<PhotoSelection[]>([]);
@@ -331,19 +332,28 @@ export default function HomePage() {
 
   useEffect(() => {
     async function loadAdminSettings() {
-      const { data, error } = await supabase.from('settings').select('value').eq('key', 'whatsapp_number').single();
+      const [{ data, error }, { data: socialData }] = await Promise.all([
+        supabase.from('settings').select('value').eq('key', 'whatsapp_number').maybeSingle(),
+        supabase.from('settings').select('value').eq('key', 'social_media_links').maybeSingle(),
+      ]);
       if (!error && data?.value) setAdminInfo(prev => ({ ...prev, whatsapp: data.value }));
+      try {
+        const parsed = typeof socialData?.value === 'string' ? JSON.parse(socialData.value) : socialData?.value;
+        setSocialLinks(Array.isArray(parsed) ? parsed : []);
+      } catch { setSocialLinks([]); }
     }
     loadAdminSettings();
   }, [supabase]);
 
   const handleSaveAdminProfile = async () => {
     try {
-      const { error } = await supabase.from('settings').upsert({
-        key: 'whatsapp_number', value: adminInfo.whatsapp, updated_at: new Date().toISOString()
-      });
+      const cleanSocialLinks = socialLinks.map(item => ({ platform: item.platform.trim(), url: item.url.trim() })).filter(item => item.platform && item.url);
+      const { error } = await supabase.from('settings').upsert([
+        { key: 'whatsapp_number', value: adminInfo.whatsapp.replace(/\\D/g, ''), updated_at: new Date().toISOString() },
+        { key: 'social_media_links', value: JSON.stringify(cleanSocialLinks), updated_at: new Date().toISOString() },
+      ]);
       if (error) alert('Gagal menyimpan: ' + error.message);
-      else { alert('Profil berhasil diperbarui!'); setIsEditingAdmin(false); }
+      else { setAdminInfo(prev => ({ ...prev, whatsapp: prev.whatsapp.replace(/\\D/g, '') })); setSocialLinks(cleanSocialLinks); alert('Kontak berhasil diperbarui!'); setIsEditingAdmin(false); }
     } catch { alert('Terjadi kesalahan.'); }
   };
 
@@ -540,7 +550,7 @@ export default function HomePage() {
             </button>
 
             {isProfileOpen && (
-              <div className="absolute right-0 mt-3 w-72 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl shadow-xl z-40 p-4 space-y-4">
+              <div className="absolute right-0 mt-3 w-[min(22rem,calc(100vw-2rem))] bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl shadow-xl z-40 p-4 space-y-4 max-h-[80vh] overflow-y-auto">
                 <div className="flex justify-between items-center pb-3 border-b border-gray-100 dark:border-neutral-800">
                   <h4 className="font-semibold text-sm text-gray-900 dark:text-white">Profil Admin</h4>
                   <button onClick={() => setIsEditingAdmin(!isEditingAdmin)} className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white flex items-center gap-1">
@@ -559,7 +569,15 @@ export default function HomePage() {
                       <input type="text" value={adminInfo.whatsapp} onChange={e => setAdminInfo({ ...adminInfo, whatsapp: e.target.value })}
                         className="w-full text-xs p-2 border border-gray-300 dark:border-neutral-700 rounded-lg outline-none focus:border-black dark:focus:border-neutral-500 bg-white dark:bg-neutral-950 text-gray-900 dark:text-gray-100" />
                     </div>
-                    <button onClick={handleSaveAdminProfile} className="w-full py-1.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg text-xs font-medium">Simpan Profil</button>
+                    <div className="border-t border-gray-100 pt-3 dark:border-neutral-800 space-y-2">
+                      <div className="flex items-center justify-between"><p className="text-[11px] font-semibold text-gray-700 dark:text-gray-200">Social Media</p><button type="button" onClick={() => setSocialLinks(prev => [...prev, { platform: '', url: '' }])} className="text-[11px] text-amber-700 dark:text-amber-400">+ Tambah</button></div>
+                      {socialLinks.map((item, index) => <div key={index} className="space-y-1 rounded-lg border border-gray-200 p-2 dark:border-neutral-700">
+                        <div className="flex gap-2"><input aria-label="Nama platform" placeholder="Instagram / TikTok" value={item.platform} onChange={e => setSocialLinks(prev => prev.map((social, i) => i === index ? { ...social, platform: e.target.value } : social))} className="min-w-0 flex-1 text-xs p-2 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-950 text-gray-900 dark:text-gray-100" /><button type="button" onClick={() => setSocialLinks(prev => prev.filter((_, i) => i !== index))} className="px-2 text-xs text-red-500">Hapus</button></div>
+                        <input aria-label="URL social media" placeholder="https://..." value={item.url} onChange={e => setSocialLinks(prev => prev.map((social, i) => i === index ? { ...social, url: e.target.value } : social))} className="w-full text-xs p-2 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-950 text-gray-900 dark:text-gray-100" />
+                      </div>)}
+                      {socialLinks.length === 0 && <p className="text-[10px] text-gray-400">Belum ada akun social media.</p>}
+                    </div>
+                    <button onClick={handleSaveAdminProfile} className="w-full py-1.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg text-xs font-medium">Simpan Kontak</button>
                   </div>
                 ) : (
                   <div className="space-y-3">
