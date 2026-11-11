@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { getPhotosPageFromGDrive } from '@/lib/gdrive';
 import HeroSlideshow from '@/components/HeroSlideshow';
 import PortfolioImage from '@/components/PortfolioImage';
-import { Camera, Globe, Play, Music, Mail, MessageCircle } from 'lucide-react';
+import { Globe, MessageCircle } from 'lucide-react';
 export default async function HomePage() {
   const supabase = await createClient();
 
@@ -241,19 +241,27 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
   <div className="mx-auto flex max-w-7xl flex-col gap-8 md:flex-row md:items-center md:justify-between">
     <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
       {socialLinks.map((social, index) => {
-        const platform = String(social.platform).toLowerCase();
-        const SocialIcon = platform.includes('instagram') ? Camera
-          : platform.includes('facebook') ? Globe
-          : platform.includes('youtube') ? Play
-          : platform.includes('tiktok') ? Music
-          : platform.includes('email') || platform.includes('mail') ? Mail
-          : Globe;
+        let host = '';
+        try { host = new URL(social.url).hostname.toLowerCase().replace(/^www\\./, ''); } catch {}
+        const iconSlug = host.includes('instagram.com') ? 'instagram'
+          : host.includes('tiktok.com') ? 'tiktok'
+          : host.includes('facebook.com') || host.includes('fb.com') ? 'facebook'
+          : host.includes('youtube.com') || host.includes('youtu.be') ? 'youtube'
+          : host.includes('threads.net') ? 'threads'
+          : host === 'x.com' || host.includes('twitter.com') ? 'x'
+          : host.includes('linkedin.com') ? 'linkedin'
+          : host.includes('pinterest.') ? 'pinterest'
+          : host.includes('telegram.') || host === 't.me' ? 'telegram'
+          : '';
+        const accountName = social.accountName || social.platform;
         return (
-          <a key={`${social.platform}-${index}`} href={social.url} target="_blank" rel="noopener noreferrer"
-            aria-label={social.platform} title={social.platform}
+          <a key={`${social.url}-${index}`} href={social.url} target="_blank" rel="noopener noreferrer"
+            aria-label={accountName} title={accountName}
             className="inline-flex items-center gap-2 text-sm text-neutral-600 transition hover:text-amber-700 dark:text-neutral-300 dark:hover:text-amber-400">
-            <SocialIcon size={19} strokeWidth={1.8} />
-            <span>{social.platform}</span>
+            {iconSlug ? (
+              <img src={`https://cdn.simpleicons.org/${iconSlug}`} alt="" aria-hidden="true" width="19" height="19" className="h-[19px] w-[19px] object-contain dark:brightness-0 dark:invert" />
+            ) : <Globe size={19} strokeWidth={1.8} />}
+            <span>{accountName}</span>
           </a>
         );
       })}
