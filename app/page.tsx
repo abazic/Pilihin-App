@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { DEFAULT_WHATSAPP_NUMBER } from '@/lib/constants';
 import AppHeader from '@/components/AppHeader';
 import Link from 'next/link';
-import { getPhotosFromGDrive } from '@/lib/gdrive';
+import { getPhotosPageFromGDrive } from '@/lib/gdrive';
 import HeroSlideshow from '@/components/HeroSlideshow';
 import PortfolioImage from '@/components/PortfolioImage';
 export default async function HomePage() {
@@ -44,7 +44,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
   const portfolioCategoriesWithPhotos = await Promise.all(
     portfolioCategories.map(async (category) => ({
       ...category,
-      photos: await getPhotosFromGDrive(category.folderId),
+      photos: (await getPhotosPageFromGDrive(category.folderId, { pageSize: 5, imageSize: 900 })).photos,
     }))
   );
 
@@ -159,7 +159,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
                   <h3 className="text-lg font-medium transition-colors group-hover:text-amber-700 dark:group-hover:text-amber-400">{category.title}</h3>
                   <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-black/10 text-lg transition-all group-hover:border-amber-700 group-hover:bg-amber-700 group-hover:text-white dark:border-white/15 dark:group-hover:border-amber-400 dark:group-hover:bg-amber-400 dark:group-hover:text-neutral-900">↗</span>
                 </div>
-                <p className="mt-2 text-xs tracking-wide text-neutral-400">{category.photos.length} photographs</p>
+                <p className="mt-2 text-xs tracking-wide text-neutral-400">Explore collection</p>
               </div>
             </Link>
           );
