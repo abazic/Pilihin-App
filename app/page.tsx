@@ -100,6 +100,18 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
       <div className="group">
         <div className="aspect-[4/5] overflow-hidden bg-neutral-200">
           <img
+            src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1000&q=85"
+            alt="Graduation photography"
+            className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+          />
+        </div>
+        <h3 className="mt-4 text-lg font-medium">Graduation Sessions</h3>
+        <p className="mt-1 text-sm text-neutral-400">Achievement · Celebration · Memories</p>
+      </div>
+
+      <div className="group md:mt-24">
+        <div className="aspect-[4/5] overflow-hidden bg-neutral-200">
+          <img
             src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1000&q=85"
             alt="Wedding photography"
             className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
@@ -107,18 +119,6 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
         </div>
         <h3 className="mt-4 text-lg font-medium">Wedding Stories</h3>
         <p className="mt-1 text-sm text-neutral-400">Love · Celebration · Memories</p>
-      </div>
-
-      <div className="group md:mt-24">
-        <div className="aspect-[4/5] overflow-hidden bg-neutral-200">
-          <img
-            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1000&q=85"
-            alt="Portrait photography"
-            className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-          />
-        </div>
-        <h3 className="mt-4 text-lg font-medium">Portrait Sessions</h3>
-        <p className="mt-1 text-sm text-neutral-400">Personality · Expression · Identity</p>
       </div>
 
       <div className="group">
