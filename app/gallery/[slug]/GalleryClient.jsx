@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import {
   Search, HelpCircle, User, Check, Camera, CheckCircle,
   Send, Maximize2, X, ChevronLeft, ChevronRight,
-  Lock, CheckCircle2,
+  CheckCircle2,
 } from "lucide-react";
 import AppHeader from "@/components/AppHeader";
 
@@ -17,9 +17,7 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
     return [];
   });
 
-  const [isLocked, setIsLocked]   = useState(existingSelection?.is_locked ?? false);
   const [sentViaWa, setSentViaWa] = useState(existingSelection?.sent_via_wa ?? false);
-  const [locking, setLocking]     = useState(false);
   const [saving, setSaving]       = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [previewIndex, setPreviewIndex] = useState(null);
@@ -32,7 +30,6 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
   );
 
   const toggleSelectPhoto = (photo) => {
-    if (isLocked) return;
     setSelectedPhotos((prev) => {
       const already = prev.some((p) => p.name === photo.name);
       if (already) return prev.filter((p) => p.name !== photo.name);
@@ -103,71 +100,6 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
     }
   };
 
-  const handleLockSelection = async () => {
-    if (selectedPhotos.length === 0) return;
-
-    if (isLocked) {
-      // Batalkan kunci
-      const confirmed = window.confirm("Buka kunci pilihan? Kamu bisa mengubah pilihan lagi.");
-      if (!confirmed) return;
-      setLocking(true);
-      try {
-        const response = await fetch("/api/gallery/selection", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            slug: galleryData?.slug,
-            gallery_id: galleryData?.id,
-            selectedPhotos: selectedPhotos,
-            is_locked: false,
-          }),
-        });
-        const data = await response.json();
-        if (!response.ok) {
-          alert("Gagal membuka kunci: " + data.error);
-          return;
-        }
-        setIsLocked(false);
-      } catch (error) {
-        console.error("Error unlocking selection:", error);
-        alert("Terjadi kesalahan jaringan.");
-      } finally {
-        setLocking(false);
-      }
-      return;
-    }
-
-    // Kunci pilihan
-    const confirmed = window.confirm(
-      "Kunci pilihan? Setelah dikunci, kamu tidak bisa mengubah pilihan lagi.\n\n" +
-      "Total: " + selectedPhotos.length + " foto dipilih."
-    );
-    if (!confirmed) return;
-    setLocking(true);
-    try {
-      const response = await fetch("/api/gallery/selection", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          slug: galleryData?.slug,
-          gallery_id: galleryData?.id,
-          selectedPhotos: selectedPhotos,
-          is_locked: true,
-        }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        alert("Gagal mengunci pilihan: " + data.error);
-        return;
-      }
-      setIsLocked(true);
-    } catch (error) {
-      console.error("Error locking selection:", error);
-      alert("Terjadi kesalahan jaringan.");
-    } finally {
-      setLocking(false);
-    }
-  };
 
   const previewPhoto = previewIndex !== null ? filteredPhotos[previewIndex] : null;
   const isPreviewSelected =
@@ -178,12 +110,7 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
       <AppHeader
         actions={
           <div className="flex items-center gap-3 md:gap-6 text-sm text-gray-600 dark:text-gray-300">
-            {isLocked && (
-              <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 text-xs font-semibold bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 px-2.5 py-1 rounded-full">
-                <Lock size={12} /> Terkunci
-              </span>
-            )}
-            {sentViaWa && !isLocked && (
+            {sentViaWa && (
               <span className="hidden sm:flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 px-2.5 py-1 rounded-full">
                 <CheckCircle2 size={12} /> Terkirim ke WA
               </span>
@@ -204,17 +131,10 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
             {galleryData?.client_name ?? "Galeri Foto"}
           </p>
           <h1 className="text-3xl font-serif text-gray-900 dark:text-white mb-2">Pilih Foto Favoritmu</h1>
-          {isLocked ? (
-            <div className="flex items-center gap-2 mt-3 px-4 py-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 rounded-xl text-sm text-amber-700 dark:text-amber-400">
-              <Lock size={15} />
-              <span>Pilihan foto sudah <strong>dikunci</strong> dan tidak dapat diubah lagi. Hubungi admin jika ada perubahan.</span>
-            </div>
-          ) : (
-            <p className="text-gray-500 dark:text-gray-400 leading-relaxed text-sm">
-              Tandai foto yang ingin kamu pilih, maksimal <strong className="text-gray-700 dark:text-gray-200">{maxPhotos}</strong> foto.
-              Klik ikon perbesar untuk melihat foto lebih detail.
-            </p>
-          )}
+          <p className="text-gray-500 dark:text-gray-400 leading-relaxed text-sm">
+            Tandai foto yang ingin kamu pilih, maksimal <strong className="text-gray-700 dark:text-gray-200">{maxPhotos}</strong> foto.
+            Klik ikon perbesar untuk melihat foto lebih detail.
+          </p>
         </div>
 
         <div className="relative w-full mb-6">
@@ -238,7 +158,7 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {filteredPhotos.map((photo, index) => {
               const isSelected = selectedPhotos.some((p) => p.name === photo.name);
-              const isDisabled = isLocked || (!isSelected && isLimitReached);
+              const isDisabled = !isSelected && isLimitReached;
               return (
                 <div
                   key={photo.id}
@@ -299,21 +219,7 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleLockSelection}
-              disabled={locking || selectedPhotos.length === 0}
-              className={
-                "flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-white " +
-                (isLocked
-                  ? "bg-red-500 hover:bg-red-600"
-                  : "bg-amber-500 hover:bg-amber-600")
-              }
-            >
-              <Lock size={15} />
-              {locking ? (isLocked ? "Membuka..." : "Mengunci...") : (isLocked ? "Buka Kunci" : "Kunci Pilihan")}
-            </button>
-
-            {!(isLocked && sentViaWa) && (
+            {true && (
               <button
                 onClick={handleSendToWhatsApp}
                 disabled={saving || selectedPhotos.length === 0}
@@ -369,8 +275,8 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
             <div className="flex items-center gap-4">
               <p className="text-white/80 text-sm">{previewPhoto.name.replace(/\.[^/.]+$/, "")}</p>
               <button
-                onClick={() => !isLocked && toggleSelectPhoto(previewPhoto)}
-                disabled={isLocked || (!isPreviewSelected && isLimitReached)}
+                onClick={() => toggleSelectPhoto(previewPhoto)}
+                disabled={!isPreviewSelected && isLimitReached}
                 className={
                   "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed " +
                   (isPreviewSelected
