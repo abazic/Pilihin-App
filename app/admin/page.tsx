@@ -75,6 +75,13 @@ export default function HomePage() {
   const [isNotifOpen, setIsNotifOpen]       = useState<boolean>(false);
   const [notifications, setNotifications]   = useState<NotificationItem[]>([]);
   const [isBroadcastOpen, setIsBroadcastOpen] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<'clients' | 'portfolio'>('clients');
+  const [portfolioFolderUrl, setPortfolioFolderUrl] = useState('');
+  const [portfolioPhotos, setPortfolioPhotos] = useState<{ id: string; name: string; url: string }[]>([]);
+  const [portfolioLoading, setPortfolioLoading] = useState(false);
+  const [portfolioSaving, setPortfolioSaving] = useState(false);
+  const [portfolioMessage, setPortfolioMessage] = useState('');
+
 
   const [selections, setSelections]                 = useState<PhotoSelection[]>([]);
   const [fetchingSelections, setFetchingSelections] = useState<boolean>(false);
@@ -104,6 +111,58 @@ export default function HomePage() {
       setFetchingSelections(false);
     }
   }, [supabase]);
+
+  useEffect(() => {
+    async function loadPortfolioFolder() {
+      const { data } = await supabase.from('settings').select('value').eq('key', 'portfolio_folder_id').maybeSingle();
+      if (data?.value) setPortfolioFolderUrl(`https://drive.google.com/drive/folders/${data.value}`);
+    }
+    loadPortfolioFolder();
+  }, [supabase]);
+
+  const fetchPortfolioPhotos = async () => {
+    if (!portfolioFolderUrl.trim()) {
+      setPortfolioMessage('Masukkan link folder Google Drive terlebih dahulu.');
+      return;
+    }
+    setPortfolioLoading(true);
+    setPortfolioMessage('');
+    try {
+      const response = await fetch(`/api/admin/portfolio-photos?folderId=${encodeURIComponent(portfolioFolderUrl)}`);
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Gagal mengambil foto.');
+      setPortfolioPhotos(result.photos || []);
+      setPortfolioMessage(result.photos?.length ? `${result.photos.length} foto berhasil ditemukan.` : 'Folder terbaca, tetapi belum ada foto yang ditemukan.');
+    } catch (error) {
+      setPortfolioMessage(error instanceof Error ? error.message : 'Terjadi kesalahan saat mengambil foto.');
+    } finally {
+      setPortfolioLoading(false);
+    }
+  };
+
+  const savePortfolioFolder = async () => {
+    const folderId = extractFolderId(portfolioFolderUrl);
+    if (!folderId) {
+      setPortfolioMessage('Link atau ID folder Google Drive tidak valid.');
+      return;
+    }
+    setPortfolioSaving(true);
+    setPortfolioMessage('');
+    try {
+      const { error } = await supabase.from('settings').upsert({
+        key: 'portfolio_folder_id',
+        value: folderId,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'key' });
+      if (error) throw error;
+      setPortfolioMessage('Folder portofolio berhasil disimpan.');
+      await fetchPortfolioPhotos();
+    } catch (error) {
+      setPortfolioMessage(error instanceof Error ? error.message : 'Gagal menyimpan folder portofolio.');
+    } finally {
+      setPortfolioSaving(false);
+    }
+  };
 
   useEffect(() => { fetchClients(); }, [fetchClients]);
   useEffect(() => { fetchSelections(); }, [fetchSelections]);
@@ -377,6 +436,19 @@ export default function HomePage() {
 
       {/* ── Main ───────────────────────────────────────────────────────────── */}
       <main className="flex-1 p-6 sm:p-10 max-w-7xl mx-auto w-full space-y-10">
+        <div className="flex flex-wrap gap-2 border-b border-gray-200 dark:border-neutral-800 pb-4">
+          <button type="button" onClick={() => setActiveTab('clients')}
+            className={`rounded-xl px-5 py-3 text-sm font-semibold transition-colors ${activeTab === 'clients' ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900' : 'bg-white text-gray-600 hover:bg-gray-100 dark:bg-neutral-900 dark:text-gray-300 dark:hover:bg-neutral-800'}`}>
+            Form Data Klien
+          </button>
+          <button type="button" onClick={() => setActiveTab('portfolio')}
+            className={`rounded-xl px-5 py-3 text-sm font-semibold transition-colors ${activeTab === 'portfolio' ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900' : 'bg-white text-gray-600 hover:bg-gray-100 dark:bg-neutral-900 dark:text-gray-300 dark:hover:bg-neutral-800'}`}>
+            Edit Portofolio
+          </button>
+        </div>
+        {activeTab === 'clients' && (
+          <>
+
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -671,6 +743,40 @@ export default function HomePage() {
           )}
         </section>
 
+
+          </>
+        )}
+        {activeTab === 'portfolio' && (
+          <section className={`${CARD} rounded-2xl p-6 sm:p-8 space-y-6`}>
+            <div>
+              <h1 className="text-3xl font-serif text-gray-900 dark:text-white mb-2">Edit Portofolio</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Foto portofolio diambil langsung dari folder Google Drive dan ditampilkan di homepage dengan layout galeri masonry.</p>
+            </div>
+            <div className="space-y-3">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Link Folder Google Drive</label>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input value={portfolioFolderUrl} onChange={e => setPortfolioFolderUrl(e.target.value)} placeholder="https://drive.google.com/drive/folders/..." className={INPUT} />
+                <button type="button" onClick={fetchPortfolioPhotos} disabled={portfolioLoading} className="shrink-0 rounded-xl px-5 py-2.5 text-sm font-semibold bg-gray-100 text-gray-800 hover:bg-gray-200 disabled:opacity-50 dark:bg-neutral-800 dark:text-gray-100 dark:hover:bg-neutral-700">{portfolioLoading ? 'Memuat...' : 'Preview Foto'}</button>
+                <button type="button" onClick={savePortfolioFolder} disabled={portfolioSaving} className="shrink-0 rounded-xl px-5 py-2.5 text-sm font-semibold bg-gray-900 text-white hover:bg-gray-700 disabled:opacity-50 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200">{portfolioSaving ? 'Menyimpan...' : 'Simpan Folder'}</button>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Pastikan folder dapat diakses oleh Google Drive API yang digunakan aplikasi.</p>
+              {portfolioMessage && <p className="text-sm text-gray-600 dark:text-gray-300">{portfolioMessage}</p>}
+            </div>
+            {portfolioPhotos.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-4"><h2 className="font-semibold text-gray-900 dark:text-white">Preview Foto</h2><span className="text-xs text-gray-500 dark:text-gray-400">{portfolioPhotos.length} foto</span></div>
+                <div className="columns-2 sm:columns-3 lg:columns-4 gap-3 space-y-3">
+                  {portfolioPhotos.map((photo, index) => (
+                    <div key={photo.id} className="mb-3 break-inside-avoid overflow-hidden rounded-xl bg-gray-100 dark:bg-neutral-800">
+                      <img src={photo.url} alt={photo.name} loading="lazy" className={`w-full object-cover ${index % 4 === 0 ? 'aspect-[3/4]' : index % 4 === 1 ? 'aspect-square' : index % 4 === 2 ? 'aspect-[4/5]' : 'aspect-[5/4]'}`} />
+                      <p className="truncate px-2 py-2 text-[11px] text-gray-600 dark:text-gray-300">{photo.name}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </section>
+        )}
       </main>
 
       <BroadcastModal
