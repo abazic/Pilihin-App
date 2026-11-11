@@ -44,21 +44,7 @@ export async function POST(request) {
       );
     }
 
-   // 4. Cek apakah sudah terkunci — tolak kecuali klien sedang membuka kunci
-const { data: existingRow } = await supabase
-  .from('photo_selections')
-  .select('id, is_locked')
-  .eq('slug', slug)
-  .maybeSingle();
-
-if (existingRow?.is_locked === true && is_locked !== false) {
-  return NextResponse.json(
-    { error: 'Pilihan sudah dikunci dan tidak bisa diubah' },
-    { status: 403 }
-  );
-}
-
-    // 5. Susun payload upsert
+    // 4. Susun payload upsert
     const payload = {
   gallery_id: gallery.id,
   slug,
@@ -86,7 +72,7 @@ if (existingRow?.is_locked === true && is_locked !== false) {
 
     return NextResponse.json({
       success: true,
-      message: is_locked ? 'Pilihan berhasil dikunci' : 'Pilihan foto berhasil disimpan',
+      message: 'Pilihan foto berhasil disimpan',
     });
 
   } catch (error) {
