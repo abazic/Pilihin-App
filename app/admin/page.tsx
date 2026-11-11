@@ -352,7 +352,7 @@ export default function HomePage() {
         { key: 'social_media_links', value: JSON.stringify(cleanSocialLinks), updated_at: new Date().toISOString() },
       ]);
       if (error) alert('Gagal menyimpan: ' + error.message);
-      else { setAdminInfo(prev => ({ ...prev, whatsapp: prev.whatsapp.replace(/\D/g, '') })); setSocialLinks(cleanSocialLinks); alert('Kontak berhasil diperbarui!'); setIsEditingAdmin(false); }
+      else { setAdminInfo(prev => ({ ...prev, whatsapp: prev.whatsapp.replace(/\D/g, '') })); setSocialLinks(cleanSocialLinks); alert('Kontak berhasil diperbarui!'); }
     } catch { alert('Terjadi kesalahan.'); }
   };
 
