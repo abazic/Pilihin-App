@@ -44,15 +44,26 @@ export async function POST(request) {
       );
     }
 
+    // Pertahankan status pengiriman WhatsApp saat klien mengubah pilihan setelah mengirim.
+    const { data: previousSelection } = await supabase
+      .from('photo_selections')
+      .select('sent_via_wa, sent_at')
+      .eq('slug', slug)
+      .maybeSingle();
+
     // 4. Susun payload upsert
+    const wasSent = sent_via_wa === true || previousSelection?.sent_via_wa === true;
     const payload = {
-  gallery_id: gallery.id,
-  slug,
-  selected_photos: selectedPhotos,
-  updated_at: new Date().toISOString(),
-  is_locked: false,
-  ...(sent_via_wa === true && { sent_via_wa: true, sent_at: new Date().toISOString() }),
-};
+      gallery_id: gallery.id,
+      slug,
+      selected_photos: selectedPhotos,
+      updated_at: new Date().toISOString(),
+      is_locked: false,
+      sent_via_wa: wasSent,
+      ...(sent_via_wa === true
+        ? { sent_at: new Date().toISOString() }
+        : previousSelection?.sent_at ? { sent_at: previousSelection.sent_at } : {}),
+    };
     // 6. Upsert ke photo_selections (insert pertama kali, update berikutnya)
     const { error: upsertError } = await supabase
       .from('photo_selections')
