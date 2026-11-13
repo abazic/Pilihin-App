@@ -1,7 +1,7 @@
 // app/gallery/[slug]/GalleryClient.jsx
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Search, HelpCircle, User, Check, Camera, CheckCircle,
   Send, Maximize2, X, ChevronLeft, ChevronRight,
@@ -19,6 +19,8 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
 
   const [sentViaWa, setSentViaWa] = useState(existingSelection?.sent_via_wa ?? false);
   const [saving, setSaving]       = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState("saved");
+  const skipInitialAutoSave = useRef(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [previewIndex, setPreviewIndex] = useState(null);
 
@@ -59,26 +61,47 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [previewIndex, closePreview, showPrev, showNext]);
 
+  const persistSelection = useCallback(async (photos, sentViaWhatsApp = false) => {
+    const response = await fetch("/api/gallery/selection", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        slug: galleryData?.slug,
+        gallery_id: galleryData?.id,
+        selectedPhotos: photos,
+        sent_via_wa: sentViaWhatsApp,
+      }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Gagal menyimpan pilihan.");
+    return data;
+  }, [galleryData?.slug, galleryData?.id]);
+
+  useEffect(() => {
+    if (skipInitialAutoSave.current) {
+      skipInitialAutoSave.current = false;
+      return;
+    }
+    setAutoSaveStatus("saving");
+    const timeout = setTimeout(async () => {
+      try {
+        await persistSelection(selectedPhotos, false);
+        setAutoSaveStatus("saved");
+      } catch (error) {
+        console.error("Auto-save selection error:", error);
+        setAutoSaveStatus("error");
+      }
+    }, 500);
+    return () => clearTimeout(timeout);
+  }, [selectedPhotos, persistSelection]);
+
   const handleSendToWhatsApp = async () => {
     if (selectedPhotos.length === 0) return;
     setSaving(true);
     try {
-      const response = await fetch("/api/gallery/selection", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          slug: galleryData?.slug,
-          gallery_id: galleryData?.id,
-          selectedPhotos: selectedPhotos,
-          sent_via_wa: true,
-        }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        alert("Gagal menyimpan pilihan: " + data.error);
-        return;
-      }
+      await persistSelection(selectedPhotos, true);
       setSentViaWa(true);
+      setAutoSaveStatus("saved");
       const photoListText = selectedPhotos
         .map((p, i) => (i + 1) + ". " + p.name)
         .join("\n");
@@ -94,7 +117,7 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
       }
     } catch (error) {
       console.error("Error saving selection:", error);
-      alert("Terjadi kesalahan jaringan, coba lagi nanti.");
+      alert("Gagal menyimpan pilihan: " + (error instanceof Error ? error.message : "Coba lagi nanti."));
     } finally {
       setSaving(false);
     }
@@ -135,6 +158,16 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
             Tandai foto yang ingin kamu pilih, maksimal <strong className="text-gray-700 dark:text-gray-200">{maxPhotos}</strong> foto.
             Klik ikon perbesar untuk melihat foto lebih detail.
           </p>
+        </div>
+
+        <div className="mb-4 text-xs" aria-live="polite">
+          {autoSaveStatus === "saving" ? (
+            <span className="text-neutral-500 dark:text-neutral-400">Menyimpan pilihan otomatis...</span>
+          ) : autoSaveStatus === "error" ? (
+            <span className="text-red-600 dark:text-red-400">Pilihan belum tersimpan. Periksa koneksi lalu coba ubah pilihan lagi.</span>
+          ) : (
+            <span className="text-emerald-600 dark:text-emerald-400">Pilihan tersimpan otomatis</span>
+          )}
         </div>
 
         <div className="relative w-full mb-6">
