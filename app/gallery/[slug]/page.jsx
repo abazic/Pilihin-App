@@ -62,5 +62,5 @@ export default async function GalleryPage({ params }) {
     .maybeSingle()
   
   // Oper data ke Client Component
-  return <GalleryClient galleryData={{ ...client, admin_whatsapp: adminWhatsApp }} initialPhotos={photos} />
+  return <GalleryClient galleryData={{ ...client, admin_whatsapp: adminWhatsApp }} initialPhotos={photos} existingSelection={existingSelection} />
 }
