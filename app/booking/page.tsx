@@ -146,9 +146,9 @@ export default function BookingPage() {
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <label className="text-sm">Nama lengkap<input className={field} value={name} onChange={(e) => setName(e.target.value)} required minLength={2} placeholder="Nama kamu" /></label>
                 <label className="text-sm">WhatsApp <span className="text-neutral-400">(kode negara)</span>
-                  <div className="mt-2 grid grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] gap-2">
+                  <div className="mt-2 grid grid-cols-[104px_minmax(0,1fr)] gap-2">
                     <select
-                      className={field + ' mt-0 w-[92px] min-w-0 shrink-0 cursor-pointer px-2 text-center'}
+                      className={field + ' mt-0 w-full min-w-0 cursor-pointer px-1.5 text-center'}
                       value={countryCode}
                       onChange={(e) => setCountryCode(e.target.value)}
                       required
