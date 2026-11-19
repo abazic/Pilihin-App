@@ -165,7 +165,7 @@ export default function BookingPage() {
                           'South Korea': '🇰🇷', China: '🇨🇳', Germany: '🇩🇪',
                           France: '🇫🇷', Netherlands: '🇳🇱', Italy: '🇮🇹',
                           Spain: '🇪🇸', Brazil: '🇧🇷', 'South Africa': '🇿🇦',
-                        } as Record<string, string>)[country.name]} {country.code}</option>
+                        } as Record<string, string>)[country.name]} {country.name} ({country.code})</option>
                       ))}
                     </select>
                     <input
