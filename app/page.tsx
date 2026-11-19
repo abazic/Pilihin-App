@@ -21,7 +21,7 @@ const whatsappNumber = (
 
 const whatsappUrl = `https://wa.me/${whatsappNumber}`;
   const whatsappMessage = encodeURIComponent(
-  'Halo Pilihin Fotomu, saya ingin bertanya tentang layanan fotografi.'
+  'Halo inStories creative, saya ingin bertanya tentang layanan fotografi.'
 );
 
 const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
@@ -272,7 +272,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
   </div>
   <div className="mx-auto mt-10 max-w-7xl border-t border-black/10 pt-5 text-xs text-neutral-500 dark:border-white/10">
     <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
-      <p>© {new Date().getFullYear()} Pilihin Fotomu</p>
+      <p>© {new Date().getFullYear()} inStories creative</p>
       <p>Capturing moments, preserving memories.</p>
     </div>
   </div>
