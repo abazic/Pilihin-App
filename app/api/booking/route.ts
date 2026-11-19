@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { DEFAULT_WHATSAPP_NUMBER } from '@/lib/constants';
+import { syncBookingsToGoogleSheets } from '@/lib/google-sheets';
 
 const PACKAGES: Record<string, {name:string; price:number}> = {
   solo: {name:'Solo Graduate',price:250000}, duo:{name:'Duo Graduate',price:400000},
@@ -67,6 +68,19 @@ export async function POST(request: Request) {
       base_price:base,addons_price:addonsPrice,total_price:total,notes:storedNotes,status:'pending'
     });
     if(error) { console.error('Booking insert failed',error); return NextResponse.json({error:'Booking belum dapat disimpan. Coba lagi beberapa saat.'},{status:500}); }
+    // Spreadsheet sync is best-effort: booking persistence must not fail if Google is unavailable.
+    try {
+      await syncBookingsToGoogleSheets([{
+        booking_code: bookingCode, created_at: new Date().toISOString(),
+        customer_name: name, whatsapp, session_date: date, session_time: time,
+        package_name: selected.name, participants, locations,
+        addons: addonKeys.map((key:string) => ({ name: ADDONS[key].name })),
+        moodboard_links: validMoodboardLinks, notes: storedNotes,
+        total_price: total, status: 'pending', admin_notes: ''
+      }]);
+    } catch (syncError) {
+      console.error('Google Sheets booking sync failed', syncError);
+    }
     const {data:waSetting}=await supabase.from('settings').select('value').eq('key','whatsapp_number').maybeSingle();
     const wa=digits(String(waSetting?.value||DEFAULT_WHATSAPP_NUMBER));
     const fmt=(n:number)=>'Rp '+n.toLocaleString('id-ID');
