@@ -20,8 +20,8 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Pilihin Fotomu | by Abazic",
-  description: "Sistem Manajemen Galeri dan Pemilihan Foto Klien Nyala Karya",
+  title: "inStories creative",
+  description: "Creative photography and visual storytelling by inStories creative.",
   icons: {
     icon: "/instories.svg",
   },
