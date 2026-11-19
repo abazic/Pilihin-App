@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import AppHeader from '@/components/AppHeader';
 
@@ -27,6 +27,13 @@ export default function BookingPage() {
   const [time, setTime] = useState('');
   const [locations, setLocations] = useState('');
   const [pkg, setPkg] = useState('solo');
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get('package');
+    if (requested && packages.some((item) => item.id === requested)) {
+      setPkg(requested);
+      setParticipants(requested === 'extended' ? 11 : 1);
+    }
+  }, []);
   const [participants, setParticipants] = useState(1);
   const [selected, setSelected] = useState<string[]>([]);
   const [notes, setNotes] = useState('');
