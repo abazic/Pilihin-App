@@ -22,7 +22,8 @@ export async function POST(request: Request) {
     const time = String(body.time||'');
     const locations = Array.isArray(body.locations) ? body.locations.map((x:string)=>String(x).trim()).filter(Boolean).slice(0,5) : [];
     const packageKey = String(body.package||'');
-    const requestedParticipantsRaw = Number(body.participants||11);\n    const requestedParticipants = Number.isFinite(requestedParticipantsRaw) ? Math.max(11,Math.min(100,Math.floor(requestedParticipantsRaw))) : 11;
+    const requestedParticipantsRaw = Number(body.participants||11);
+    const requestedParticipants = Number.isFinite(requestedParticipantsRaw) ? Math.max(11,Math.min(100,Math.floor(requestedParticipantsRaw))) : 11;
     const participants = packageKey==='extended' ? requestedParticipants : packageKey==='duo' ? 2 : packageKey==='group' ? 3 : packageKey==='large' ? 6 : 1;
     const notes = String(body.notes||'').trim().slice(0,1000);
     const addonKeys = Array.isArray(body.addons) ? [...new Set(body.addons.filter((x:string)=>typeof x==='string'&&Object.hasOwn(ADDONS,x)))] : [];
@@ -43,8 +44,7 @@ export async function POST(request: Request) {
     const {data:waSetting}=await supabase.from('settings').select('value').eq('key','whatsapp_number').maybeSingle();
     const wa=digits(String(waSetting?.value||DEFAULT_WHATSAPP_NUMBER));
     const fmt=(n:number)=>'Rp '+n.toLocaleString('id-ID');
-    const message=[`BOOKING REQUEST · ${bookingCode}`,`Nama: ${name}`,`WhatsApp: ${whatsapp}`,`Tanggal: ${date}`,`Jam: ${time}`,`Lokasi: ${locations.join(' | ')}`,`Paket: ${selected.name}`,`Peserta: ${participants}`,`Add-on: ${addonKeys.map((k:string)=>ADDONS[k].name).join(', ')||'-'}`,`Total: ${fmt(total)}`,`Catatan: ${notes||'-'}`,`Status: Menunggu konfirmasi admin`].join('
-');
+    const message=[`BOOKING REQUEST · ${bookingCode}`,`Nama: ${name}`,`WhatsApp: ${whatsapp}`,`Tanggal: ${date}`,`Jam: ${time}`,`Lokasi: ${locations.join(' | ')}`,`Paket: ${selected.name}`,`Peserta: ${participants}`,`Add-on: ${addonKeys.map((k:string)=>ADDONS[k].name).join(', ')||'-'}`,`Total: ${fmt(total)}`,`Catatan: ${notes||'-'}`,`Status: Menunggu konfirmasi admin`].join('\n');
     return NextResponse.json({bookingCode,total,whatsappUrl:`https://wa.me/${wa}?text=${encodeURIComponent(message)}`});
   } catch { return NextResponse.json({error:'Permintaan tidak valid.'},{status:400}); }
 }
