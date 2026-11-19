@@ -76,6 +76,90 @@ function formatTimeAgo(dateStr: string): string {
   return `${Math.floor(diff / 86400)} hari lalu`;
 }
 
+
+type AdminBooking = {
+  id: string; booking_code: string; customer_name: string; whatsapp: string;
+  session_date: string; session_time: string; locations: string[]; package_name: string;
+  participants: number; addons: { name: string; price: number }[]; total_price: number;
+  notes: string | null; status: 'pending' | 'confirmed' | 'rejected' | 'completed';
+  admin_notes: string | null;
+};
+const bookingStatusText: Record<string, string> = {
+  pending: 'Pending', confirmed: 'Confirmed', rejected: 'Rejected', completed: 'Completed',
+};
+function AdminBookingsPanel() {
+  const [items, setItems] = useState<AdminBooking[]>([]);
+  const [filter, setFilter] = useState('all');
+  const [search, setSearch] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  const load = async () => {
+    setBusy(true);
+    try {
+      const response = await fetch('/api/admin/bookings');
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Gagal memuat booking.');
+      setItems(data.bookings || []);
+      setMessage('');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Gagal memuat booking.');
+    } finally { setBusy(false); }
+  };
+  useEffect(() => { void load(); }, []);
+  const shown = items.filter(booking =>
+    (filter === 'all' || booking.status === filter) &&
+    (!search || [booking.booking_code, booking.customer_name, booking.whatsapp]
+      .some(value => value.toLowerCase().includes(search.toLowerCase())))
+  );
+  const update = async (booking: AdminBooking, status: AdminBooking['status']) => {
+    setBusy(true);
+    try {
+      const note = (document.getElementById('admin-booking-note-' + booking.id) as HTMLTextAreaElement | null)?.value || '';
+      const response = await fetch('/api/admin/bookings', {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: booking.id, status, admin_notes: note }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Update booking gagal.');
+      await load();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Update booking gagal.');
+      setBusy(false);
+    }
+  };
+  const money = (amount: number) => 'Rp ' + Number(amount || 0).toLocaleString('id-ID');
+  const pill = (status: string) => 'rounded-full px-3 py-1 text-xs font-medium ' +
+    (status === 'confirmed' ? 'bg-green-100 text-green-700' : status === 'rejected' ? 'bg-red-100 text-red-700' : status === 'completed' ? 'bg-neutral-200 text-neutral-700' : 'bg-amber-100 text-amber-800');
+  return (
+    <section className="space-y-6">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div><p className="text-xs uppercase tracking-[.25em] text-amber-800 dark:text-amber-400">Admin · Reservation</p><h1 className="mt-2 font-serif text-3xl text-gray-900 dark:text-white">Photo Bookings</h1><p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Kelola permintaan booking, konfirmasi jadwal, dan status sesi.</p></div>
+        <button type="button" onClick={load} disabled={busy} className={`rounded-lg px-4 py-2 text-sm ${BTN_SECONDARY} disabled:opacity-50`}>{busy ? 'Memuat...' : 'Refresh'}</button>
+      </header>
+      <div className="grid gap-3 sm:grid-cols-4">
+        {(['pending','confirmed','rejected','completed'] as const).map(status => <div key={status} className={`${CARD} rounded-xl p-4`}><p className="text-xs uppercase text-gray-500 dark:text-gray-400">{bookingStatusText[status]}</p><p className="mt-1 font-serif text-3xl">{items.filter(item => item.status === status).length}</p></div>)}
+      </div>
+      <div className="flex flex-wrap gap-3">
+        <input value={search} onChange={event => setSearch(event.target.value)} placeholder="Cari nama, kode booking, WhatsApp" className={`${INPUT} min-w-[220px] flex-1`} />
+        <select value={filter} onChange={event => setFilter(event.target.value)} className={`${INPUT} sm:w-52`}><option value="all">Semua status</option>{Object.entries(bookingStatusText).map(([value,label]) => <option value={value} key={value}>{label}</option>)}</select>
+      </div>
+      {message && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">{message}</p>}
+      {busy && items.length === 0 ? <p className="py-12 text-center text-sm text-gray-500">Memuat booking...</p> : shown.length === 0 ? <p className={`${CARD} rounded-2xl border-dashed p-12 text-center text-sm text-gray-500 dark:text-gray-400`}>Belum ada booking yang cocok.</p> : <div className="space-y-4">
+        {shown.map(booking => <article key={booking.id} className={`${CARD} rounded-2xl p-5`}>
+          <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs tracking-wider text-gray-400">{booking.booking_code}</p><h2 className="mt-1 text-xl font-medium text-gray-900 dark:text-white">{booking.customer_name}</h2><p className="text-sm text-gray-500">{booking.session_date} · {booking.session_time}</p></div><span className={pill(booking.status)}>{bookingStatusText[booking.status]}</span></div>
+          <div className="mt-4 grid gap-2 text-sm text-gray-700 dark:text-gray-300 sm:grid-cols-2">
+            <p><span className="text-gray-500">WhatsApp:</span> {booking.whatsapp}</p><p><span className="text-gray-500">Paket:</span> {booking.package_name} ({booking.participants} peserta)</p>
+            <p><span className="text-gray-500">Lokasi:</span> {booking.locations?.join(' / ') || '-'}</p><p><span className="text-gray-500">Add-ons:</span> {booking.addons?.map(addon => addon.name).join(', ') || '-'}</p>
+            <p className="font-semibold">Total: {money(booking.total_price)}</p><p><span className="text-gray-500">Catatan klien:</span> {booking.notes || '-'}</p>
+          </div>
+          <label className="mt-4 block text-xs text-gray-500">Catatan admin<textarea id={'admin-booking-note-' + booking.id} defaultValue={booking.admin_notes || ''} rows={2} className={`${INPUT} mt-2`} /></label>
+          <div className="mt-3 flex flex-wrap gap-2"><a href={'https://wa.me/' + booking.whatsapp.replace(/\\D/g,'')} target="_blank" rel="noopener noreferrer" className="rounded-full border border-green-700/30 px-4 py-2 text-sm text-green-700 dark:text-green-400">Chat klien ↗</a>{(['pending','confirmed','rejected','completed'] as const).map(status => <button type="button" key={status} disabled={busy} onClick={() => update(booking,status)} className="rounded-full border border-gray-300 px-3 py-2 text-xs transition hover:bg-gray-100 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800">{status === 'confirmed' ? 'Confirm' : status === 'rejected' ? 'Reject' : status === 'completed' ? 'Complete' : 'Set pending'}</button>)}</div>
+        </article>)}
+      </div>}
+    </section>
+  );
+}
+
 export default function HomePage() {
   const [formData, setFormData] = useState<FormDataState>({
     clientName: '', eventDate: '', gdriveUrl: '',
@@ -93,7 +177,7 @@ export default function HomePage() {
   const [isNotifOpen, setIsNotifOpen]       = useState<boolean>(false);
   const [notifications, setNotifications]   = useState<NotificationItem[]>([]);
   const [isBroadcastOpen, setIsBroadcastOpen] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<'clients' | 'portfolio' | 'pricelist' | 'contact'>('clients');
+  const [activeTab, setActiveTab] = useState<'clients' | 'portfolio' | 'pricelist' | 'contact' | 'bookings'>('clients');
   const [portfolioCategories, setPortfolioCategories] = useState<PortfolioCategory[]>([]);
   const [portfolioTitle, setPortfolioTitle] = useState('');
   const [portfolioFolderUrl, setPortfolioFolderUrl] = useState('');
@@ -482,7 +566,10 @@ export default function HomePage() {
       <AppHeader
         navigation={
           <>
-            <Link href="/admin/bookings" className="whitespace-nowrap rounded-full border border-amber-700/30 px-3 py-2 text-sm text-amber-800 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/20">Photo Bookings ↗</Link>
+            <button type="button" onClick={() => setActiveTab('bookings')}
+              className={`whitespace-nowrap border-b-2 px-2 py-2 text-sm font-medium transition-colors ${activeTab === 'bookings' ? 'border-amber-700 text-gray-900 dark:border-amber-400 dark:text-white' : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}>
+              Booking
+            </button>
             <button type="button" onClick={() => setActiveTab('clients')}
               className={`whitespace-nowrap border-b-2 px-2 py-2 text-sm font-medium transition-colors ${activeTab === 'clients' ? 'border-amber-700 text-gray-900 dark:border-amber-400 dark:text-white' : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}>
               Data Klien
@@ -1003,6 +1090,8 @@ export default function HomePage() {
             </div>
           </section>
         )}
+
+        {activeTab === 'bookings' && <AdminBookingsPanel />}
       </main>
 
       <BroadcastModal
