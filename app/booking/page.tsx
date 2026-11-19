@@ -77,8 +77,13 @@ export default function BookingPage() {
   const [error, setError] = useState('');
 
   const chosen = packages.find((p) => p.id === pkg)!;
+  const includedLocations: Record<string, number> = { solo: 1, duo: 2, group: 2, large: 2, extended: 1, video: 1 };
+  const extraLocationCount = Math.max(0, locationsArray.length - (includedLocations[pkg] ?? 1));
+  useEffect(() => {
+    setSelected((items) => extraLocationCount > 0 ? (items.includes('extra_location') ? items : [...items, 'extra_location']) : items.filter((item) => item !== 'extra_location'));
+  }, [extraLocationCount]);
   const base = useMemo(() => pkg === 'extended' ? chosen.price * participants : chosen.price, [pkg, chosen.price, participants]);
-  const addonTotal = addons.filter((a) => selected.includes(a.id)).reduce((sum, a) => sum + a.price, 0);
+  const addonTotal = addons.filter((a) => selected.includes(a.id)).reduce((sum, a) => sum + (a.id === 'extra_location' ? a.price * extraLocationCount : a.price), 0);
   const total = base + addonTotal;
   const locationsArray = locations.map((s) => s.trim()).filter(Boolean);
   const field = 'mt-2 w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:border-amber-700 dark:border-white/10 dark:bg-[#171714] dark:text-white';
@@ -303,9 +308,9 @@ export default function BookingPage() {
               <h2 className="font-serif text-2xl">03 · Add-ons</h2>
               <div className="mt-4 space-y-3">
                 {addons.map((a) => (
-                  <label key={a.id} className="flex items-center justify-between gap-3 rounded-xl border border-black/10 p-4 text-sm dark:border-white/10">
-                    <span className="flex gap-3"><input type="checkbox" checked={selected.includes(a.id)} onChange={(e) => setSelected((s) => e.target.checked ? [...s, a.id] : s.filter((k) => k !== a.id))} />{a.name}</span>
-                    <span className="font-medium">+{money(a.price)}</span>
+                  <label key={a.id} className={'flex items-center justify-between gap-3 rounded-xl border border-black/10 p-4 text-sm dark:border-white/10 ' + (a.id === 'extra_location' && extraLocationCount > 0 ? 'bg-amber-50 dark:bg-amber-950/20' : '')}>
+                    <span className="flex gap-3"><input type="checkbox" checked={selected.includes(a.id)} disabled={a.id === 'extra_location' && extraLocationCount > 0} onChange={(e) => setSelected((s) => e.target.checked ? [...s, a.id] : s.filter((k) => k !== a.id))} />{a.name}{a.id === 'extra_location' && extraLocationCount > 0 ? <span className="text-xs text-amber-700 dark:text-amber-400">(otomatis · {extraLocationCount} lokasi)</span> : null}</span>
+                    <span className="font-medium">+{money(a.id === 'extra_location' && extraLocationCount > 0 ? a.price * extraLocationCount : a.price)}</span>
                   </label>
                 ))}
               </div>
@@ -320,7 +325,7 @@ export default function BookingPage() {
             <h2 className="mt-2 font-serif text-2xl">{chosen.name}</h2>
             <div className="mt-5 space-y-3 border-t border-black/10 pt-4 text-sm dark:border-white/10">
               <div className="flex justify-between gap-3"><span>Package</span><span>{money(base)}</span></div>
-              {addons.filter((a) => selected.includes(a.id)).map((a) => <div className="flex justify-between gap-3" key={a.id}><span>{a.name}</span><span>{money(a.price)}</span></div>)}
+              {addons.filter((a) => selected.includes(a.id)).map((a) => <div className="flex justify-between gap-3" key={a.id}><span>{a.name}{a.id === 'extra_location' && extraLocationCount > 0 ? ` × ${extraLocationCount}` : ''}</span><span>{money(a.id === 'extra_location' ? a.price * extraLocationCount : a.price)}</span></div>)}
             </div>
             <div className="mt-5 flex justify-between border-t border-black/10 pt-4 dark:border-white/10"><span className="font-medium">Total estimate</span><strong className="font-serif text-2xl">{money(total)}</strong></div>
             <p className="mt-3 text-xs leading-5 text-neutral-500">Harga final dan ketersediaan jadwal dikonfirmasi admin. Extended Group dihitung per peserta.</p>
