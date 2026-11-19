@@ -148,14 +148,24 @@ export default function BookingPage() {
                 <label className="text-sm">WhatsApp <span className="text-neutral-400">(kode negara)</span>
                   <div className="mt-2 grid grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] gap-2">
                     <select
-                      className={field + ' mt-0 min-w-0 cursor-pointer px-3'}
+                      className={field + ' mt-0 w-[92px] min-w-0 shrink-0 cursor-pointer px-2 text-center'}
                       value={countryCode}
                       onChange={(e) => setCountryCode(e.target.value)}
                       required
-                      aria-label="Pilih kode negara WhatsApp"
+                      aria-label="Pilih bendera dan kode negara WhatsApp"
                     >
                       {countryOptions.map((country) => (
-                        <option key={country.name} value={country.code}>{country.name} ({country.code})</option>
+                        <option key={country.name} value={country.code}>{({
+                          Indonesia: '🇮🇩', Malaysia: '🇲🇾', Singapore: '🇸🇬', Brunei: '🇧🇳',
+                          Thailand: '🇹🇭', Vietnam: '🇻🇳', Philippines: '🇵🇭', India: '🇮🇳',
+                          Pakistan: '🇵🇰', Bangladesh: '🇧🇩', 'United Arab Emirates': '🇦🇪',
+                          'Saudi Arabia': '🇸🇦', Egypt: '🇪🇬', Turkey: '🇹🇷',
+                          'United Kingdom': '🇬🇧', 'United States': '🇺🇸', Canada: '🇨🇦',
+                          Australia: '🇦🇺', 'New Zealand': '🇳🇿', Japan: '🇯🇵',
+                          'South Korea': '🇰🇷', China: '🇨🇳', Germany: '🇩🇪',
+                          France: '🇫🇷', Netherlands: '🇳🇱', Italy: '🇮🇹',
+                          Spain: '🇪🇸', Brazil: '🇧🇷', 'South Africa': '🇿🇦',
+                        } as Record<string, string>)[country.name]} {country.code}</option>
                       ))}
                     </select>
                     <input
