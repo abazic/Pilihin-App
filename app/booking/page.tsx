@@ -56,6 +56,8 @@ export default function BookingPage() {
   const [name, setName] = useState('');
   const [wa, setWa] = useState('');
   const [countryCode, setCountryCode] = useState('+62');
+  const [selectedCountryName, setSelectedCountryName] = useState('Indonesia');
+  const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [locations, setLocations] = useState('');
@@ -147,16 +149,17 @@ export default function BookingPage() {
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <label className="text-sm">Nama lengkap<input className={field} value={name} onChange={(e) => setName(e.target.value)} required minLength={2} placeholder="Nama kamu" /></label>
                 <label className="text-sm">WhatsApp <span className="text-neutral-400">(kode negara)</span>
-                  <div className="mt-2 grid grid-cols-[60px_minmax(0,1fr)] gap-2">
-                    <select
-                      className={field + ' mt-0 w-full min-w-0 cursor-pointer px-0.5 text-center text-xs'}
-                      value={countryCode}
-                      onChange={(e) => setCountryCode(e.target.value)}
-                      required
-                      aria-label="Pilih bendera dan kode negara WhatsApp"
-                    >
-                      {countryOptions.map((country) => (
-                        <option key={country.name} value={country.code}>{({
+                  <div className="mt-2 grid grid-cols-[80px_minmax(0,1fr)] gap-2">
+                    <div className="relative">
+                      <button
+                        type="button"
+                        className={field + ' mt-0 flex h-[46px] w-full items-center justify-center gap-1 px-1 text-xs'}
+                        onClick={() => setCountryDropdownOpen((open) => !open)}
+                        aria-label="Pilih kode negara WhatsApp"
+                        aria-haspopup="listbox"
+                        aria-expanded={countryDropdownOpen}
+                      >
+                        <span aria-hidden="true">{({
                           Indonesia: '🇮🇩', Malaysia: '🇲🇾', Singapore: '🇸🇬', Brunei: '🇧🇳',
                           Thailand: '🇹🇭', Vietnam: '🇻🇳', Philippines: '🇵🇭', India: '🇮🇳',
                           Pakistan: '🇵🇰', Bangladesh: '🇧🇩', 'United Arab Emirates': '🇦🇪',
@@ -166,9 +169,42 @@ export default function BookingPage() {
                           'South Korea': '🇰🇷', China: '🇨🇳', Germany: '🇩🇪',
                           France: '🇫🇷', Netherlands: '🇳🇱', Italy: '🇮🇹',
                           Spain: '🇪🇸', Brazil: '🇧🇷', 'South Africa': '🇿🇦',
-                        } as Record<string, string>)[country.name]} {country.name} ({country.code})</option>
-                      ))}
-                    </select>
+                        } as Record<string, string>)[selectedCountryName]}</span>
+                        <span>{countryCode}</span>
+                      </button>
+                      {countryDropdownOpen && (
+                        <div role="listbox" aria-label="Daftar kode negara" className="absolute left-0 top-full z-30 mt-2 max-h-64 w-64 overflow-y-auto rounded-xl border border-black/10 bg-white p-1 shadow-xl dark:border-white/10 dark:bg-[#1b1b18]">
+                          {countryOptions.map((country) => (
+                            <button
+                              key={country.name}
+                              type="button"
+                              role="option"
+                              aria-selected={selectedCountryName === country.name}
+                              onClick={() => {
+                                setCountryCode(country.code);
+                                setSelectedCountryName(country.name);
+                                setCountryDropdownOpen(false);
+                              }}
+                              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition hover:bg-neutral-100 dark:hover:bg-white/10"
+                            >
+                              <span className="w-7 text-base" aria-hidden="true">{({
+                                Indonesia: '🇮🇩', Malaysia: '🇲🇾', Singapore: '🇸🇬', Brunei: '🇧🇳',
+                                Thailand: '🇹🇭', Vietnam: '🇻🇳', Philippines: '🇵🇭', India: '🇮🇳',
+                                Pakistan: '🇵🇰', Bangladesh: '🇧🇩', 'United Arab Emirates': '🇦🇪',
+                                'Saudi Arabia': '🇸🇦', Egypt: '🇪🇬', Turkey: '🇹🇷',
+                                'United Kingdom': '🇬🇧', 'United States': '🇺🇸', Canada: '🇨🇦',
+                                Australia: '🇦🇺', 'New Zealand': '🇳🇿', Japan: '🇯🇵',
+                                'South Korea': '🇰🇷', China: '🇨🇳', Germany: '🇩🇪',
+                                France: '🇫🇷', Netherlands: '🇳🇱', Italy: '🇮🇹',
+                                Spain: '🇪🇸', Brazil: '🇧🇷', 'South Africa': '🇿🇦',
+                              } as Record<string, string>)[country.name]}</span>
+                              <span className="min-w-0 flex-1">{country.name}</span>
+                              <span className="text-neutral-500">{country.code}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                     <input
                       className={field + ' mt-0 min-w-0'}
                       value={wa}
