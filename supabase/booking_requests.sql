@@ -24,4 +24,11 @@ drop policy if exists "Public can submit booking requests" on public.booking_req
 -- Public inserts are handled by the server API using the service-role key.
 revoke insert on public.booking_requests from anon, authenticated;
 grant insert on public.booking_requests to service_role;
+drop policy if exists "Admins can read booking requests" on public.booking_requests;
+create policy "Admins can read booking requests" on public.booking_requests
+  for select to authenticated using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin'));
+drop policy if exists "Admins can update booking requests" on public.booking_requests;
+create policy "Admins can update booking requests" on public.booking_requests
+  for update to authenticated using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin'))
+  with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin'));
 grant select, update on public.booking_requests to authenticated;
