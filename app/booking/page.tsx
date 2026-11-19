@@ -59,6 +59,7 @@ export default function BookingPage() {
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [locations, setLocations] = useState('');
+  const [moodboardLinks, setMoodboardLinks] = useState<string[]>(['']);
   const [pkg, setPkg] = useState('solo');
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get('package');
@@ -102,7 +103,7 @@ export default function BookingPage() {
       const response = await fetch('/api/booking', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, whatsapp: `${normalizedCountryCode}${wa}`, date, time, locations: locationsArray, package: pkg, participants, addons: selected, notes }),
+        body: JSON.stringify({ name, whatsapp: `${normalizedCountryCode}${wa}`, date, time, locations: locationsArray, moodboardLinks: moodboardLinks.map((link) => link.trim()).filter(Boolean), package: pkg, participants, addons: selected, notes }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Booking gagal');
@@ -190,6 +191,47 @@ export default function BookingPage() {
                 <textarea className={field} rows={3} value={locations} onChange={(e) => setLocations(e.target.value)} placeholder={'Contoh: Gedung wisuda\nTaman kampus'} required />
               </label>
               <p className="mt-1 text-xs text-neutral-400">Isi semua lokasi yang ingin digunakan.</p>
+              <div className="mt-5">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium">Link referensi moodboard / photo <span className="font-normal text-neutral-400">(opsional)</span></p>
+                    <p className="mt-1 text-xs text-neutral-400">Tambahkan link Pinterest, Google Drive, Instagram, atau referensi visual lainnya.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setMoodboardLinks((links) => links.length < 8 ? [...links, ''] : links)}
+                    disabled={moodboardLinks.length >= 8}
+                    className="rounded-full border border-black/10 px-3 py-2 text-xs font-medium transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:hover:bg-white/5"
+                  >
+                    + Tambah link
+                  </button>
+                </div>
+                <div className="mt-3 space-y-2">
+                  {moodboardLinks.map((link, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <input
+                        className={field + ' mt-0 min-w-0'}
+                        type="url"
+                        value={link}
+                        onChange={(e) => setMoodboardLinks((links) => links.map((item, i) => i === index ? e.target.value : item))}
+                        placeholder={`https://... (referensi ${index + 1})`}
+                        aria-label={`Link referensi moodboard ${index + 1}`}
+                      />
+                      {moodboardLinks.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => setMoodboardLinks((links) => links.filter((_, i) => i !== index))}
+                          className="shrink-0 rounded-lg px-3 py-3 text-xs text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
+                          aria-label={`Hapus link referensi ${index + 1}`}
+                        >
+                          Hapus
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-2 text-xs text-neutral-400">Maksimal 8 link. Kosongkan jika belum ada referensi.</p>
+              </div>
             </section>
 
             <section className="rounded-2xl border border-black/10 bg-white p-6 dark:border-white/10 dark:bg-[#1b1b18]">
