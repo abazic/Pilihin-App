@@ -80,6 +80,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
           <>
             <a className="transition-colors hover:text-amber-700 dark:text-stone-300 dark:hover:text-amber-400" href="/">Home</a>
             <Link className="transition-colors hover:text-amber-700 dark:text-stone-300 dark:hover:text-amber-400" href="/pricelist">Pricelist</Link>
+            <Link className="transition-colors hover:text-amber-700 dark:text-stone-300 dark:hover:text-amber-400" href="/booking">Booking</Link>
             <a className="transition-colors hover:text-amber-700 dark:text-stone-300 dark:hover:text-amber-400" href="#portfolio">Portfolio</a>
             <a className="transition-colors hover:text-amber-700 dark:text-stone-300 dark:hover:text-amber-400" href="#services">Service</a>
             <a className="transition-colors hover:text-amber-700 dark:text-stone-300 dark:hover:text-amber-400" href="#contact">Contact</a>
@@ -116,12 +117,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
               yang dapat kamu kenang selamanya.
             </p>
 
-            <a
-              href="#portfolio"
-              className="mt-8 inline-block rounded-full bg-black px-7 py-4 text-sm text-white transition hover:bg-neutral-700 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-white"
-            >
-              Explore Portfolio ↗
-            </a>
+            <div className="mt-8 flex flex-wrap gap-3"><Link href="/booking" className="inline-block rounded-full bg-amber-700 px-7 py-4 text-sm text-white transition hover:bg-amber-800">Book a Session ↗</Link><a href="#portfolio" className="inline-block rounded-full border border-black/15 px-7 py-4 text-sm transition hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/5">Explore Portfolio</a></div>
           </div>
         </div>
         <p className="absolute bottom-6 right-8 z-10 text-right text-xs tracking-widest text-neutral-500 dark:text-neutral-300">
