@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { DEFAULT_WHATSAPP_NUMBER } from '@/lib/constants';
 
 const PACKAGES: Record<string, {name:string; price:number}> = {
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const name = String(body.name||'').trim();
-    const whatsapp = digits(String(body.whatsapp||''));
+    const rawWhatsapp = digits(String(body.whatsapp||''));\n    const whatsapp = rawWhatsapp.startsWith('0') ? '62'+rawWhatsapp.slice(1) : rawWhatsapp.startsWith('8') ? '62'+rawWhatsapp : rawWhatsapp;
     const date = String(body.date||'');
     const time = String(body.time||'');
     const locations = Array.isArray(body.locations) ? body.locations.map((x:string)=>String(x).trim()).filter(Boolean).slice(0,5) : [];
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     const addonsPrice = addonKeys.reduce((sum:number,key:string)=>sum+ADDONS[key].price,0);
     const total = base+addonsPrice;
     const bookingCode = 'PF-'+Date.now().toString().slice(-8);
-    const supabase = await createClient();
+    const supabase = createSupabaseClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
     const {error} = await supabase.from('booking_requests').insert({
       booking_code:bookingCode,customer_name:name,whatsapp,session_date:date,session_time:time,
       locations,package_key:packageKey,package_name:selected.name,participants,addons:addonKeys.map((key:string)=>({...ADDONS[key],key})),
