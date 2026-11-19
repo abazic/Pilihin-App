@@ -12,7 +12,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// Import Font Serif untuk logo & heading estetik 
+// Import Font Serif untuk logo & heading estetik
 const playfair = Playfair_Display({
   variable: "--font-serif",
   subsets: ["latin"],
@@ -22,6 +22,9 @@ const playfair = Playfair_Display({
 export const metadata: Metadata = {
   title: "Pilihin Fotomu | by Abazic",
   description: "Sistem Manajemen Galeri dan Pemilihan Foto Klien Nyala Karya",
+  icons: {
+    icon: "/instories.svg",
+  },
 };
 
 export default function RootLayout({
