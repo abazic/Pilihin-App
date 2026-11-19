@@ -23,6 +23,7 @@ const money = (n: number) => 'Rp ' + n.toLocaleString('id-ID');
 export default function BookingPage() {
   const [name, setName] = useState('');
   const [wa, setWa] = useState('');
+  const [countryCode, setCountryCode] = useState('+62');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [locations, setLocations] = useState('');
@@ -50,8 +51,14 @@ export default function BookingPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
-    if (!/^8\d{7,12}$/.test(wa)) {
-      setError('Nomor WhatsApp harus diawali 8 dan diisi tanpa angka 0 di depan. Kode negara +62 sudah disediakan.');
+    const normalizedCountryCode = countryCode.trim();
+    const countryDigits = normalizedCountryCode.replace(/\D/g, '');
+    if (!/^\+[1-9]\d{0,3}$/.test(normalizedCountryCode) || countryDigits.length < 1) {
+      setError('Kode negara tidak valid. Gunakan format +62, +1, atau kode negara lainnya.');
+      return;
+    }
+    if (!/^\d{6,14}$/.test(wa) || (countryDigits + wa).length > 15) {
+      setError('Nomor WhatsApp tidak valid. Masukkan 6–14 digit nomor, tanpa kode negara atau tanda +.');
       return;
     }
     if (locationsArray.length === 0) {
@@ -63,7 +70,7 @@ export default function BookingPage() {
       const response = await fetch('/api/booking', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, whatsapp: `+62${wa}`, date, time, locations: locationsArray, package: pkg, participants, addons: selected, notes }),
+        body: JSON.stringify({ name, whatsapp: `${normalizedCountryCode}${wa}`, date, time, locations: locationsArray, package: pkg, participants, addons: selected, notes }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Booking gagal');
@@ -107,11 +114,11 @@ export default function BookingPage() {
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <label className="text-sm">Nama lengkap<input className={field} value={name} onChange={(e) => setName(e.target.value)} required minLength={2} placeholder="Nama kamu" /></label>
                 <label className="text-sm">WhatsApp <span className="text-neutral-400">(kode negara)</span>
-                  <div className="mt-2 flex">
-                    <span className="flex items-center rounded-l-xl border border-r-0 border-black/10 bg-neutral-100 px-4 text-sm font-medium text-neutral-700 dark:border-white/10 dark:bg-[#252521] dark:text-stone-200">+62</span>
-                    <input className={field + ' mt-0 rounded-l-none'} value={wa} onChange={(e) => setWa(e.target.value.replace(/\\D/g, '').slice(0, 13))} required placeholder="81234567890" inputMode="numeric" type="tel" minLength={8} maxLength={13} pattern="8[0-9]{7,12}" aria-describedby="whatsapp-hint" />
+                  <div className="mt-2 flex gap-2">
+                    <input className={field + ' mt-0 w-24 shrink-0 text-center'} value={countryCode} onChange={(e) => setCountryCode('+' + e.target.value.replace(/\\D/g, '').slice(0, 4))} required type="tel" inputMode="tel" aria-label="Kode negara WhatsApp" placeholder="+62" maxLength={5} />
+                    <input className={field + ' mt-0'} value={wa} onChange={(e) => setWa(e.target.value.replace(/\\D/g, '').slice(0, 14))} required placeholder="81234567890" inputMode="numeric" type="tel" minLength={6} maxLength={14} aria-describedby="whatsapp-hint" />
                   </div>
-                  <span id="whatsapp-hint" className="mt-1 block text-xs text-neutral-400">Masukkan nomor tanpa angka 0 di depan. Contoh: 81234567890</span>
+                  <span id="whatsapp-hint" className="mt-1 block text-xs text-neutral-400">Kode negara bisa diubah (contoh +62, +1, +44). Masukkan nomor lokal tanpa kode negara.</span>
                 </label>
                 <label className="text-sm">Tanggal<input className={field} type="date" value={date} min={new Date().toISOString().slice(0, 10)} onChange={(e) => setDate(e.target.value)} required /></label>
                 <label className="text-sm">Jam mulai<input className={field} type="time" value={time} onChange={(e) => setTime(e.target.value)} required /></label>
