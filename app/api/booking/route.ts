@@ -33,8 +33,12 @@ export async function POST(request: Request) {
     const addonsPrice = addonKeys.reduce((sum:number,key:string)=>sum+ADDONS[key].price,0);
     const total = base+addonsPrice;
     const bookingCode = 'PF-'+Date.now().toString().slice(-8);
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return NextResponse.json({error:'Booking API belum dikonfigurasi. Admin perlu mengatur SUPABASE_SERVICE_ROLE_KEY.'},{status:503});
-    const supabase = createSupabaseClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY);
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAdminKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!supabaseUrl || !supabaseAdminKey) return NextResponse.json({error:'Booking API belum dikonfigurasi. Admin perlu mengatur NEXT_PUBLIC_SUPABASE_URL dan SUPABASE_SECRET_KEY (atau SUPABASE_SERVICE_ROLE_KEY lama) di environment deployment.'},{status:503});
+    const supabase = createSupabaseClient(supabaseUrl, supabaseAdminKey, {
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    });
     const {error} = await supabase.from('booking_requests').insert({
       booking_code:bookingCode,customer_name:name,whatsapp,session_date:date,session_time:time,
       locations,package_key:packageKey,package_name:selected.name,participants,addons:addonKeys.map((key:string)=>({...ADDONS[key],key})),
