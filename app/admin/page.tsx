@@ -93,6 +93,18 @@ function AdminBookingsPanel() {
   const [search, setSearch] = useState('');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
+  const [syncingSheets, setSyncingSheets] = useState(false);
+  const syncSheets = async () => {
+    setSyncingSheets(true);
+    try {
+      const response = await fetch('/api/admin/bookings', { method: 'POST' });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Sinkronisasi gagal.');
+      setMessage(data.synced + ' booking berhasil disinkronkan ke Google Sheets.');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Sinkronisasi gagal.');
+    } finally { setSyncingSheets(false); }
+  };
   const load = async () => {
     setBusy(true);
     try {
@@ -134,7 +146,7 @@ function AdminBookingsPanel() {
     <section className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div><p className="text-xs uppercase tracking-[.25em] text-amber-800 dark:text-amber-400">Admin · Reservation</p><h1 className="mt-2 font-serif text-3xl text-gray-900 dark:text-white">Photo Bookings</h1><p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Kelola permintaan booking, konfirmasi jadwal, dan status sesi.</p></div>
-        <button type="button" onClick={load} disabled={busy} className={`rounded-lg px-4 py-2 text-sm ${BTN_SECONDARY} disabled:opacity-50`}>{busy ? 'Memuat...' : 'Refresh'}</button>
+        <div className="flex flex-wrap gap-2"><button type="button" onClick={syncSheets} disabled={syncingSheets || busy} className={`rounded-lg px-4 py-2 text-sm ${BTN_SECONDARY} disabled:opacity-50`}>{syncingSheets ? 'Syncing...' : 'Sync Spreadsheet'}</button><button type="button" onClick={load} disabled={busy} className={`rounded-lg px-4 py-2 text-sm ${BTN_SECONDARY} disabled:opacity-50`}>{busy ? 'Memuat...' : 'Refresh'}</button></div>
       </header>
       <div className="grid gap-3 sm:grid-cols-4">
         {(['pending','confirmed','rejected','completed'] as const).map(status => <div key={status} className={`${CARD} rounded-xl p-4`}><p className="text-xs uppercase text-gray-500 dark:text-gray-400">{bookingStatusText[status]}</p><p className="mt-1 font-serif text-3xl">{items.filter(item => item.status === status).length}</p></div>)}
