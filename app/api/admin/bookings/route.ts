@@ -60,3 +60,15 @@ export async function PATCH(request:Request){
   }
   return NextResponse.json({success:true});
 }
+
+export async function DELETE(request:Request){
+  const {supabase,user}=await adminClient();
+  if(!user) return NextResponse.json({error:'Unauthorized'},{status:401});
+  let body:any;
+  try { body=await request.json(); } catch { return NextResponse.json({error:'Request tidak valid.'},{status:400}); }
+  const id=String(body.id||'');
+  if(!id) return NextResponse.json({error:'ID booking wajib diisi.'},{status:400});
+  const {error}=await supabase.from('booking_requests').delete().eq('id',id);
+  if(error) return NextResponse.json({error:error.message},{status:500});
+  return NextResponse.json({success:true});
+}
