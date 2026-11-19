@@ -16,12 +16,14 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const name = String(body.name||'').trim();
-    const rawWhatsapp = digits(String(body.whatsapp||''));\n    const whatsapp = rawWhatsapp.startsWith('0') ? '62'+rawWhatsapp.slice(1) : rawWhatsapp.startsWith('8') ? '62'+rawWhatsapp : rawWhatsapp;
+    const rawWhatsapp = digits(String(body.whatsapp||''));
+    const whatsapp = rawWhatsapp.startsWith('0') ? '62'+rawWhatsapp.slice(1) : rawWhatsapp.startsWith('8') ? '62'+rawWhatsapp : rawWhatsapp;
     const date = String(body.date||'');
     const time = String(body.time||'');
     const locations = Array.isArray(body.locations) ? body.locations.map((x:string)=>String(x).trim()).filter(Boolean).slice(0,5) : [];
     const packageKey = String(body.package||'');
-    const requestedParticipants = Math.max(11,Math.min(100,Number(body.participants||11)));\n    const participants = packageKey==='extended' ? requestedParticipants : packageKey==='duo' ? 2 : packageKey==='group' ? 3 : packageKey==='large' ? 6 : 1;
+    const requestedParticipants = Math.max(11,Math.min(100,Number(body.participants||11)));
+    const participants = packageKey==='extended' ? requestedParticipants : packageKey==='duo' ? 2 : packageKey==='group' ? 3 : packageKey==='large' ? 6 : 1;
     const notes = String(body.notes||'').trim().slice(0,1000);
     const addonKeys = Array.isArray(body.addons) ? body.addons.filter((x:string)=>Object.hasOwn(ADDONS,x)) : [];
     if(name.length<2 || whatsapp.length<8 || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time) || locations.length===0 || !PACKAGES[packageKey]) return NextResponse.json({error:'Periksa kembali data nama, WhatsApp, jadwal, lokasi, dan paket.'},{status:400});
@@ -30,7 +32,8 @@ export async function POST(request: Request) {
     const addonsPrice = addonKeys.reduce((sum:number,key:string)=>sum+ADDONS[key].price,0);
     const total = base+addonsPrice;
     const bookingCode = 'PF-'+Date.now().toString().slice(-8);
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return NextResponse.json({error:'Booking API belum dikonfigurasi. Admin perlu mengatur SUPABASE_SERVICE_ROLE_KEY.'},{status:503});\n    const supabase = createSupabaseClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY);
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return NextResponse.json({error:'Booking API belum dikonfigurasi. Admin perlu mengatur SUPABASE_SERVICE_ROLE_KEY.'},{status:503});
+    const supabase = createSupabaseClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY);
     const {error} = await supabase.from('booking_requests').insert({
       booking_code:bookingCode,customer_name:name,whatsapp,session_date:date,session_time:time,
       locations,package_key:packageKey,package_name:selected.name,participants,addons:addonKeys.map((key:string)=>({...ADDONS[key],key})),
@@ -40,7 +43,8 @@ export async function POST(request: Request) {
     const {data:waSetting}=await supabase.from('settings').select('value').eq('key','whatsapp_number').maybeSingle();
     const wa=digits(String(waSetting?.value||DEFAULT_WHATSAPP_NUMBER));
     const fmt=(n:number)=>'Rp '+n.toLocaleString('id-ID');
-    const message=[`BOOKING REQUEST · ${bookingCode}`,`Nama: ${name}`,`WhatsApp: ${whatsapp}`,`Tanggal: ${date}`,`Jam: ${time}`,`Lokasi: ${locations.join(' | ')}`,`Paket: ${selected.name}`,`Peserta: ${participants}`,`Add-on: ${addonKeys.map((k:string)=>ADDONS[k].name).join(', ')||'-'}`,`Total: ${fmt(total)}`,`Catatan: ${notes||'-'}`,`Status: Menunggu konfirmasi admin`].join('\n');
+    const message=[`BOOKING REQUEST · ${bookingCode}`,`Nama: ${name}`,`WhatsApp: ${whatsapp}`,`Tanggal: ${date}`,`Jam: ${time}`,`Lokasi: ${locations.join(' | ')}`,`Paket: ${selected.name}`,`Peserta: ${participants}`,`Add-on: ${addonKeys.map((k:string)=>ADDONS[k].name).join(', ')||'-'}`,`Total: ${fmt(total)}`,`Catatan: ${notes||'-'}`,`Status: Menunggu konfirmasi admin`].join('
+');
     return NextResponse.json({bookingCode,total,whatsappUrl:`https://wa.me/${wa}?text=${encodeURIComponent(message)}`});
   } catch { return NextResponse.json({error:'Permintaan tidak valid.'},{status:400}); }
 }
