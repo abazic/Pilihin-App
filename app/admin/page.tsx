@@ -178,6 +178,7 @@ export default function HomePage() {
   const [notifications, setNotifications]   = useState<NotificationItem[]>([]);
   const [isBroadcastOpen, setIsBroadcastOpen] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'clients' | 'portfolio' | 'pricelist' | 'contact' | 'bookings'>('clients');
+  useEffect(() => { if (new URLSearchParams(window.location.search).get('section') === 'bookings') setActiveTab('bookings'); }, []);
   const [portfolioCategories, setPortfolioCategories] = useState<PortfolioCategory[]>([]);
   const [portfolioTitle, setPortfolioTitle] = useState('');
   const [portfolioFolderUrl, setPortfolioFolderUrl] = useState('');
