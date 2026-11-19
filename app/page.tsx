@@ -108,7 +108,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
             </p>
 
             <h1 className="text-5xl font-medium leading-[1.1] tracking-tight md:text-7xl">
-              Every moment deserves to be{" "}
+              Every story deserves to be{" "}
               <span className="text-neutral-400 dark:text-neutral-500">remembered.</span>
             </h1>
 
