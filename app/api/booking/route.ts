@@ -44,8 +44,8 @@ export async function POST(request: Request) {
         return NextResponse.json({error:'Salah satu link referensi tidak valid. Periksa kembali URL yang dimasukkan.'},{status:400});
       }
     }
-    const storedNotes = [notes, validMoodboardLinks.length ? 'Referensi moodboard / photo:\\n' + validMoodboardLinks.map((link, index) => `${index + 1}. ${link}`).join('\\n') : '']
-      .filter(Boolean).join('\\n\\n');
+    const storedNotes = [notes, validMoodboardLinks.length ? 'Referensi moodboard / photo:\n' + validMoodboardLinks.map((link, index) => `${index + 1}. ${link}`).join('\n') : '']
+      .filter(Boolean).join('\n\n');
     const addonKeys: string[] = Array.isArray(body.addons) ? Array.from(new Set((body.addons as unknown[]).filter((x): x is string => typeof x === 'string' && Object.prototype.hasOwnProperty.call(ADDONS, x)))) : [];
     if(name.length<2 || whatsapp.length<8 || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time) || locations.length===0 || !PACKAGES[packageKey]) return NextResponse.json({error:'Periksa kembali data nama, WhatsApp, jadwal, lokasi, dan paket.'},{status:400});
     const selected = PACKAGES[packageKey];
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
     const {data:waSetting}=await supabase.from('settings').select('value').eq('key','whatsapp_number').maybeSingle();
     const wa=digits(String(waSetting?.value||DEFAULT_WHATSAPP_NUMBER));
     const fmt=(n:number)=>'Rp '+n.toLocaleString('id-ID');
-    const message=[`BOOKING REQUEST · ${bookingCode}`,`Nama: ${name}`,`WhatsApp: ${whatsapp}`,`Tanggal: ${date}`,`Jam: ${time}`,`Lokasi: ${locations.join(' | ')}`,`Paket: ${selected.name}`,`Peserta: ${participants}`,`Add-on: ${addonKeys.map((k:string)=>ADDONS[k].name).join(', ')||'-'}`,`Total: ${fmt(total)}`,`Catatan: ${notes||'-'}`,...(validMoodboardLinks.length ? [`Referensi moodboard / photo:\\n${validMoodboardLinks.map((link:string,index:number)=>`${index+1}. ${link}`).join('\\n')}`] : []),`Status: Menunggu konfirmasi admin`].join('\n');
+    const message=[`BOOKING REQUEST · ${bookingCode}`,`Nama: ${name}`,`WhatsApp: ${whatsapp}`,`Tanggal: ${date}`,`Jam: ${time}`,`Lokasi: ${locations.join(' | ')}`,`Paket: ${selected.name}`,`Peserta: ${participants}`,`Add-on: ${addonKeys.map((k:string)=>ADDONS[k].name).join(', ')||'-'}`,`Total: ${fmt(total)}`,`Catatan: ${notes||'-'}`,...(validMoodboardLinks.length ? [`Referensi moodboard / photo:\n${validMoodboardLinks.map((link:string,index:number)=>`${index+1}. ${link}`).join('\n')}`] : []),`Status: Menunggu konfirmasi admin`].join('\n');
     return NextResponse.json({bookingCode,total,whatsappUrl:`https://wa.me/${wa}?text=${encodeURIComponent(message)}`});
   } catch { return NextResponse.json({error:'Permintaan tidak valid.'},{status:400}); }
 }
