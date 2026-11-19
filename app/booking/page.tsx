@@ -60,7 +60,7 @@ export default function BookingPage() {
   const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
-  const [locations, setLocations] = useState('');
+  const [locations, setLocations] = useState<string[]>(['']);
   const [moodboardLinks, setMoodboardLinks] = useState<string[]>(['']);
   const [pkg, setPkg] = useState('solo');
   useEffect(() => {
@@ -80,7 +80,7 @@ export default function BookingPage() {
   const base = useMemo(() => pkg === 'extended' ? chosen.price * participants : chosen.price, [pkg, chosen.price, participants]);
   const addonTotal = addons.filter((a) => selected.includes(a.id)).reduce((sum, a) => sum + a.price, 0);
   const total = base + addonTotal;
-  const locationsArray = locations.split('\n').map((s) => s.trim()).filter(Boolean);
+  const locationsArray = locations.map((s) => s.trim()).filter(Boolean);
   const field = 'mt-2 w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:border-amber-700 dark:border-white/10 dark:bg-[#171714] dark:text-white';
 
   async function submit(e: React.FormEvent) {
@@ -223,10 +223,21 @@ export default function BookingPage() {
                 <label className="text-sm">Tanggal<input className={field} type="date" value={date} min={new Date().toISOString().slice(0, 10)} onChange={(e) => setDate(e.target.value)} required /></label>
                 <label className="text-sm">Jam mulai<input className={field} type="time" value={time} onChange={(e) => setTime(e.target.value)} required /></label>
               </div>
-              <label className="mt-4 block text-sm">Lokasi sesi <span className="text-neutral-400">(satu lokasi per baris)</span>
-                <textarea className={field} rows={3} value={locations} onChange={(e) => setLocations(e.target.value)} placeholder={'Contoh: Gedung wisuda\nTaman kampus'} required />
-              </label>
-              <p className="mt-1 text-xs text-neutral-400">Isi semua lokasi yang ingin digunakan.</p>
+              <div className="mt-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <label className="text-sm font-medium">Lokasi sesi <span className="font-normal text-neutral-400">(maksimal 5 lokasi)</span></label>
+                  <button type="button" onClick={() => setLocations((items) => items.length < 5 ? [...items, ''] : items)} disabled={locations.length >= 5} className="rounded-full border border-black/10 px-3 py-2 text-xs font-medium transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:hover:bg-white/5">+ Tambah lokasi</button>
+                </div>
+                <div className="mt-3 space-y-2">
+                  {locations.map((location, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <input className={field + ' mt-0 min-w-0'} value={location} onChange={(e) => setLocations((items) => items.map((item, i) => i === index ? e.target.value : item))} placeholder={index === 0 ? 'Lokasi utama (contoh: Gedung wisuda)' : `Lokasi tambahan ${index + 1}`} required={index === 0} aria-label={`Lokasi sesi ${index + 1}`} />
+                      {locations.length > 1 && <button type="button" onClick={() => setLocations((items) => items.filter((_, i) => i !== index))} className="shrink-0 rounded-lg px-3 py-3 text-xs text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30" aria-label={`Hapus lokasi ${index + 1}`}>Hapus</button>}
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-1 text-xs text-neutral-400">Tambahkan lokasi yang ingin dikunjungi. Maksimal 5 lokasi.</p>
+              </div>
               <div className="mt-5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
