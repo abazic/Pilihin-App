@@ -94,6 +94,7 @@ function AdminBookingsPanel() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [syncingSheets, setSyncingSheets] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const syncSheets = async () => {
     setSyncingSheets(true);
     try {
@@ -139,6 +140,27 @@ function AdminBookingsPanel() {
       setBusy(false);
     }
   };
+  const deleteBooking = async (booking: AdminBooking) => {
+    const confirmed = window.confirm(`Hapus booking ${booking.booking_code} atas nama ${booking.customer_name}? Data ini akan dihapus permanen.`);
+    if (!confirmed) return;
+    setDeletingId(booking.id);
+    setMessage('');
+    try {
+      const response = await fetch('/api/admin/bookings', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: booking.id }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Gagal menghapus booking.');
+      setItems(current => current.filter(item => item.id !== booking.id));
+      setMessage('Booking ' + booking.booking_code + ' berhasil dihapus.');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Gagal menghapus booking.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
   const money = (amount: number) => 'Rp ' + Number(amount || 0).toLocaleString('id-ID');
   const pill = (status: string) => 'rounded-full px-3 py-1 text-xs font-medium ' +
     (status === 'confirmed' ? 'bg-green-100 text-green-700' : status === 'rejected' ? 'bg-red-100 text-red-700' : status === 'completed' ? 'bg-neutral-200 text-neutral-700' : 'bg-amber-100 text-amber-800');
@@ -165,7 +187,7 @@ function AdminBookingsPanel() {
             <p className="font-semibold">Total: {money(booking.total_price)}</p><p><span className="text-gray-500">Catatan klien:</span> {booking.notes || '-'}</p>
           </div>
           <label className="mt-4 block text-xs text-gray-500">Catatan admin<textarea id={'admin-booking-note-' + booking.id} defaultValue={booking.admin_notes || ''} rows={2} className={`${INPUT} mt-2`} /></label>
-          <div className="mt-3 flex flex-wrap gap-2"><a href={'https://wa.me/' + booking.whatsapp.replace(/\\D/g,'')} target="_blank" rel="noopener noreferrer" className="rounded-full border border-green-700/30 px-4 py-2 text-sm text-green-700 dark:text-green-400">Chat klien ↗</a>{(['pending','confirmed','rejected','completed'] as const).map(status => <button type="button" key={status} disabled={busy} onClick={() => update(booking,status)} className="rounded-full border border-gray-300 px-3 py-2 text-xs transition hover:bg-gray-100 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800">{status === 'confirmed' ? 'Confirm' : status === 'rejected' ? 'Reject' : status === 'completed' ? 'Complete' : 'Set pending'}</button>)}</div>
+          <div className="mt-3 flex flex-wrap gap-2"><a href={'https://wa.me/' + booking.whatsapp.replace(/\\D/g,'')} target="_blank" rel="noopener noreferrer" className="rounded-full border border-green-700/30 px-4 py-2 text-sm text-green-700 dark:text-green-400">Chat klien ↗</a>{(['pending','confirmed','rejected','completed'] as const).map(status => <button type="button" key={status} disabled={busy} onClick={() => update(booking,status)} className="rounded-full border border-gray-300 px-3 py-2 text-xs transition hover:bg-gray-100 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800">{status === 'confirmed' ? 'Confirm' : status === 'rejected' ? 'Reject' : status === 'completed' ? 'Complete' : 'Set pending'}</button>)}<button type="button" disabled={busy || deletingId !== null} onClick={() => deleteBooking(booking)} className="rounded-full border border-red-300 px-3 py-2 text-xs text-red-600 transition hover:bg-red-50 disabled:opacity-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950/30">{deletingId === booking.id ? 'Menghapus...' : <><Trash2 size={13} className="mr-1 inline" />Hapus</>}</button></div>
         </article>)}
       </div>}
     </section>
