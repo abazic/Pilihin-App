@@ -77,6 +77,7 @@ export default function BookingPage() {
   const [error, setError] = useState('');
 
   const chosen = packages.find((p) => p.id === pkg)!;
+  const locationsArray = locations.map((s) => s.trim()).filter(Boolean);
   const includedLocations: Record<string, number> = { solo: 1, duo: 2, group: 2, large: 2, extended: 1, video: 1 };
   const extraLocationCount = Math.max(0, locationsArray.length - (includedLocations[pkg] ?? 1));
   useEffect(() => {
@@ -85,7 +86,6 @@ export default function BookingPage() {
   const base = useMemo(() => pkg === 'extended' ? chosen.price * participants : chosen.price, [pkg, chosen.price, participants]);
   const addonTotal = addons.filter((a) => selected.includes(a.id)).reduce((sum, a) => sum + (a.id === 'extra_location' ? a.price * extraLocationCount : a.price), 0);
   const total = base + addonTotal;
-  const locationsArray = locations.map((s) => s.trim()).filter(Boolean);
   const field = 'mt-2 w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:border-amber-700 dark:border-white/10 dark:bg-[#171714] dark:text-white';
 
   async function submit(e: React.FormEvent) {
