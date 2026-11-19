@@ -15,15 +15,15 @@ export default function AppHeader({ navigation, actions }: AppHeaderProps) {
           <Link href="/" className="flex w-fit shrink-0 items-center gap-2 leading-tight">
             <img
               src="/instories.svg"
-              alt="Logo Pilihin Fotomu"
+              alt="Logo inStories creative"
               className="h-10 w-7 shrink-0 object-contain"
             />
             <span className="flex flex-col">
               <span className="font-serif text-xl font-bold italic tracking-tight text-gray-900 dark:text-white sm:text-2xl">
-                Pilihin Fotomu<span className="text-amber-700">.</span>
+                inStories creative
               </span>
               <span className="mt-1 text-[9px] font-semibold uppercase tracking-[0.2em] text-gray-400">
-                by Abazic
+                
               </span>
             </span>
           </Link>
