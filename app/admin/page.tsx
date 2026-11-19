@@ -482,6 +482,7 @@ export default function HomePage() {
       <AppHeader
         navigation={
           <>
+            <Link href="/admin/bookings" className="whitespace-nowrap rounded-full border border-amber-700/30 px-3 py-2 text-sm text-amber-800 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/20">Photo Bookings ↗</Link>
             <button type="button" onClick={() => setActiveTab('clients')}
               className={`whitespace-nowrap border-b-2 px-2 py-2 text-sm font-medium transition-colors ${activeTab === 'clients' ? 'border-amber-700 text-gray-900 dark:border-amber-400 dark:text-white' : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}>
               Data Klien
