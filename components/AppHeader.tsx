@@ -22,9 +22,6 @@ export default function AppHeader({ navigation, actions }: AppHeaderProps) {
               <span className="font-serif text-xl font-bold italic tracking-tight text-gray-900 dark:text-white sm:text-2xl">
                 inStories creative
               </span>
-              <span className="mt-1 text-[9px] font-semibold uppercase tracking-[0.2em] text-gray-400">
-                
-              </span>
             </span>
           </Link>
 
