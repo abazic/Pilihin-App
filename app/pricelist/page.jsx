@@ -33,7 +33,7 @@ export default async function PricelistPage() {
   const prices = parseValue(data?.value);
   const { data: waSetting } = await supabase.from('settings').select('value').eq('key', 'whatsapp_number').maybeSingle();
   const wa = String(waSetting?.value || process.env.NEXT_PUBLIC_DEFAULT_WHATSAPP || '201553538819').replace(/\\D/g, '');
-  const bookingUrl = `https://wa.me/${wa}?text=${encodeURIComponent(prices.whatsappMessage || 'Halo, saya ingin booking sesi foto.')}`;
+  const bookingUrl = '/booking';
 
   const { data: portfolioSetting } = await supabase.from('settings').select('value').eq('key', 'portfolio_categories').maybeSingle();
   let categories = [];
@@ -56,7 +56,7 @@ export default async function PricelistPage() {
         <HeroSlideshow images={backgroundPhotos} interval={12000} />
         <div className="absolute inset-0 bg-[#faf9f6]/80 backdrop-blur-[5px] dark:bg-[#11110f]/80" />
       </div>
-      <AppHeader navigation={<><a href="/" className="hover:text-amber-700">Home</a><a href="/pricelist" className="text-amber-700 dark:text-amber-400">Pricelist</a><a href="/#portfolio" className="hover:text-amber-700">Portfolio</a><a href="/#services" className="hover:text-amber-700">Service</a><a href="/#contact" className="hover:text-amber-700">Contact</a></>} actions={<a href="/admin" className="rounded-full bg-black px-4 py-2 text-sm text-white dark:bg-stone-100 dark:text-neutral-900">Dashboard</a>} />
+      <AppHeader navigation={<><a href="/" className="hover:text-amber-700">Home</a><a href="/pricelist" className="text-amber-700 dark:text-amber-400">Pricelist</a><a href="/booking" className="hover:text-amber-700">Booking</a><a href="/#portfolio" className="hover:text-amber-700">Portfolio</a><a href="/#services" className="hover:text-amber-700">Service</a><a href="/#contact" className="hover:text-amber-700">Contact</a></>} actions={<a href="/admin" className="rounded-full bg-black px-4 py-2 text-sm text-white dark:bg-stone-100 dark:text-neutral-900">Dashboard</a>} />
       <section className="mx-auto max-w-7xl px-6 pb-16 pt-20 md:pt-28">
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-xs uppercase tracking-[0.3em] text-amber-800 dark:text-amber-400">Photography & Visual Stories · Pricing</p>
@@ -68,7 +68,7 @@ export default async function PricelistPage() {
             <p className="text-xs uppercase tracking-[0.2em] text-neutral-400">{item.detail}</p><h2 className="mt-3 text-xl font-medium">{item.name}</h2><p className="mt-5 font-serif text-3xl">{item.price}</p>
             <div className="mt-6 space-y-3 border-t border-black/10 pt-5 text-sm text-neutral-600 dark:border-white/10 dark:text-neutral-300">
               {[item.duration,item.locations,item.photos,item.extras].filter(Boolean).map((feature,j)=><p key={j} className="flex gap-2"><span className="text-amber-700">✦</span>{feature}</p>)}
-            </div><a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="mt-7 rounded-full bg-black px-5 py-3 text-center text-sm text-white transition hover:bg-neutral-700 dark:bg-stone-100 dark:text-neutral-900">Book Package ↗</a>
+            </div><a href={bookingUrl} className="mt-7 rounded-full bg-black px-5 py-3 text-center text-sm text-white transition hover:bg-neutral-700 dark:bg-stone-100 dark:text-neutral-900">Book Package ↗</a>
           </article>)}
         </div>
         <section className="mt-20 grid gap-12 md:grid-cols-[0.8fr_1.2fr]">
