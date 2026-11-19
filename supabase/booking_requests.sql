@@ -21,13 +21,7 @@ create table if not exists public.booking_requests (
 );
 alter table public.booking_requests enable row level security;
 drop policy if exists "Public can submit booking requests" on public.booking_requests;
-create policy "Public can submit booking requests" on public.booking_requests
-  for insert to anon, authenticated with check (status = 'pending');
-drop policy if exists "Admins can read booking requests" on public.booking_requests;
-create policy "Admins can read booking requests" on public.booking_requests
-  for select to authenticated using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin'));
-drop policy if exists "Admins can update booking requests" on public.booking_requests;
-create policy "Admins can update booking requests" on public.booking_requests
-  for update to authenticated using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')) with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin'));
-grant insert on public.booking_requests to anon, authenticated;
+-- Public inserts are handled by the server API using the service-role key.
+revoke insert on public.booking_requests from anon, authenticated;
+grant insert on public.booking_requests to service_role;
 grant select, update on public.booking_requests to authenticated;
