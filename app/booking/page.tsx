@@ -67,8 +67,21 @@ export default function BookingPage() {
   return (
     <main className="min-h-screen bg-[#faf9f6] text-[#1c1c1c] dark:bg-[#11110f] dark:text-stone-100">
       <AppHeader
-        navigation={<><Link href="/">Home</Link><Link href="/pricelist">Pricelist</Link><span className="text-amber-700">Booking</span></>}
-        actions={<Link href="/pricelist" className="text-sm">Price details ↗</Link>}
+        navigation={
+          <>
+            <Link href="/" className="transition-colors hover:text-amber-700 dark:text-stone-300 dark:hover:text-amber-400">Home</Link>
+            <Link href="/pricelist" className="transition-colors hover:text-amber-700 dark:text-stone-300 dark:hover:text-amber-400">Pricelist</Link>
+            <span aria-current="page" className="font-medium text-amber-700 dark:text-amber-400">Booking</span>
+            <Link href="/#portfolio" className="transition-colors hover:text-amber-700 dark:text-stone-300 dark:hover:text-amber-400">Portfolio</Link>
+            <Link href="/#services" className="transition-colors hover:text-amber-700 dark:text-stone-300 dark:hover:text-amber-400">Service</Link>
+            <Link href="/#contact" className="transition-colors hover:text-amber-700 dark:text-stone-300 dark:hover:text-amber-400">Contact</Link>
+          </>
+        }
+        actions={
+          <Link href="/admin" className="rounded-full bg-black px-4 py-2 text-sm text-white transition hover:bg-neutral-700 dark:bg-stone-100 dark:text-neutral-900">
+            Dashboard
+          </Link>
+        }
       />
       <section className="mx-auto max-w-6xl px-5 py-12 md:py-20">
         <div className="mb-10 max-w-2xl">
