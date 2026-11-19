@@ -88,7 +88,7 @@ export default function HomePage() {
   const [loading, setLoading]         = useState<boolean>(false);
   const [clientsList, setClientsList] = useState<ClientItem[]>([]);
   const [fetchingClients, setFetchingClients] = useState<boolean>(false);
-  const [adminInfo, setAdminInfo] = useState({ name: 'Admin Pilihin Fotomu', whatsapp: DEFAULT_WHATSAPP_NUMBER });
+  const [adminInfo, setAdminInfo] = useState({ name: 'Admin inStories creative', whatsapp: DEFAULT_WHATSAPP_NUMBER });
   const [isProfileOpen, setIsProfileOpen]   = useState<boolean>(false);
   const [isNotifOpen, setIsNotifOpen]       = useState<boolean>(false);
   const [notifications, setNotifications]   = useState<NotificationItem[]>([]);
