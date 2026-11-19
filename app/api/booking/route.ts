@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     const requestedParticipants = Number.isFinite(requestedParticipantsRaw) ? Math.max(11,Math.min(100,Math.floor(requestedParticipantsRaw))) : 11;
     const participants = packageKey==='extended' ? requestedParticipants : packageKey==='duo' ? 2 : packageKey==='group' ? 3 : packageKey==='large' ? 6 : 1;
     const notes = String(body.notes||'').trim().slice(0,1000);
-    const addonKeys = Array.isArray(body.addons) ? [...new Set(body.addons.filter((x:string)=>typeof x==='string'&&Object.prototype.hasOwnProperty.call(ADDONS,x)))] : [];
+    const addonKeys: string[] = Array.isArray(body.addons) ? Array.from(new Set((body.addons as unknown[]).filter((x): x is string => typeof x === 'string' && Object.prototype.hasOwnProperty.call(ADDONS, x)))) : [];
     if(name.length<2 || whatsapp.length<8 || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time) || locations.length===0 || !PACKAGES[packageKey]) return NextResponse.json({error:'Periksa kembali data nama, WhatsApp, jadwal, lokasi, dan paket.'},{status:400});
     const selected = PACKAGES[packageKey];
     const base = packageKey==='extended' ? selected.price*participants : selected.price;
