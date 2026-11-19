@@ -12,12 +12,19 @@ export default function AppHeader({ navigation, actions }: AppHeaderProps) {
     <header className="sticky top-0 z-50 w-full border-b border-black/10 bg-[#faf9f6]/95 px-4 backdrop-blur-md dark:border-white/10 dark:bg-[#11110f]/95 sm:px-6">
       <div className="mx-auto max-w-7xl">
         <div className="flex min-h-[4.5rem] items-center justify-between gap-3">
-          <Link href="/" className="flex w-fit shrink-0 flex-col leading-tight">
-            <span className="font-serif text-xl font-bold italic tracking-tight text-gray-900 dark:text-white sm:text-2xl">
-              Pilihin Fotomu<span className="text-amber-700">.</span>
-            </span>
-            <span className="mt-1 text-[9px] font-semibold uppercase tracking-[0.2em] text-gray-400">
-              by Abazic
+          <Link href="/" className="flex w-fit shrink-0 items-center gap-2 leading-tight">
+            <img
+              src="/instories.svg"
+              alt="Logo Pilihin Fotomu"
+              className="h-10 w-7 shrink-0 object-contain"
+            />
+            <span className="flex flex-col">
+              <span className="font-serif text-xl font-bold italic tracking-tight text-gray-900 dark:text-white sm:text-2xl">
+                Pilihin Fotomu<span className="text-amber-700">.</span>
+              </span>
+              <span className="mt-1 text-[9px] font-semibold uppercase tracking-[0.2em] text-gray-400">
+                by Abazic
+              </span>
             </span>
           </Link>
 
