@@ -19,6 +19,38 @@ const addons = [
   { id: 'same_day', name: 'Same Day Edit', price: 300000 },
 ];
 const money = (n: number) => 'Rp ' + n.toLocaleString('id-ID');
+const countryOptions = [
+  { name: 'Indonesia', code: '+62' },
+  { name: 'Malaysia', code: '+60' },
+  { name: 'Singapore', code: '+65' },
+  { name: 'Brunei', code: '+673' },
+  { name: 'Thailand', code: '+66' },
+  { name: 'Vietnam', code: '+84' },
+  { name: 'Philippines', code: '+63' },
+  { name: 'India', code: '+91' },
+  { name: 'Pakistan', code: '+92' },
+  { name: 'Bangladesh', code: '+880' },
+  { name: 'United Arab Emirates', code: '+971' },
+  { name: 'Saudi Arabia', code: '+966' },
+  { name: 'Egypt', code: '+20' },
+  { name: 'Turkey', code: '+90' },
+  { name: 'United Kingdom', code: '+44' },
+  { name: 'United States', code: '+1' },
+  { name: 'Canada', code: '+1' },
+  { name: 'Australia', code: '+61' },
+  { name: 'New Zealand', code: '+64' },
+  { name: 'Japan', code: '+81' },
+  { name: 'South Korea', code: '+82' },
+  { name: 'China', code: '+86' },
+  { name: 'Germany', code: '+49' },
+  { name: 'France', code: '+33' },
+  { name: 'Netherlands', code: '+31' },
+  { name: 'Italy', code: '+39' },
+  { name: 'Spain', code: '+34' },
+  { name: 'Brazil', code: '+55' },
+  { name: 'South Africa', code: '+27' },
+];
+
 
 export default function BookingPage() {
   const [name, setName] = useState('');
@@ -114,11 +146,32 @@ export default function BookingPage() {
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <label className="text-sm">Nama lengkap<input className={field} value={name} onChange={(e) => setName(e.target.value)} required minLength={2} placeholder="Nama kamu" /></label>
                 <label className="text-sm">WhatsApp <span className="text-neutral-400">(kode negara)</span>
-                  <div className="mt-2 flex gap-2">
-                    <input className={field + ' mt-0 w-24 shrink-0 text-center'} value={countryCode} onChange={(e) => setCountryCode('+' + e.target.value.replace(/\\D/g, '').slice(0, 4))} required type="tel" inputMode="tel" aria-label="Kode negara WhatsApp" placeholder="+62" maxLength={5} />
-                    <input className={field + ' mt-0'} value={wa} onChange={(e) => setWa(e.target.value.replace(/\\D/g, '').slice(0, 14))} required placeholder="81234567890" inputMode="numeric" type="tel" minLength={6} maxLength={14} aria-describedby="whatsapp-hint" />
+                  <div className="mt-2 grid grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] gap-2">
+                    <select
+                      className={field + ' mt-0 min-w-0 cursor-pointer px-3'}
+                      value={countryCode}
+                      onChange={(e) => setCountryCode(e.target.value)}
+                      required
+                      aria-label="Pilih kode negara WhatsApp"
+                    >
+                      {countryOptions.map((country) => (
+                        <option key={country.name} value={country.code}>{country.name} ({country.code})</option>
+                      ))}
+                    </select>
+                    <input
+                      className={field + ' mt-0 min-w-0'}
+                      value={wa}
+                      onChange={(e) => setWa(e.target.value.replace(/\D/g, '').slice(0, 14))}
+                      required
+                      placeholder="Nomor WhatsApp"
+                      inputMode="numeric"
+                      type="tel"
+                      minLength={6}
+                      maxLength={14}
+                      aria-describedby="whatsapp-hint"
+                    />
                   </div>
-                  <span id="whatsapp-hint" className="mt-1 block text-xs text-neutral-400">Kode negara bisa diubah (contoh +62, +1, +44). Masukkan nomor lokal tanpa kode negara.</span>
+                  <span id="whatsapp-hint" className="mt-1 block text-xs text-neutral-400">Pilih negara, lalu masukkan nomor lokal tanpa kode negara atau angka 0 di depan.</span>
                 </label>
                 <label className="text-sm">Tanggal<input className={field} type="date" value={date} min={new Date().toISOString().slice(0, 10)} onChange={(e) => setDate(e.target.value)} required /></label>
                 <label className="text-sm">Jam mulai<input className={field} type="time" value={time} onChange={(e) => setTime(e.target.value)} required /></label>
