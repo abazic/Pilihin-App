@@ -48,7 +48,7 @@ export default function HeroSlideshow({ images, interval = 12000 }: HeroSlidesho
       className="absolute inset-0 select-none"
       onContextMenu={(event) => event.preventDefault()}
       onDragStart={(event) => event.preventDefault()}
-      aria-label="Pilihin Fotomu portfolio slideshow"
+      aria-label="inStories creative portfolio slideshow"
     >
       {previousIndex !== null && images[previousIndex] && (
         <img
@@ -62,7 +62,7 @@ export default function HeroSlideshow({ images, interval = 12000 }: HeroSlidesho
       <img
         key={image}
         src={image}
-        alt="Pilihin Fotomu portfolio photography"
+        alt="inStories creative portfolio photography"
         draggable={false}
         className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-[1800ms] ease-in-out ${previousIndex !== null && !isFading ? 'opacity-0' : 'opacity-100'}`}
       />
