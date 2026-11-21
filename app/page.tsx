@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { getPhotosPageFromGDrive } from '@/lib/gdrive';
 import HeroSlideshow from '@/components/HeroSlideshow';
 import PortfolioImage from '@/components/PortfolioImage';
-import { Globe, MessageCircle } from 'lucide-react';
+import { Camera, Globe, MessageCircle } from 'lucide-react';
 export default async function HomePage() {
   const supabase = await createClient();
 
@@ -214,9 +214,27 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
 
 
       
-<footer id="contact" className="border-t border-black/10 px-6 py-12 dark:border-white/10">
-  <div className="mx-auto flex max-w-7xl flex-col gap-8 md:flex-row md:items-center md:justify-between">
-    <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
+<footer id="contact" className="border-t border-black/10 px-6 py-10 dark:border-white/10">
+  <div className="mx-auto max-w-7xl">
+    <div className="flex items-center justify-between gap-6">
+      <div className="flex items-center gap-3">
+        <div aria-hidden="true" className="flex h-12 w-12 items-center justify-center rounded-xl bg-black text-white dark:bg-stone-100 dark:text-neutral-900">
+          <Camera size={25} strokeWidth={1.7} />
+        </div>
+        <div className="leading-tight">
+          <p className="font-raleway text-xl font-bold tracking-tight text-gray-900 dark:text-white">inStories</p>
+          <p className="font-raleway text-sm tracking-wide text-neutral-500 dark:text-neutral-400">creative</p>
+        </div>
+      </div>
+
+      <a href={whatsappContactUrl} target="_blank" rel="noopener noreferrer"
+        aria-label="Chat melalui WhatsApp" title="Chat melalui WhatsApp"
+        className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-600 text-white transition hover:bg-green-700">
+        <MessageCircle size={23} strokeWidth={1.9} />
+      </a>
+    </div>
+
+    <div className="mt-8 flex flex-col items-start gap-4">
       {socialLinks.map((social, index) => {
         let host = '';
         try { host = new URL(social.url).hostname.toLowerCase().replace(/^www\\./, ''); } catch {}
@@ -234,7 +252,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
         return (
           <a key={`${social.url}-${index}`} href={social.url} target="_blank" rel="noopener noreferrer"
             aria-label={accountName} title={accountName}
-            className="inline-flex items-center gap-2 text-sm text-neutral-600 transition hover:text-amber-700 dark:text-neutral-300 dark:hover:text-amber-400">
+            className="inline-flex items-center gap-3 text-sm text-neutral-600 transition hover:text-amber-700 dark:text-neutral-300 dark:hover:text-amber-400">
             {iconSlug ? (
               <img src={`https://cdn.simpleicons.org/${iconSlug}`} alt="" aria-hidden="true" width="19" height="19" className="h-[19px] w-[19px] object-contain dark:brightness-0 dark:invert" />
             ) : <Globe size={19} strokeWidth={1.8} />}
@@ -244,17 +262,11 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
       })}
     </div>
 
-    <a href={whatsappContactUrl} target="_blank" rel="noopener noreferrer"
-      className="inline-flex items-center gap-2 self-start text-sm font-medium text-green-700 transition hover:text-green-800 md:self-auto dark:text-green-400 dark:hover:text-green-300">
-      <MessageCircle size={20} strokeWidth={1.8} />
-      <span>Chat Admin WhatsApp</span>
-      <span aria-hidden="true">↗</span>
-    </a>
-  </div>
-  <div className="mx-auto mt-10 max-w-7xl border-t border-black/10 pt-5 text-xs text-neutral-500 dark:border-white/10">
-    <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
-      <p>© {new Date().getFullYear()} inStories creative</p>
-      <p>Capturing moments, preserving memories.</p>
+    <div className="mt-9 border-t border-black/10 pt-5 text-xs text-neutral-500 dark:border-white/10">
+      <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
+        <p>© {new Date().getFullYear()} inStories creative</p>
+        <p>Capturing moments, preserving memories.</p>
+      </div>
     </div>
   </div>
 </footer>
