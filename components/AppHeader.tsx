@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react';
+'use client';
+
+import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import ThemeToggle from '@/components/ThemeToggle';
 
@@ -8,8 +10,23 @@ interface AppHeaderProps {
 }
 
 export default function AppHeader({ navigation, actions }: AppHeaderProps) {
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 12);
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-black/10 bg-[#faf9f6]/95 px-4 backdrop-blur-md dark:border-white/10 dark:bg-[#11110f]/95 sm:px-6">
+    <header
+      className={`sticky top-0 z-50 w-full border-b px-4 transition-all duration-300 sm:px-6 ${
+        isScrolled
+          ? 'border-black/10 bg-[#faf9f6]/90 shadow-sm backdrop-blur-xl dark:border-white/10 dark:bg-[#11110f]/90'
+          : 'border-transparent bg-gradient-to-b from-[#faf9f6]/90 via-[#faf9f6]/55 to-transparent backdrop-blur-[2px] dark:from-[#11110f]/90 dark:via-[#11110f]/55 dark:to-transparent'
+      }`}
+    >
       <div className="mx-auto max-w-7xl">
         <div className="flex min-h-[4.5rem] items-center justify-between gap-3">
           <Link href="/" className="flex w-fit shrink-0 items-center gap-2 leading-tight">
@@ -32,7 +49,11 @@ export default function AppHeader({ navigation, actions }: AppHeaderProps) {
         </div>
 
         {navigation && (
-          <nav className="flex min-h-11 w-full items-center justify-center gap-5 overflow-x-auto border-t border-black/5 px-1 py-2 text-xs whitespace-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden dark:border-white/10 sm:gap-8 sm:text-sm">
+          <nav className={`flex min-h-11 w-full items-center justify-center gap-5 overflow-x-auto border-t px-1 py-2 text-xs whitespace-nowrap transition-colors duration-300 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-8 sm:text-sm ${
+            isScrolled
+              ? 'border-black/5 dark:border-white/10'
+              : 'border-transparent'
+          }`}>
             {navigation}
           </nav>
         )}
