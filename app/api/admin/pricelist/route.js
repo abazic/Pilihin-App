@@ -47,7 +47,10 @@ function normalizePricelist(value) {
       photoPackages: (oldPhoto && oldPhoto.items) || parsed.packages || [{"name":"Solo Graduate","price":"Rp 250K","detail":"1 Graduate","duration":"1 jam","locations":"1 lokasi","photos":"20 foto edited","extras":"Unlimited shots"},{"name":"Duo Graduate","price":"Rp 400K","detail":"2 Graduates","duration":"2 jam","locations":"2 lokasi","photos":"30 foto edited","extras":"Unlimited shots"},{"name":"Group Session","price":"Rp 700K","detail":"3–5 Graduates","duration":"2 jam","locations":"2 lokasi","photos":"60 foto edited","extras":"Unlimited shots"},{"name":"Large Group","price":"Rp 900K","detail":"6–10 Graduates","duration":"2 jam","locations":"2 lokasi","photos":"100 foto edited","extras":"Unlimited shots"},{"name":"Extended Group","price":"Rp 100K/person","detail":">10 Graduates","duration":"3–4 jam","locations":"1 lokasi","photos":"100 foto edited","extras":"Unlimited shots"}],
       videoPackages: (oldVideo && oldVideo.items) || (parsed.video && parsed.video.name ? [{name:parsed.video.name,price:parsed.video.price,detail:parsed.video.description,duration:parsed.video.duration}] : [{"name":"Shoot & Edit","price":"Rp 600K","detail":"Video dokumentasi graduation"}]),
       addons: (oldAddons && oldAddons.items) || parsed.addons || [{"name":"Extra 60 menit","price":"+Rp 100K"},{"name":"Extra lokasi","price":"+Rp 100K"},{"name":"Extra 10 foto edited","price":"+Rp 50K"},{"name":"Same Day Edit","price":"+Rp 300K"},{"name":"Family >5 orang","price":"+Rp 50K/orang"}]
-    }];
+    },
+    { id: 'wedding-events', title: 'Wedding & Events', description: 'Dokumentasi foto dan video untuk pernikahan serta berbagai acara.', showInService: true, photoPackages: [], videoPackages: [], addons: [] },
+    { id: 'personal-projects', title: 'Personal Projects', description: 'Sesi fotografi dan videografi untuk kebutuhan personal maupun kreatif.', showInService: true, photoPackages: [], videoPackages: [], addons: [] }
+  ];
   }
   return { ...parsed, services: services.map((service, index) => ({
     id: String((service && service.id) || 'service-' + index),
