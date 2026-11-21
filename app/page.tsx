@@ -108,7 +108,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
         }
       />
 
-      <section className="relative isolate mx-auto max-w-7xl overflow-hidden px-6 py-16 md:min-h-[720px] md:py-24">
+      <section className="relative isolate mx-auto -mt-[8.25rem] max-w-7xl overflow-hidden px-6 pt-[calc(4rem+8.25rem)] pb-16 md:min-h-[720px] md:pt-[calc(6rem+8.25rem)] md:pb-24">
         <div className="absolute inset-y-0 right-0 w-full md:w-[72%]">
           <div className="absolute inset-0">
             <HeroSlideshow images={heroPhotos} interval={12000} />
