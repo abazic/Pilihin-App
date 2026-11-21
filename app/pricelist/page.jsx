@@ -63,7 +63,9 @@ function normalizePricelist(value) {
   })) };
 }
 
-export default async function PricelistPage() {
+export default async function PricelistPage({ searchParams }) {
+  const params = await searchParams;
+  const selectedServiceId = typeof params?.service === 'string' ? params.service : '';
   const supabase = await createClient();
   const { data } = await supabase.from('settings').select('value').eq('key', 'pricelist_content').maybeSingle();
   const prices = normalizePricelist(data?.value);
@@ -100,8 +102,9 @@ export default async function PricelistPage() {
           <h1 className="mt-5 font-serif text-4xl font-medium tracking-tight md:text-6xl">{prices.title}</h1>
           <p className="mx-auto mt-6 max-w-xl text-sm leading-7 text-neutral-500 dark:text-neutral-400">{prices.subtitle}</p>
         </div>
+        {selectedServiceId && <div className="mt-8 text-center"><a href="/pricelist" className="text-sm text-amber-800 underline underline-offset-4 dark:text-amber-400">← Lihat semua service</a></div>}
         <div className="mt-14 space-y-16">
-          {prices.services.map((service,serviceIndex)=><section key={service.id||serviceIndex}>
+          {(selectedServiceId ? prices.services.filter(service => service.id === selectedServiceId) : prices.services).map((service,serviceIndex)=><section id={service.id} key={service.id||serviceIndex}>
             <div className="mb-6 border-b border-black/10 pb-4 dark:border-white/10"><p className="text-xs uppercase tracking-[0.25em] text-neutral-400">Service {String(serviceIndex+1).padStart(2,'0')}</p><h2 className="mt-2 font-serif text-3xl md:text-4xl">{service.title}</h2>{service.description&&<p className="mt-2 max-w-2xl text-sm leading-7 text-neutral-500 dark:text-neutral-400">{service.description}</p>}</div>
             {([['photoPackages','Photo Packages'],['videoPackages','Video Packages']]).map(([field,heading])=><div className="mt-8" key={field}><h3 className="mb-5 text-lg font-medium">{heading}</h3>{service[field]?.length?<div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{service[field].map((item,i)=><article key={i} className="flex flex-col rounded-2xl border border-black/10 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-[#1b1b18]">{item.detail&&<p className="text-xs uppercase tracking-[0.2em] text-neutral-400">{item.detail}</p>}<h4 className="mt-3 text-xl font-medium">{item.name}</h4>{item.price&&<p className="mt-5 font-serif text-3xl">{item.price}</p>}<div className="mt-6 space-y-3 border-t border-black/10 pt-5 text-sm text-neutral-600 dark:border-white/10 dark:text-neutral-300">{[item.duration,item.locations,item.photos,item.extras].filter(Boolean).map((feature,j)=><p key={j}>✦ {feature}</p>)}</div><a href={bookingUrl} className="mt-7 rounded-full bg-black px-5 py-3 text-center text-sm text-white transition hover:bg-neutral-700 dark:bg-stone-100 dark:text-neutral-900">Book Service ↗</a></article>)}</div>:<p className="text-sm text-neutral-400">Paket {heading.toLowerCase()} segera tersedia.</p>}</div>)}
             {service.addons?.length>0&&<div className="mt-8 border-t border-black/10 pt-5 dark:border-white/10"><h3 className="mb-3 text-sm font-medium">Add-ons</h3><div className="flex flex-wrap gap-2">{service.addons.map((item,i)=><span key={i} className="rounded-full border border-black/10 px-4 py-2 text-xs dark:border-white/10">{item.name}{item.price?' · '+item.price:''}</span>)}</div></div>}
