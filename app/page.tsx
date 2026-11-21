@@ -217,15 +217,15 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
 <footer id="contact" className="border-t border-black/10 px-6 py-10 dark:border-white/10">
   <div className="mx-auto max-w-7xl">
     <div className="flex items-center justify-between gap-6">
-      <Link href="/" className="flex w-fit shrink-0 items-center gap-2 leading-tight">
+      <Link href="/" className="flex w-fit shrink-0 items-center gap-3 leading-none">
         <img
           src="/instories.svg"
           alt="Logo inStories creative"
-          className="h-10 w-7 shrink-0 object-contain transition-[filter] duration-200 dark:invert"
+          className="h-14 w-10 shrink-0 object-contain transition-[filter] duration-200 dark:invert sm:h-16 sm:w-11"
         />
-        <span className="flex flex-col">
-          <span className="font-raleway text-xl tracking-tight text-gray-900 dark:text-white">in<span className="font-bold">Stories</span></span>
-          <span className="font-raleway text-sm tracking-tight text-gray-900 dark:text-white">creative</span>
+        <span className="flex flex-col gap-0.5">
+          <span className="font-raleway text-2xl tracking-tight text-gray-900 dark:text-white sm:text-3xl">in<span className="font-bold">Stories</span></span>
+          <span className="font-raleway text-base tracking-tight text-gray-900 dark:text-white sm:text-lg">creative</span>
         </span>
       </Link>
 
