@@ -49,7 +49,7 @@ export default function AppHeader({ navigation, actions }: AppHeaderProps) {
         </div>
 
         {navigation && (
-          <nav className="flex min-h-11 w-full items-center justify-center gap-2 overflow-x-auto px-1 py-2 text-xs whitespace-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-3 sm:text-sm [&>a]:rounded-full [&>a]:px-3 [&>a]:py-2 [&>a]:transition-colors [&>a:hover]:bg-black/5 dark:[&>a:hover]:bg-white/10 [&>span]:rounded-full [&>span]:bg-amber-700/10 [&>span]:px-3 [&>span]:py-2 [&>button]:rounded-full [&>button]:px-3 [&>button]:py-2 [&>button]:transition-colors [&>button:hover]:bg-black/5 dark:[&>button:hover]:bg-white/10"
+          <nav className="flex min-h-11 w-full items-center justify-center gap-2 overflow-x-auto px-1 py-2 text-xs whitespace-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-3 sm:text-sm [&>a]:rounded-full [&>a]:border [&>a]:border-black/10 [&>a]:bg-black/[0.035] [&>a]:px-3 [&>a]:py-2 [&>a]:transition-all [&>a:hover]:border-amber-700/25 [&>a:hover]:bg-amber-700/10 dark:[&>a]:border-white/10 dark:[&>a]:bg-white/[0.06] dark:[&>a:hover]:bg-white/10 [&>span]:rounded-full [&>span]:border [&>span]:border-amber-700/30 [&>span]:bg-amber-700/15 [&>span]:px-3 [&>span]:py-2 [&>span]:font-medium [&>span]:text-amber-800 dark:[&>span]:border-amber-400/25 dark:[&>span]:bg-amber-400/10 dark:[&>span]:text-amber-300 [&>button]:rounded-full [&>button]:border [&>button]:border-black/10 [&>button]:bg-black/[0.035] [&>button]:px-3 [&>button]:py-2 [&>button]:transition-all [&>button:hover]:border-amber-700/25 [&>button:hover]:bg-amber-700/10 dark:[&>button]:border-white/10 dark:[&>button]:bg-white/[0.06] dark:[&>button:hover]:bg-white/10"
           >
             {navigation}
           </nav>
