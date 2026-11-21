@@ -99,6 +99,9 @@ export default function BroadcastModal({
     selected.forEach(client => {
       const galleryUrl = `${appBaseUrl}/gallery/${client.slug}`;
       message += `\n📸 *${client.client_name}*\n${galleryUrl}`;
+      if (client.max_photos !== null && client.max_photos !== undefined && Number.isFinite(Number(client.max_photos))) {
+        message += `\nMaksimal *${Number(client.max_photos)} foto*`;
+      }
     });
 
     message += defaultTemplate.instruction;
