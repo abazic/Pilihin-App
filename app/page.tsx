@@ -20,6 +20,17 @@ const whatsappNumber = (
 ).replace(/\D/g, '');
 
 const whatsappUrl = `https://wa.me/${whatsappNumber}`;
+const { data: pricelistSetting } = await supabase.from('settings').select('value').eq('key', 'pricelist_content').maybeSingle();
+const DEFAULT_SERVICE_SECTIONS = {
+  packages: { title: 'Photo Packages', description: 'Pilihan paket fotografi yang tersedia.', showInService: true },
+  video: { title: 'Video Package', description: 'Layanan dokumentasi video.', showInService: true },
+  addons: { title: 'Add-ons', description: 'Layanan tambahan untuk melengkapi sesi foto.', showInService: true },
+};
+let servicePricelist = { packages: [], addons: [], video: {}, serviceSections: DEFAULT_SERVICE_SECTIONS };
+try {
+  const parsed = typeof pricelistSetting?.value === 'string' ? JSON.parse(pricelistSetting.value) : (pricelistSetting?.value || {});
+  servicePricelist = { ...servicePricelist, ...parsed, serviceSections: { ...DEFAULT_SERVICE_SECTIONS, ...(parsed.serviceSections || {}) } };
+} catch {}
   const whatsappMessage = encodeURIComponent(
   'Halo inStories creative, saya ingin bertanya tentang layanan fotografi.'
 );
@@ -185,49 +196,26 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
       
 <section id="services" className="bg-[#f1efe9] dark:bg-[#1c1c19] px-6 py-24">
   <div className="mx-auto max-w-7xl">
-    <p className="text-xs uppercase tracking-[0.25em] text-neutral-400">
-      What We Do
-    </p>
-
+    <p className="text-xs uppercase tracking-[0.25em] text-neutral-400">What We Do</p>
     <div className="mt-4 flex flex-col justify-between gap-6 md:flex-row md:items-end">
-      <h2 className="max-w-xl text-4xl font-medium leading-tight md:text-6xl">
-        Photography for every chapter of your story.
-      </h2>
-
-      <p className="max-w-sm text-sm leading-7 text-neutral-500">
-        From intimate celebrations to meaningful milestones,
-        we capture every moment with intention.
-      </p>
+      <h2 className="max-w-xl text-4xl font-medium leading-tight md:text-6xl">Photography for every chapter of your story.</h2>
+      <p className="max-w-sm text-sm leading-7 text-neutral-500">Layanan dan pilihan paket yang tersedia di Pricelist.</p>
     </div>
-
-    <div className="mt-16 grid gap-10 border-t border-black/15 dark:border-white/15 pt-8 md:grid-cols-3">
-      <div>
-        <span className="text-xs text-neutral-400">01 / GRADUATION</span>
-        <h3 className="mt-5 text-2xl font-medium">Graduation Photography</h3>
-        <p className="mt-4 text-sm leading-7 text-neutral-500">
-          Mengabadikan momen kelulusan, mulai dari potret wisuda
-          hingga kebersamaan bersama keluarga dan sahabat.
-        </p>
-      </div>
-
-      <div>
-        <span className="text-xs text-neutral-400">02 / WEDDING</span>
-        <h3 className="mt-5 text-2xl font-medium">Wedding Photography</h3>
-        <p className="mt-4 text-sm leading-7 text-neutral-500">
-          Mengabadikan setiap momen pernikahan, mulai dari detail kecil
-          hingga momen paling berharga.
-        </p>
-      </div>
-
-      <div>
-        <span className="text-xs text-neutral-400">03 / EVENT</span>
-        <h3 className="mt-5 text-2xl font-medium">Event Photography</h3>
-        <p className="mt-4 text-sm leading-7 text-neutral-500">
-          Dokumentasi acara dan perayaan dengan pendekatan visual
-          yang natural dan bercerita.
-        </p>
-      </div>
+    <div className="mt-16 space-y-14 border-t border-black/15 pt-8 dark:border-white/15">
+      {servicePricelist.serviceSections.packages?.showInService && servicePricelist.packages?.length > 0 && <div>
+        <div className="mb-6"><h3 className="text-2xl font-medium">{servicePricelist.serviceSections.packages.title}</h3><p className="mt-2 max-w-2xl text-sm leading-7 text-neutral-500">{servicePricelist.serviceSections.packages.description}</p></div>
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{servicePricelist.packages.filter(item=>item?.name).map((item,index)=><article key={`package-${index}`} className="rounded-xl border border-black/10 bg-white/60 p-5 dark:border-white/10 dark:bg-black/10"><p className="text-xs text-neutral-400">{item.detail}</p><h4 className="mt-2 text-xl font-medium">{item.name}</h4>{item.price&&<p className="mt-3 text-lg font-medium text-amber-800 dark:text-amber-400">{item.price}</p>}<div className="mt-3 space-y-1 text-sm text-neutral-500">{[item.duration,item.locations,item.photos,item.extras].filter(Boolean).map((feature,i)=><p key={i}>✦ {feature}</p>)}</div></article>)}</div>
+      </div>}
+      {servicePricelist.serviceSections.video?.showInService && servicePricelist.video?.name && <div className="grid gap-5 rounded-xl border border-black/10 bg-white/60 p-6 dark:border-white/10 dark:bg-black/10 md:grid-cols-[1fr_auto] md:items-center">
+        <div><h3 className="text-2xl font-medium">{servicePricelist.serviceSections.video.title || 'Video Package'}</h3><p className="mt-2 text-sm text-neutral-500">{servicePricelist.serviceSections.video.description}</p><h4 className="mt-4 text-lg font-medium">{servicePricelist.video.name}</h4>{servicePricelist.video.description&&<p className="mt-1 text-sm text-neutral-500">{servicePricelist.video.description}</p>}{servicePricelist.video.duration&&<p className="mt-1 text-sm text-neutral-500">Durasi: {servicePricelist.video.duration}</p>}</div>
+        <p className="text-2xl font-medium text-amber-800 dark:text-amber-400">{servicePricelist.video.price}</p>
+      </div>}
+      {servicePricelist.serviceSections.addons?.showInService && servicePricelist.addons?.length > 0 && <div>
+        <div className="mb-5"><h3 className="text-2xl font-medium">{servicePricelist.serviceSections.addons.title}</h3><p className="mt-2 max-w-2xl text-sm leading-7 text-neutral-500">{servicePricelist.serviceSections.addons.description}</p></div>
+        <div className="grid gap-x-8 sm:grid-cols-2 lg:grid-cols-3">{servicePricelist.addons.filter(item=>item?.name).map((item,index)=><div key={`addon-${index}`} className="flex items-center justify-between gap-4 border-b border-black/10 py-4 text-sm dark:border-white/10"><span>{item.name}</span><span className="font-medium whitespace-nowrap">{item.price}</span></div>)}</div>
+      </div>}
     </div>
+    <div className="mt-12"><a href="/pricelist" className="inline-flex rounded-full border border-black/15 px-6 py-3 text-sm transition hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/5">Lihat Pricelist Lengkap ↗</a></div>
   </div>
 </section>
 
