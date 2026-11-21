@@ -92,6 +92,7 @@ function AdminBookingsPanel() {
   const [message, setMessage] = useState('');
   const [syncingSheets, setSyncingSheets] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const syncSheets = async () => {
     setSyncingSheets(true);
     try {
@@ -158,6 +159,16 @@ function AdminBookingsPanel() {
       setDeletingId(null);
     }
   };
+  const confirmedBookings = items.filter(item => item.status === 'confirmed');
+  const calendarYear = calendarMonth.getFullYear();
+  const calendarMonthIndex = calendarMonth.getMonth();
+  const calendarDays = new Date(calendarYear, calendarMonthIndex + 1, 0).getDate();
+  const calendarOffset = new Date(calendarYear, calendarMonthIndex, 1).getDay();
+  const bookingsByDate = confirmedBookings.reduce<Record<string, AdminBooking[]>>((groups, booking) => {
+    const dateKey = booking.session_date?.slice(0, 10);
+    if (dateKey) groups[dateKey] = [...(groups[dateKey] || []), booking];
+    return groups;
+  }, {});
   const money = (amount: number) => 'Rp ' + Number(amount || 0).toLocaleString('id-ID');
   const pill = (status: string) => 'rounded-full px-3 py-1 text-xs font-medium ' +
     (status === 'confirmed' ? 'bg-green-100 text-green-700' : status === 'rejected' ? 'bg-red-100 text-red-700' : status === 'completed' ? 'bg-neutral-200 text-neutral-700' : 'bg-amber-100 text-amber-800');
@@ -170,6 +181,35 @@ function AdminBookingsPanel() {
       <div className="grid gap-3 sm:grid-cols-4">
         {(['pending','confirmed','rejected','completed'] as const).map(status => <div key={status} className={`${CARD} rounded-xl p-4`}><p className="text-xs uppercase text-gray-500 dark:text-gray-400">{bookingStatusText[status]}</p><p className="mt-1 font-serif text-3xl">{items.filter(item => item.status === status).length}</p></div>)}
       </div>
+      <section className={`${CARD} rounded-2xl p-4 sm:p-5 space-y-4`}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div><h2 className="text-lg font-semibold text-gray-900 dark:text-white">Kalender Booking Terkonfirmasi</h2><p className="text-xs text-gray-500 dark:text-gray-400">Menampilkan jadwal booking dengan status Confirmed.</p></div>
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={() => setCalendarMonth(new Date(calendarYear, calendarMonthIndex - 1, 1))} className={`rounded-lg px-3 py-2 text-sm ${BTN_SECONDARY}`} aria-label="Bulan sebelumnya">‹</button>
+            <span className="min-w-32 text-center text-sm font-medium text-gray-800 dark:text-gray-200">{calendarMonth.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}</span>
+            <button type="button" onClick={() => setCalendarMonth(new Date(calendarYear, calendarMonthIndex + 1, 1))} className={`rounded-lg px-3 py-2 text-sm ${BTN_SECONDARY}`} aria-label="Bulan berikutnya">›</button>
+          </div>
+        </div>
+        <div className="grid grid-cols-7 gap-1 text-center">
+          {["Min","Sen","Sel","Rab","Kam","Jum","Sab"].map(day => <div key={day} className="py-2 text-[11px] font-semibold uppercase text-gray-400">{day}</div>)}
+          {Array.from({ length: calendarOffset }, (_, index) => <div key={`empty-${index}`} className="min-h-16 rounded-lg bg-gray-50/60 dark:bg-neutral-950/40 sm:min-h-24" />)}
+          {Array.from({ length: calendarDays }, (_, index) => {
+            const day = index + 1;
+            const dateKey = `${calendarYear}-${String(calendarMonthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+            const dayBookings = bookingsByDate[dateKey] || [];
+            const today = new Date();
+            const isToday = today.getFullYear() === calendarYear && today.getMonth() === calendarMonthIndex && today.getDate() === day;
+            return <div key={dateKey} className={`min-h-16 rounded-lg border p-1 text-left sm:min-h-24 sm:p-2 ${isToday ? "border-amber-500 bg-amber-50/60 dark:bg-amber-950/20" : "border-gray-100 dark:border-neutral-800"}`}>
+              <div className={`text-xs font-medium ${isToday ? "text-amber-700 dark:text-amber-400" : "text-gray-600 dark:text-gray-300"}`}>{day}</div>
+              <div className="mt-1 space-y-1">
+                {dayBookings.slice(0, 2).map(booking => <div key={booking.id} title={`${booking.customer_name} · ${booking.session_time}`} className="truncate rounded bg-green-100 px-1 py-1 text-[9px] leading-tight text-green-800 dark:bg-green-950/60 dark:text-green-300 sm:text-[11px]">{booking.session_time} {booking.customer_name}</div>)}
+                {dayBookings.length > 2 && <p className="px-1 text-[9px] text-gray-500">+{dayBookings.length - 2} lainnya</p>}
+              </div>
+            </div>;
+          })}
+        </div>
+        <p className="text-xs text-gray-500 dark:text-gray-400">{confirmedBookings.length} booking confirmed · Jadwal ditampilkan berdasarkan tanggal sesi.</p>
+      </section>
       <div className="flex flex-wrap gap-3">
         <input value={search} onChange={event => setSearch(event.target.value)} placeholder="Cari nama, kode booking, WhatsApp" className={`${INPUT} min-w-[220px] flex-1`} />
         <select value={filter} onChange={event => setFilter(event.target.value)} className={`${INPUT} sm:w-52`}><option value="all">Semua status</option>{Object.entries(bookingStatusText).map(([value,label]) => <option value={value} key={value}>{label}</option>)}</select>
