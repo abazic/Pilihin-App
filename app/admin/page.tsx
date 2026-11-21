@@ -36,7 +36,8 @@ const DEFAULT_PRICELIST = {
 };
 type PricePackage = { name: string; price: string; detail: string; duration: string; locations: string; photos: string; extras: string };
 type PriceAddon = { name: string; price: string };
-type ServiceSectionConfig = { title: string; description: string; showInService: boolean };\ntype PricelistData = { title: string; subtitle: string; packages: PricePackage[]; addons: PriceAddon[]; video: { name: string; price: string; duration?: string; description: string }; whatsappMessage: string; serviceSections: { packages: ServiceSectionConfig; video: ServiceSectionConfig; addons: ServiceSectionConfig } };
+type ServiceSectionConfig = { title: string; description: string; showInService: boolean };
+type PricelistData = { title: string; subtitle: string; packages: PricePackage[]; addons: PriceAddon[]; video: { name: string; price: string; duration?: string; description: string }; whatsappMessage: string; serviceSections: { packages: ServiceSectionConfig; video: ServiceSectionConfig; addons: ServiceSectionConfig } };
 
 // ─── Interface ────────────────────────────────────────────────────────────────
 interface FormDataState {
