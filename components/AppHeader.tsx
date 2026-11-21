@@ -50,6 +50,7 @@ export default function AppHeader({ navigation, actions }: AppHeaderProps) {
 
         {navigation && (
           <nav className="flex min-h-11 w-full items-center justify-center gap-2 overflow-x-auto px-1 py-2 text-xs whitespace-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-3 sm:text-sm [&>a]:rounded-full [&>a]:px-3 [&>a]:py-2 [&>a]:transition-colors [&>a:hover]:bg-black/5 dark:[&>a:hover]:bg-white/10 [&>span]:rounded-full [&>span]:bg-amber-700/10 [&>span]:px-3 [&>span]:py-2 [&>button]:rounded-full [&>button]:px-3 [&>button]:py-2 [&>button]:transition-colors [&>button:hover]:bg-black/5 dark:[&>button:hover]:bg-white/10"
+          >
             {navigation}
           </nav>
         )}
