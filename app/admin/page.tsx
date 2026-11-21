@@ -28,12 +28,19 @@ const DEFAULT_PRICELIST = {
   addons: [{ name: 'Extra 60 menit', price: '+Rp 100K' }, { name: 'Extra lokasi', price: '+Rp 100K' }, { name: 'Extra 10 foto edited', price: '+Rp 50K' }, { name: 'Same Day Edit', price: '+Rp 300K' }, { name: 'Family >5 orang', price: '+Rp 50K/orang' }],
   video: { name: 'Shoot & Edit', price: 'Rp 600K', duration: '', description: 'Video dokumentasi graduation' },
   whatsappMessage: 'Halo kak, bisa booking foto graduation?',
-  serviceSections: {
-    packages: { title: 'Photo Packages', description: 'Pilihan paket fotografi yang tersedia.', showInService: true },
-    video: { title: 'Video Package', description: 'Layanan dokumentasi video.', showInService: true },
-    addons: { title: 'Add-ons', description: 'Layanan tambahan untuk melengkapi sesi foto.', showInService: true },
-  },
-};
+  services: [
+    { id: 'photo-packages', title: 'Photo Packages', description: 'Pilihan paket fotografi yang tersedia.', showInService: true, items: [
+      { name: 'Solo Graduate', price: 'Rp 250K', detail: '1 Graduate', duration: '1 jam', locations: '1 lokasi', photos: '20 foto edited', extras: 'Unlimited shots' },
+      { name: 'Duo Graduate', price: 'Rp 400K', detail: '2 Graduates', duration: '2 jam', locations: '2 lokasi', photos: '30 foto edited', extras: 'Unlimited shots' },
+      { name: 'Group Session', price: 'Rp 700K', detail: '3–5 Graduates', duration: '2 jam', locations: '2 lokasi', photos: '60 foto edited', extras: 'Unlimited shots' },
+      { name: 'Large Group', price: 'Rp 900K', detail: '6–10 Graduates', duration: '2 jam', locations: '2 lokasi', photos: '100 foto edited', extras: 'Unlimited shots' },
+      { name: 'Extended Group', price: 'Rp 100K/person', detail: '>10 Graduates', duration: '3–4 jam', locations: '1 lokasi', photos: '100 foto edited', extras: 'Unlimited shots' },
+    ] },
+    { id: 'video', title: 'Video Package', description: 'Layanan dokumentasi video.', showInService: true, items: [{ name: 'Shoot & Edit', price: 'Rp 600K', detail: 'Video dokumentasi graduation' }] },
+    { id: 'addons', title: 'Add-ons', description: 'Layanan tambahan untuk melengkapi sesi foto.', showInService: true, items: [
+      { name: 'Extra 60 menit', price: '+Rp 100K' }, { name: 'Extra lokasi', price: '+Rp 100K' }, { name: 'Extra 10 foto edited', price: '+Rp 50K' }, { name: 'Same Day Edit', price: '+Rp 300K' }, { name: 'Family >5 orang', price: '+Rp 50K/orang' },
+    ] },
+  ],};
 type PricePackage = { name: string; price: string; detail: string; duration: string; locations: string; photos: string; extras: string };
 type PriceAddon = { name: string; price: string };
 type ServiceSectionConfig = { title: string; description: string; showInService: boolean };
@@ -281,7 +288,7 @@ export default function HomePage() {
       const response = await fetch('/api/admin/pricelist');
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Gagal memuat pricelist.');
-      setPricelist({ ...DEFAULT_PRICELIST, ...result.pricelist });
+      setPricelist({ ...DEFAULT_PRICELIST, ...result.pricelist, services: Array.isArray(result.pricelist?.services) ? result.pricelist.services : DEFAULT_PRICELIST.services });
     } catch (error) { setPricelistMessage(error instanceof Error ? error.message : 'Gagal memuat pricelist.'); }
   }, []);
 
@@ -293,7 +300,7 @@ export default function HomePage() {
       const response = await fetch('/api/admin/pricelist', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pricelist }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Gagal menyimpan pricelist.');
-      setPricelist({ ...DEFAULT_PRICELIST, ...result.pricelist });
+      setPricelist({ ...DEFAULT_PRICELIST, ...result.pricelist, services: Array.isArray(result.pricelist?.services) ? result.pricelist.services : DEFAULT_PRICELIST.services });
       setPricelistMessage('Pricelist berhasil disimpan dan halaman publik diperbarui.');
     } catch (error) { setPricelistMessage(error instanceof Error ? error.message : 'Gagal menyimpan pricelist.'); }
     finally { setPricelistSaving(false); }
@@ -1052,39 +1059,17 @@ export default function HomePage() {
         )}
         {activeTab === 'pricelist' && (
           <section className={`${CARD} rounded-2xl p-6 sm:p-8 space-y-8`}>
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div><h1 className="text-3xl font-serif text-gray-900 dark:text-white">Edit Pricelist</h1><p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Kelola paket, harga, add-ons, dan CTA booking. Perubahan tampil di halaman publik /pricelist.</p></div>
-              <Link href="/pricelist" target="_blank" className={`rounded-lg px-4 py-2 text-sm ${BTN_SECONDARY}`}>Preview halaman ↗</Link>
-            </div>
-            <div className="space-y-4 rounded-xl border border-gray-200 dark:border-neutral-800 p-4">
-              <div><h2 className="font-semibold">Bagian yang ditampilkan di Service</h2><p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Pilih bagian Pricelist yang ingin ditampilkan pada section Service di homepage. Kontennya otomatis mengikuti data Pricelist.</p></div>
-              {(['packages', 'video', 'addons'] as const).map((sectionKey) => {
-                const section = pricelist.serviceSections?.[sectionKey] || DEFAULT_PRICELIST.serviceSections[sectionKey];
-                const labels = { packages: 'Photo Packages', video: 'Video Package', addons: 'Add-ons' };
-                return <div key={sectionKey} className="rounded-lg border border-gray-200 p-3 dark:border-neutral-800 space-y-2">
-                  <label className="flex items-center gap-2 text-sm font-medium"><input type="checkbox" checked={section.showInService} onChange={e=>setPricelist(p=>({...p,serviceSections:{...p.serviceSections,[sectionKey]:{...p.serviceSections[sectionKey],showInService:e.target.checked}}}))} />Tampilkan {labels[sectionKey]} di Service</label>
-                  <input aria-label={`Judul ${labels[sectionKey]}`} value={section.title} onChange={e=>setPricelist(p=>({...p,serviceSections:{...p.serviceSections,[sectionKey]:{...p.serviceSections[sectionKey],title:e.target.value}}}))} placeholder="Judul bagian" className={INPUT}/>
-                  <textarea aria-label={`Deskripsi ${labels[sectionKey]}`} rows={2} value={section.description} onChange={e=>setPricelist(p=>({...p,serviceSections:{...p.serviceSections,[sectionKey]:{...p.serviceSections[sectionKey],description:e.target.value}}}))} placeholder="Deskripsi bagian" className={INPUT}/>
-                </div>;
-              })}
-            </div>
-            <div className="space-y-4 rounded-xl border border-gray-200 dark:border-neutral-800 p-4">
-              <h2 className="font-semibold">Konten utama</h2>
-              <label className="block text-sm">Judul<input value={pricelist.title} onChange={e=>setPricelist(p=>({...p,title:e.target.value}))} className={`${INPUT} mt-2`} /></label>
-              <label className="block text-sm">Subjudul<textarea rows={2} value={pricelist.subtitle} onChange={e=>setPricelist(p=>({...p,subtitle:e.target.value}))} className={`${INPUT} mt-2`} /></label>
-              <label className="block text-sm">Pesan WhatsApp booking<textarea rows={2} value={pricelist.whatsappMessage} onChange={e=>setPricelist(p=>({...p,whatsappMessage:e.target.value}))} className={`${INPUT} mt-2`} /></label>
-            </div>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between"><h2 className="text-xl font-semibold">Photo Packages</h2><button type="button" onClick={()=>setPricelist(p=>({...p,packages:[...p.packages,{name:'Paket Baru',price:'',detail:'',duration:'',locations:'',photos:'',extras:''}]}))} className={`rounded-lg px-3 py-2 text-sm ${BTN_SECONDARY}`}><Plus size={14} className="inline mr-1"/>Tambah paket</button></div>
-              {pricelist.packages.map((item,i)=><div key={i} className="rounded-xl border border-gray-200 dark:border-neutral-800 p-4 space-y-3">
-                <div className="flex justify-between"><span className="text-xs font-semibold text-gray-400">PAKET {i+1}</span><button type="button" onClick={()=>setPricelist(p=>({...p,packages:p.packages.filter((_,j)=>j!==i)}))} className="text-xs text-red-500">Hapus</button></div>
-                <div className="grid gap-3 sm:grid-cols-2"><label className="text-xs">Nama paket<input value={item.name} onChange={e=>updatePricePackage(i,'name',e.target.value)} className={`${INPUT} mt-1`}/></label><label className="text-xs">Harga<input value={item.price} onChange={e=>updatePricePackage(i,'price',e.target.value)} className={`${INPUT} mt-1`}/></label><label className="text-xs">Target peserta<input value={item.detail} onChange={e=>updatePricePackage(i,'detail',e.target.value)} className={`${INPUT} mt-1`}/></label><label className="text-xs">Durasi<input value={item.duration} onChange={e=>updatePricePackage(i,'duration',e.target.value)} className={`${INPUT} mt-1`}/></label><label className="text-xs">Lokasi<input value={item.locations} onChange={e=>updatePricePackage(i,'locations',e.target.value)} className={`${INPUT} mt-1`}/></label><label className="text-xs">Foto edited<input value={item.photos} onChange={e=>updatePricePackage(i,'photos',e.target.value)} className={`${INPUT} mt-1`}/></label><label className="text-xs sm:col-span-2">Keterangan tambahan<input value={item.extras} onChange={e=>updatePricePackage(i,'extras',e.target.value)} className={`${INPUT} mt-1`}/></label></div>
-              </div>)}
-            </div>
-            <div className="space-y-4 rounded-xl border border-gray-200 dark:border-neutral-800 p-4"><h2 className="text-xl font-semibold">Video Package</h2><div className="grid gap-3 sm:grid-cols-2"><label className="text-sm">Nama<input value={pricelist.video.name} onChange={e=>setPricelist(p=>({...p,video:{...p.video,name:e.target.value}}))} className={`${INPUT} mt-1`}/></label><label className="text-sm">Harga<input value={pricelist.video.price} onChange={e=>setPricelist(p=>({...p,video:{...p.video,price:e.target.value}}))} className={`${INPUT} mt-1`}/></label><label className="text-sm">Durasi video<input value={pricelist.video.duration || ''} onChange={e=>setPricelist(p=>({...p,video:{...p.video,duration:e.target.value}}))} placeholder="Contoh: 1–3 menit" className={`${INPUT} mt-1`}/></label><label className="text-sm sm:col-span-2">Deskripsi<input value={pricelist.video.description} onChange={e=>setPricelist(p=>({...p,video:{...p.video,description:e.target.value}}))} className={`${INPUT} mt-1`}/></label></div></div>
-            <div className="space-y-4"><div className="flex items-center justify-between"><h2 className="text-xl font-semibold">Add-ons</h2><button type="button" onClick={()=>setPricelist(p=>({...p,addons:[...p.addons,{name:'Add-on baru',price:''}]}))} className={`rounded-lg px-3 py-2 text-sm ${BTN_SECONDARY}`}><Plus size={14} className="inline mr-1"/>Tambah add-on</button></div>
-              {pricelist.addons.map((item,i)=><div key={i} className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]"><input aria-label="Nama add-on" value={item.name} onChange={e=>updatePriceAddon(i,'name',e.target.value)} className={INPUT}/><input aria-label="Harga add-on" value={item.price} onChange={e=>updatePriceAddon(i,'price',e.target.value)} className={INPUT}/><button type="button" onClick={()=>setPricelist(p=>({...p,addons:p.addons.filter((_,j)=>j!==i)}))} className="rounded-lg px-3 text-sm text-red-500">Hapus</button></div>)}
-            </div>
+            <div className="flex flex-wrap items-start justify-between gap-4"><div><h1 className="text-3xl font-serif text-gray-900 dark:text-white">Kelola Pricelist & Service</h1><p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Buat kategori layanan sendiri. Setiap service memiliki item, harga, dan detail yang dapat ditampilkan di homepage.</p></div><Link href="/pricelist" target="_blank" className={`${BTN_SECONDARY} rounded-lg px-4 py-2 text-sm`}>Preview halaman ↗</Link></div>
+            <div className="space-y-4 rounded-xl border border-gray-200 p-4 dark:border-neutral-800"><h2 className="font-semibold">Konten halaman Pricelist</h2><label className="block text-sm">Judul<input value={pricelist.title} onChange={e=>setPricelist(p=>({...p,title:e.target.value}))} className={`${INPUT} mt-2`} /></label><label className="block text-sm">Subjudul<textarea rows={2} value={pricelist.subtitle} onChange={e=>setPricelist(p=>({...p,subtitle:e.target.value}))} className={`${INPUT} mt-2`} /></label><label className="block text-sm">Pesan WhatsApp booking<textarea rows={2} value={pricelist.whatsappMessage} onChange={e=>setPricelist(p=>({...p,whatsappMessage:e.target.value}))} className={`${INPUT} mt-2`} /></label></div>
+            <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-xl font-semibold">Daftar Service</h2><p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Setiap service menjadi bagian tersendiri di homepage. Admin bebas menambah kategori baru.</p></div><button type="button" onClick={()=>setPricelist(p=>({...p,services:[...(p.services||[]),{id:`service-${Date.now()}`,title:'Service Baru',description:'',showInService:true,items:[]}]}))} className={`rounded-lg px-4 py-2 text-sm ${BTN_SECONDARY}`}><Plus size={14} className="mr-1 inline"/>Tambah Service</button></div>
+            {(pricelist.services||[]).length===0&&<p className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-500 dark:border-neutral-700">Belum ada service. Klik “Tambah Service” untuk membuat kategori pertama.</p>}
+            {(pricelist.services||[]).map((service,si)=><article key={service.id} className="space-y-4 rounded-xl border border-gray-200 p-4 dark:border-neutral-800">
+              <div className="flex items-center justify-between"><span className="text-xs font-semibold uppercase tracking-wider text-gray-400">SERVICE {si+1}</span><button type="button" onClick={()=>{if(window.confirm(`Hapus service "${service.title}" beserta semua itemnya?`))setPricelist(p=>({...p,services:p.services.filter(s=>s.id!==service.id)}));}} className="text-xs text-red-500">Hapus Service</button></div>
+              <div className="grid gap-3 sm:grid-cols-2"><label className="text-sm">Nama Service<input value={service.title} onChange={e=>setPricelist(p=>({...p,services:p.services.map(s=>s.id===service.id?{...s,title:e.target.value}:s)}))} placeholder="Contoh: Graduation Photography" className={`${INPUT} mt-1`}/></label><label className="flex items-center gap-2 self-end pb-3 text-sm"><input type="checkbox" checked={service.showInService!==false} onChange={e=>setPricelist(p=>({...p,services:p.services.map(s=>s.id===service.id?{...s,showInService:e.target.checked}:s)}))}/>Tampilkan di homepage Service</label><label className="text-sm sm:col-span-2">Deskripsi Service<textarea rows={2} value={service.description||''} onChange={e=>setPricelist(p=>({...p,services:p.services.map(s=>s.id===service.id?{...s,description:e.target.value}:s)}))} placeholder="Jelaskan layanan ini..." className={`${INPUT} mt-1`}/></label></div>
+              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 pt-4 dark:border-neutral-800"><h3 className="font-medium">Item / Paket dalam Service</h3><button type="button" onClick={()=>setPricelist(p=>({...p,services:p.services.map(s=>s.id===service.id?{...s,items:[...s.items,{name:'Item Baru',price:'',detail:'',duration:'',locations:'',photos:'',extras:''}]}:s)}))} className={`rounded-lg px-3 py-2 text-xs ${BTN_SECONDARY}`}><Plus size={13} className="mr-1 inline"/>Tambah Item</button></div>
+              {(service.items||[]).length===0&&<p className="text-xs text-gray-500">Belum ada item pada service ini.</p>}
+              {(service.items||[]).map((item,ii)=><div key={ii} className="space-y-3 rounded-lg bg-gray-50 p-3 dark:bg-neutral-950"><div className="flex items-center justify-between"><span className="text-xs font-semibold text-gray-400">ITEM {ii+1}</span><button type="button" onClick={()=>setPricelist(p=>({...p,services:p.services.map(s=>s.id===service.id?{...s,items:s.items.filter((_,i)=>i!==ii)}:s)}))} className="text-xs text-red-500">Hapus Item</button></div><div className="grid gap-3 sm:grid-cols-2">{([['name','Nama Item'],['price','Harga'],['detail','Keterangan singkat'],['duration','Durasi'],['locations','Lokasi'],['photos','Jumlah foto'],['extras','Fasilitas tambahan']] as const).map(([field,label])=><label key={field} className="text-xs">{label}<input value={item[field]||''} onChange={e=>setPricelist(p=>({...p,services:p.services.map(s=>s.id===service.id?{...s,items:s.items.map((it,i)=>i===ii?{...it,[field]:e.target.value}:it)}:s)}))} className={`${INPUT} mt-1`}/></label>)}</div></div>)}
+            </article>)}
             <div className="flex flex-wrap items-center gap-3 border-t border-gray-100 pt-5 dark:border-neutral-800"><button type="button" onClick={savePricelist} disabled={pricelistSaving} className="rounded-xl bg-gray-900 px-6 py-3 text-sm font-semibold text-white disabled:opacity-50 dark:bg-white dark:text-gray-900">{pricelistSaving?'Menyimpan...':'Simpan Pricelist'}</button>{pricelistMessage&&<p className="text-sm text-gray-600 dark:text-gray-300">{pricelistMessage}</p>}</div>
           </section>
         )}
