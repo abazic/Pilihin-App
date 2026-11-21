@@ -26,10 +26,10 @@ const DEFAULT_SERVICE_SECTIONS = {
   video: { title: 'Video Package', description: 'Layanan dokumentasi video.', showInService: true },
   addons: { title: 'Add-ons', description: 'Layanan tambahan untuk melengkapi sesi foto.', showInService: true },
 };
-let servicePricelist = { packages: [], addons: [], video: {}, serviceSections: DEFAULT_SERVICE_SECTIONS };
+let servicePricelist: any = { packages: [], addons: [], video: {}, serviceSections: DEFAULT_SERVICE_SECTIONS };
 try {
   const parsed = typeof pricelistSetting?.value === 'string' ? JSON.parse(pricelistSetting.value) : (pricelistSetting?.value || {});
-  servicePricelist = { ...servicePricelist, ...parsed, serviceSections: { ...DEFAULT_SERVICE_SECTIONS, ...(parsed.serviceSections || {}) } };
+  servicePricelist = { ...servicePricelist, ...parsed, serviceSections: { packages: { ...DEFAULT_SERVICE_SECTIONS.packages, ...(parsed.serviceSections?.packages || {}) }, video: { ...DEFAULT_SERVICE_SECTIONS.video, ...(parsed.serviceSections?.video || {}) }, addons: { ...DEFAULT_SERVICE_SECTIONS.addons, ...(parsed.serviceSections?.addons || {}) } } };
 } catch {}
   const whatsappMessage = encodeURIComponent(
   'Halo inStories creative, saya ingin bertanya tentang layanan fotografi.'
