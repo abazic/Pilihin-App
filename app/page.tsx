@@ -21,18 +21,22 @@ const whatsappNumber = (
 
 const whatsappUrl = `https://wa.me/${whatsappNumber}`;
 const { data: pricelistSetting } = await supabase.from('settings').select('value').eq('key', 'pricelist_content').maybeSingle();
-const DEFAULT_SERVICES = [{"id":"photo-packages","title":"Photo Packages","description":"Pilihan paket fotografi yang tersedia.","showInService":true,"items":[{"name":"Solo Graduate","price":"Rp 250K","detail":"1 Graduate","duration":"1 jam","locations":"1 lokasi","photos":"20 foto edited","extras":"Unlimited shots"},{"name":"Duo Graduate","price":"Rp 400K","detail":"2 Graduates","duration":"2 jam","locations":"2 lokasi","photos":"30 foto edited","extras":"Unlimited shots"},{"name":"Group Session","price":"Rp 700K","detail":"3–5 Graduates","duration":"2 jam","locations":"2 lokasi","photos":"60 foto edited","extras":"Unlimited shots"},{"name":"Large Group","price":"Rp 900K","detail":"6–10 Graduates","duration":"2 jam","locations":"2 lokasi","photos":"100 foto edited","extras":"Unlimited shots"},{"name":"Extended Group","price":"Rp 100K/person","detail":">10 Graduates","duration":"3–4 jam","locations":"1 lokasi","photos":"100 foto edited","extras":"Unlimited shots"}]},{"id":"video","title":"Video Package","description":"Layanan dokumentasi video.","showInService":true,"items":[{"name":"Shoot & Edit","price":"Rp 600K","detail":"Video dokumentasi graduation"}]},{"id":"addons","title":"Add-ons","description":"Layanan tambahan untuk melengkapi sesi foto.","showInService":true,"items":[{"name":"Extra 60 menit","price":"+Rp 100K"},{"name":"Extra lokasi","price":"+Rp 100K"},{"name":"Extra 10 foto edited","price":"+Rp 50K"},{"name":"Same Day Edit","price":"+Rp 300K"},{"name":"Family >5 orang","price":"+Rp 50K/orang"}]}];
-let servicePricelist: any = { services: DEFAULT_SERVICES };
-try {
-  const parsed = typeof pricelistSetting?.value === 'string' ? JSON.parse(pricelistSetting.value) : (pricelistSetting?.value || {});
-  const legacy = [
-    { id:'photo-packages',title:'Photo Packages',description:'Pilihan paket fotografi yang tersedia.',showInService:true,items:Array.isArray(parsed.packages)?parsed.packages:DEFAULT_SERVICES[0].items },
-    { id:'video',title:'Video Package',description:'Layanan dokumentasi video.',showInService:true,items:parsed.video?.name?[{name:parsed.video.name,price:parsed.video.price,detail:parsed.video.description,duration:parsed.video.duration}]:[] },
-    { id:'addons',title:'Add-ons',description:'Layanan tambahan untuk melengkapi sesi foto.',showInService:true,items:Array.isArray(parsed.addons)?parsed.addons:DEFAULT_SERVICES[2].items },
-  ];
-  const services = Array.isArray(parsed.services) ? parsed.services : legacy;
-  servicePricelist = { services: services.map((service:any,index:number)=>({...service,id:service.id||`service-${index}`,title:service.title||`Service ${index+1}`,items:Array.isArray(service.items)?service.items:[]})) };
-} catch {}
+const normalizedPricelist = (() => {
+  let parsed: any = {};
+  try { parsed = typeof pricelistSetting?.value === 'string' ? JSON.parse(pricelistSetting.value) : (pricelistSetting?.value || {}); } catch {}
+  const current = Array.isArray(parsed.services) ? parsed.services : [];
+  if (current.some((service:any) => Array.isArray(service?.photoPackages) || Array.isArray(service?.videoPackages))) {
+    return current.map((service:any,index:number)=>({...service,id:service.id||'service-'+index,photoPackages:service.photoPackages||[],videoPackages:service.videoPackages||[],addons:service.addons||[]}));
+  }
+  const label = (service:any) => String(service?.id||'')+' '+String(service?.title||'');
+  const oldPhoto = current.find((service:any)=>/photo|package/i.test(label(service))&&!/video/i.test(label(service)));
+  const oldVideo = current.find((service:any)=>/video/i.test(label(service)));
+  const oldAddons = current.find((service:any)=>/addon/i.test(label(service)));
+  return [{id:'graduation',title:'Graduation Photography',description:'Sesi foto dan video untuk merayakan kelulusan.',showInService:true,
+    photoPackages:oldPhoto?.items||parsed.packages||[{"name":"Solo Graduate","price":"Rp 250K","detail":"1 Graduate","duration":"1 jam","locations":"1 lokasi","photos":"20 foto edited","extras":"Unlimited shots"},{"name":"Duo Graduate","price":"Rp 400K","detail":"2 Graduates","duration":"2 jam","locations":"2 lokasi","photos":"30 foto edited","extras":"Unlimited shots"},{"name":"Group Session","price":"Rp 700K","detail":"3–5 Graduates","duration":"2 jam","locations":"2 lokasi","photos":"60 foto edited","extras":"Unlimited shots"},{"name":"Large Group","price":"Rp 900K","detail":"6–10 Graduates","duration":"2 jam","locations":"2 lokasi","photos":"100 foto edited","extras":"Unlimited shots"},{"name":"Extended Group","price":"Rp 100K/person","detail":">10 Graduates","duration":"3–4 jam","locations":"1 lokasi","photos":"100 foto edited","extras":"Unlimited shots"}],
+    videoPackages:oldVideo?.items||(parsed.video?.name?[{name:parsed.video.name,price:parsed.video.price,detail:parsed.video.description,duration:parsed.video.duration}]:[{"name":"Shoot & Edit","price":"Rp 600K","detail":"Video dokumentasi graduation"}]),
+    addons:oldAddons?.items||parsed.addons||[{"name":"Extra 60 menit","price":"+Rp 100K"},{"name":"Extra lokasi","price":"+Rp 100K"},{"name":"Extra 10 foto edited","price":"+Rp 50K"},{"name":"Same Day Edit","price":"+Rp 300K"},{"name":"Family >5 orang","price":"+Rp 50K/orang"}]}];
+})();
   const whatsappMessage = encodeURIComponent(
   'Halo inStories creative, saya ingin bertanya tentang layanan fotografi.'
 );
@@ -198,13 +202,13 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
       
 <section id="services" className="bg-[#f1efe9] dark:bg-[#1c1c19] px-6 py-24">
   <div className="mx-auto max-w-7xl"><p className="text-xs uppercase tracking-[0.25em] text-neutral-400">What We Do</p>
-    <div className="mt-4 flex flex-col justify-between gap-6 md:flex-row md:items-end"><h2 className="max-w-xl text-4xl font-medium leading-tight md:text-6xl">Photography for every chapter of your story.</h2><p className="max-w-sm text-sm leading-7 text-neutral-500">Temukan layanan dan paket yang kami sediakan.</p></div>
-    <div className="mt-16 space-y-14 border-t border-black/15 pt-8 dark:border-white/15">
-      {servicePricelist.services.filter((service:any)=>service.showInService!==false).map((service:any)=><div key={service.id}>
-        <div className="mb-6"><h3 className="text-2xl font-medium">{service.title}</h3>{service.description&&<p className="mt-2 max-w-2xl text-sm leading-7 text-neutral-500">{service.description}</p>}</div>
-        {service.items?.length?<div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{service.items.filter((item:any)=>item?.name).map((item:any,index:number)=><article key={`${service.id}-${index}`} className="rounded-xl border border-black/10 bg-white/60 p-5 dark:border-white/10 dark:bg-black/10">{item.detail&&<p className="text-xs text-neutral-400">{item.detail}</p>}<h4 className="mt-2 text-xl font-medium">{item.name}</h4>{item.price&&<p className="mt-3 text-lg font-medium text-amber-800 dark:text-amber-400">{item.price}</p>}<div className="mt-3 space-y-1 text-sm text-neutral-500">{[item.duration,item.locations,item.photos,item.extras].filter(Boolean).map((feature:string,i:number)=><p key={i}>✦ {feature}</p>)}</div></article>)}</div>:<p className="text-sm text-neutral-400">Detail layanan akan segera tersedia.</p>}
-      </div>)}
-      {servicePricelist.services.filter((service:any)=>service.showInService!==false).length===0&&<p className="py-10 text-center text-sm text-neutral-500">Layanan akan segera hadir.</p>}
+    <div className="mt-4 flex flex-col justify-between gap-6 md:flex-row md:items-end"><h2 className="max-w-xl text-4xl font-medium leading-tight md:text-6xl">Photography for every chapter of your story.</h2><p className="max-w-sm text-sm leading-7 text-neutral-500">Explore our photography and videography services.</p></div>
+    <div className="mt-16 space-y-16 border-t border-black/15 pt-8 dark:border-white/15">
+      {normalizedPricelist.filter((service:any)=>service.showInService!==false).map((service:any,index:number)=><article key={service.id} className="border-b border-black/10 pb-12 dark:border-white/10">
+        <p className="text-xs uppercase tracking-[0.25em] text-neutral-400">Service {String(index+1).padStart(2,'0')}</p><h3 className="mt-2 text-3xl font-medium">{service.title}</h3>{service.description&&<p className="mt-2 max-w-2xl text-sm leading-7 text-neutral-500">{service.description}</p>}
+        {([['photoPackages','Photo Packages'],['videoPackages','Video Packages']] as const).map(([field,heading])=><div className="mt-8" key={field}><h4 className="mb-4 text-lg font-medium">{heading}</h4>{service[field]?.length?<div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{service[field].map((item:any,i:number)=><div key={i} className="rounded-xl border border-black/10 bg-white/60 p-5 dark:border-white/10 dark:bg-black/10">{item.detail&&<p className="text-xs text-neutral-400">{item.detail}</p>}<h5 className="mt-2 text-xl font-medium">{item.name}</h5>{item.price&&<p className="mt-3 text-lg font-medium text-amber-800 dark:text-amber-400">{item.price}</p>}<div className="mt-3 space-y-1 text-sm text-neutral-500">{[item.duration,item.locations,item.photos,item.extras].filter(Boolean).map((feature:string,j:number)=><p key={j}>✦ {feature}</p>)}</div></div>)}</div>:<p className="text-sm text-neutral-400">Paket {heading.toLowerCase()} segera tersedia.</p>}</div>)}
+        {service.addons?.length>0&&<div className="mt-7"><h4 className="mb-3 text-sm font-medium">Add-ons</h4><div className="flex flex-wrap gap-2">{service.addons.map((item:any,i:number)=><span key={i} className="rounded-full border border-black/10 px-4 py-2 text-xs dark:border-white/10">{item.name}{item.price?' · '+item.price:''}</span>)}</div></div>}
+      </article>)}
     </div><div className="mt-12"><a href="/pricelist" className="inline-flex rounded-full border border-black/15 px-6 py-3 text-sm transition hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/5">Lihat Pricelist Lengkap ↗</a></div>
   </div>
 </section>
