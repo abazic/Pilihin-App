@@ -97,11 +97,6 @@ export default async function PricelistPage({ searchParams }) {
       </div>
       <AppHeader navigation={<><a href="/" className="hover:text-amber-700">Home</a><a href="/pricelist" className="text-amber-700 dark:text-amber-400">Pricelist</a><a href="/booking" className="hover:text-amber-700">Booking</a><a href="/#portfolio" className="hover:text-amber-700">Portfolio</a><a href="/#services" className="hover:text-amber-700">Service</a><a href="/#contact" className="hover:text-amber-700">Contact</a></>} actions={<a href="/admin" className="rounded-full bg-black px-4 py-2 text-sm text-white dark:bg-stone-100 dark:text-neutral-900">Dashboard</a>} />
       <section className="mx-auto max-w-7xl px-6 pb-16 pt-20 md:pt-28">
-        <div className="mx-auto max-w-3xl text-center">
-          <p className="text-xs uppercase tracking-[0.3em] text-amber-800 dark:text-amber-400">Photography & Visual Stories · Pricing</p>
-          <h1 className="mt-5 font-serif text-4xl font-medium tracking-tight md:text-6xl">{prices.title}</h1>
-          <p className="mx-auto mt-6 max-w-xl text-sm leading-7 text-neutral-500 dark:text-neutral-400">{prices.subtitle}</p>
-        </div>
         {selectedServiceId && <div className="mt-8 text-center"><a href="/pricelist" className="text-sm text-amber-800 underline underline-offset-4 dark:text-amber-400">← Lihat semua service</a></div>}
         <div className="mt-14 space-y-16">
           {(selectedServiceId ? prices.services.filter(service => service.id === selectedServiceId) : prices.services).map((service,serviceIndex)=><section id={service.id} key={service.id||serviceIndex}>
