@@ -208,7 +208,7 @@ export default function HomePage() {
   const [isNotifOpen, setIsNotifOpen]       = useState<boolean>(false);
   const [notifications, setNotifications]   = useState<NotificationItem[]>([]);
   const [isBroadcastOpen, setIsBroadcastOpen] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<'clients' | 'portfolio' | 'pricelist' | 'contact' | 'bookings'>('clients');
+  const [activeTab, setActiveTab] = useState<'clients' | 'portfolio' | 'pricelist' | 'contact' | 'bookings'>('bookings');
   useEffect(() => { if (new URLSearchParams(window.location.search).get('section') === 'bookings') setActiveTab('bookings'); }, []);
   const [portfolioCategories, setPortfolioCategories] = useState<PortfolioCategory[]>([]);
   const [portfolioTitle, setPortfolioTitle] = useState('');
