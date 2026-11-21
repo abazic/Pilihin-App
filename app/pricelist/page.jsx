@@ -28,7 +28,7 @@ const DEFAULT_PRICELIST = {
 };
 
 function parseValue(value) {
-  try { const parsed = typeof value === 'string' ? JSON.parse(value) : value; return { ...DEFAULT_PRICELIST, ...parsed, serviceSections: { ...DEFAULT_PRICELIST.serviceSections, ...(parsed.serviceSections || {}) } }; }
+  try { const parsed = typeof value === 'string' ? JSON.parse(value) : value; return { ...DEFAULT_PRICELIST, ...parsed, serviceSections: { packages: { ...DEFAULT_PRICELIST.serviceSections.packages, ...(parsed.serviceSections?.packages || {}) }, video: { ...DEFAULT_PRICELIST.serviceSections.video, ...(parsed.serviceSections?.video || {}) }, addons: { ...DEFAULT_PRICELIST.serviceSections.addons, ...(parsed.serviceSections?.addons || {}) } } }; }
   catch { return DEFAULT_PRICELIST; }
 }
 
