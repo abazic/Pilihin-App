@@ -55,8 +55,8 @@ export default function BroadcastModal({
 
   // Default template
   const defaultTemplate: BroadcastTemplate = {
-    greeting: 'Halo Kak, foto-foto hasil sesi kemarin sudah bisa dipilih yaa.\n\nSilakan buka link sesuai nama masing-masing:',
-    instruction: '\n\n*Cara memilih foto:*\n\n1. Buka link sesuai nama.\n2. Pilih foto yang ingin diedit dengan menekan tanda pilih.\n3. Maksimal *13 foto*.\n4. Setelah selesai, pastikan pilihan sudah tersimpan/terkirim.\n\nKalau ada foto yang ingin ditanyakan atau ada kendala saat memilih, langsung chat saya ya.\n\nTerima kasih!',
+    greeting: 'Halo Kak, foto-foto hasil sesi kemarin sudah bisa dipilih yaa! 📸\n\nSilakan buka link sesuai nama masing-masing:',
+    instruction: '\n\n*Cara memilih foto:*\n\n1. Buka link sesuai nama masing-masing.\n2. Pilih foto yang ingin diedit dengan menekan tanda pilih.\n3. Maksimal *13 foto*.\n4. Setelah selesai, pastikan pilihan foto sudah tersimpan/terkirim.\n\n*Note saat memilih foto:*\n\n- Pilih foto terbaik menurut kalian.\n- Utamakan foto yang minim gangguan objek di sekitar, agar fokus tetap pada subjek.\n- Pilih foto dengan raut wajah atau ekspresi terbaik.\n- Perhatikan pose yang paling bagus, natural, dan terlihat menarik.\n\nKalau ada foto yang ingin ditanyakan atau ada kendala saat memilih, langsung chat saya yaa.\n\nTerima kasih! 🙏',
     closing: ''
   };
 
