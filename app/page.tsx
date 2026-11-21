@@ -203,13 +203,12 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
 <section id="services" className="bg-[#f1efe9] dark:bg-[#1c1c19] px-6 py-24">
   <div className="mx-auto max-w-7xl"><p className="text-xs uppercase tracking-[0.25em] text-neutral-400">What We Do</p>
     <div className="mt-4 flex flex-col justify-between gap-6 md:flex-row md:items-end"><h2 className="max-w-xl text-4xl font-medium leading-tight md:text-6xl">Photography for every chapter of your story.</h2><p className="max-w-sm text-sm leading-7 text-neutral-500">Explore our photography and videography services.</p></div>
-    <div className="mt-16 space-y-16 border-t border-black/15 pt-8 dark:border-white/15">
-      {normalizedPricelist.filter((service:any)=>service.showInService!==false).map((service:any,index:number)=><article key={service.id} className="border-b border-black/10 pb-12 dark:border-white/10">
-        <p className="text-xs uppercase tracking-[0.25em] text-neutral-400">Service {String(index+1).padStart(2,'0')}</p><h3 className="mt-2 text-3xl font-medium">{service.title}</h3>{service.description&&<p className="mt-2 max-w-2xl text-sm leading-7 text-neutral-500">{service.description}</p>}
-        {([['photoPackages','Photo Packages'],['videoPackages','Video Packages']] as const).map(([field,heading])=><div className="mt-8" key={field}><h4 className="mb-4 text-lg font-medium">{heading}</h4>{service[field]?.length?<div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{service[field].map((item:any,i:number)=><div key={i} className="rounded-xl border border-black/10 bg-white/60 p-5 dark:border-white/10 dark:bg-black/10">{item.detail&&<p className="text-xs text-neutral-400">{item.detail}</p>}<h5 className="mt-2 text-xl font-medium">{item.name}</h5>{item.price&&<p className="mt-3 text-lg font-medium text-amber-800 dark:text-amber-400">{item.price}</p>}<div className="mt-3 space-y-1 text-sm text-neutral-500">{[item.duration,item.locations,item.photos,item.extras].filter(Boolean).map((feature:string,j:number)=><p key={j}>✦ {feature}</p>)}</div></div>)}</div>:<p className="text-sm text-neutral-400">Paket {heading.toLowerCase()} segera tersedia.</p>}</div>)}
-        {service.addons?.length>0&&<div className="mt-7"><h4 className="mb-3 text-sm font-medium">Add-ons</h4><div className="flex flex-wrap gap-2">{service.addons.map((item:any,i:number)=><span key={i} className="rounded-full border border-black/10 px-4 py-2 text-xs dark:border-white/10">{item.name}{item.price?' · '+item.price:''}</span>)}</div></div>}
-      </article>)}
-    </div><div className="mt-12"><a href="/pricelist" className="inline-flex rounded-full border border-black/15 px-6 py-3 text-sm transition hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/5">Lihat Pricelist Lengkap ↗</a></div>
+    <div className="mt-16 grid gap-5 border-t border-black/15 pt-8 sm:grid-cols-2 lg:grid-cols-3 dark:border-white/15">
+      {normalizedPricelist.filter((service:any)=>service.showInService!==false).map((service:any,index:number)=><Link key={service.id} href={`/pricelist?service=${encodeURIComponent(service.id)}`} className="group flex min-h-48 flex-col justify-between rounded-2xl border border-black/10 bg-white/50 p-6 transition duration-300 hover:-translate-y-1 hover:border-amber-700/50 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]">
+        <div><p className="text-xs uppercase tracking-[0.25em] text-neutral-400">Service {String(index+1).padStart(2,'0')}</p><h3 className="mt-4 text-2xl font-medium transition-colors group-hover:text-amber-800 dark:group-hover:text-amber-400">{service.title}</h3>{service.description&&<p className="mt-3 text-sm leading-7 text-neutral-500">{service.description}</p>}</div>
+        <span className="mt-8 inline-flex items-center gap-2 text-sm font-medium text-amber-800 dark:text-amber-400">Explore Service <span aria-hidden="true">↗</span></span>
+      </Link>)}
+    </div>
   </div>
 </section>
 
