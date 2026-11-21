@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { getPhotosPageFromGDrive } from '@/lib/gdrive';
 import HeroSlideshow from '@/components/HeroSlideshow';
 import PortfolioImage from '@/components/PortfolioImage';
-import { Camera, Globe, MessageCircle } from 'lucide-react';
+import { Globe } from 'lucide-react';
 export default async function HomePage() {
   const supabase = await createClient();
 
@@ -217,20 +217,22 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
 <footer id="contact" className="border-t border-black/10 px-6 py-10 dark:border-white/10">
   <div className="mx-auto max-w-7xl">
     <div className="flex items-center justify-between gap-6">
-      <div className="flex items-center gap-3">
-        <div aria-hidden="true" className="flex h-12 w-12 items-center justify-center rounded-xl bg-black text-white dark:bg-stone-100 dark:text-neutral-900">
-          <Camera size={25} strokeWidth={1.7} />
-        </div>
-        <div className="leading-tight">
-          <p className="font-raleway text-xl font-bold tracking-tight text-gray-900 dark:text-white">inStories</p>
-          <p className="font-raleway text-sm tracking-wide text-neutral-500 dark:text-neutral-400">creative</p>
-        </div>
-      </div>
+      <Link href="/" className="flex w-fit shrink-0 items-center gap-2 leading-tight">
+        <img
+          src="/instories.svg"
+          alt="Logo inStories creative"
+          className="h-10 w-7 shrink-0 object-contain transition-[filter] duration-200 dark:invert"
+        />
+        <span className="flex flex-col">
+          <span className="font-raleway text-xl tracking-tight text-gray-900 dark:text-white">in<span className="font-bold">Stories</span></span>
+          <span className="font-raleway text-sm tracking-tight text-gray-900 dark:text-white">creative</span>
+        </span>
+      </Link>
 
       <a href={whatsappContactUrl} target="_blank" rel="noopener noreferrer"
         aria-label="Chat melalui WhatsApp" title="Chat melalui WhatsApp"
-        className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-600 text-white transition hover:bg-green-700">
-        <MessageCircle size={23} strokeWidth={1.9} />
+        className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#25D366] transition hover:bg-[#1ebe5d]">
+        <img src="https://cdn.simpleicons.org/whatsapp/ffffff" alt="WhatsApp" width="25" height="25" className="h-[25px] w-[25px]" />
       </a>
     </div>
 
