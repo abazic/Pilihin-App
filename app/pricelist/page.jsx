@@ -20,10 +20,15 @@ const DEFAULT_PRICELIST = {
   ],
   video: { name: 'Shoot & Edit', price: 'Rp 600K', duration: '', description: 'Video dokumentasi graduation' },
   whatsappMessage: 'Halo kak, bisa booking foto graduation?',
+  serviceSections: {
+    packages: { title: 'Photo Packages', description: 'Pilihan paket fotografi yang tersedia.', showInService: true },
+    video: { title: 'Video Package', description: 'Layanan dokumentasi video.', showInService: true },
+    addons: { title: 'Add-ons', description: 'Layanan tambahan untuk melengkapi sesi foto.', showInService: true },
+  },
 };
 
 function parseValue(value) {
-  try { const parsed = typeof value === 'string' ? JSON.parse(value) : value; return { ...DEFAULT_PRICELIST, ...parsed }; }
+  try { const parsed = typeof value === 'string' ? JSON.parse(value) : value; return { ...DEFAULT_PRICELIST, ...parsed, serviceSections: { ...DEFAULT_PRICELIST.serviceSections, ...(parsed.serviceSections || {}) } }; }
   catch { return DEFAULT_PRICELIST; }
 }
 
@@ -64,7 +69,7 @@ export default async function PricelistPage() {
           <h1 className="mt-5 font-serif text-4xl font-medium tracking-tight md:text-6xl">{prices.title}</h1>
           <p className="mx-auto mt-6 max-w-xl text-sm leading-7 text-neutral-500 dark:text-neutral-400">{prices.subtitle}</p>
         </div>
-        <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-14"><h2 className="mb-6 text-xs font-semibold uppercase tracking-[0.25em] text-neutral-400">{prices.serviceSections?.packages?.title || 'Photo Packages'}</h2><div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {prices.packages.map((item, i) => <article key={i} className="flex flex-col rounded-2xl border border-black/10 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-[#1b1b18]">
             <p className="text-xs uppercase tracking-[0.2em] text-neutral-400">{item.detail}</p><h2 className="mt-3 text-xl font-medium">{item.name}</h2><p className="mt-5 font-serif text-3xl">{item.price}</p>
             <div className="mt-6 space-y-3 border-t border-black/10 pt-5 text-sm text-neutral-600 dark:border-white/10 dark:text-neutral-300">
@@ -73,8 +78,8 @@ export default async function PricelistPage() {
           </article>)}
         </div>
         <section className="mt-20 grid gap-12 md:grid-cols-[0.8fr_1.2fr]">
-          <div className="rounded-2xl bg-[#eeeae2] p-7 dark:bg-[#24231f]"><p className="text-xs uppercase tracking-[0.25em] text-neutral-400">Video Package</p><h2 className="mt-4 font-serif text-3xl">{prices.video?.name || 'Shoot & Edit'}</h2><p className="mt-3 text-sm leading-6 text-neutral-500 dark:text-neutral-400">{prices.video?.description}</p><div className="mt-5 space-y-2 text-sm text-neutral-600 dark:text-neutral-300">{prices.video?.duration && <p className="flex gap-2"><span className="text-amber-700">✦</span>Durasi video: {prices.video.duration}</p>}</div><p className="mt-6 text-3xl font-medium">{prices.video?.price}</p><a href={`${bookingUrl}?package=video`} className="mt-7 inline-flex rounded-full bg-black px-6 py-3 text-sm text-white dark:bg-stone-100 dark:text-neutral-900">Book Video ↗</a></div>
-          <div><p className="text-xs uppercase tracking-[0.25em] text-neutral-400">Customize your session</p><h2 className="mt-3 font-serif text-3xl md:text-4xl">Add-ons</h2><div className="mt-7 divide-y divide-black/10 dark:divide-white/10">{prices.addons.map((item,i)=><div key={i} className="flex items-center justify-between gap-4 py-4 text-sm"><span>{item.name}</span><span className="font-medium">{item.price}</span></div>)}</div></div>
+          <div className="rounded-2xl bg-[#eeeae2] p-7 dark:bg-[#24231f]"><p className="text-xs uppercase tracking-[0.25em] text-neutral-400">{prices.serviceSections?.video?.title || 'Video Package'}</p><h2 className="mt-4 font-serif text-3xl">{prices.video?.name || 'Shoot & Edit'}</h2><p className="mt-3 text-sm leading-6 text-neutral-500 dark:text-neutral-400">{prices.video?.description}</p><div className="mt-5 space-y-2 text-sm text-neutral-600 dark:text-neutral-300">{prices.video?.duration && <p className="flex gap-2"><span className="text-amber-700">✦</span>Durasi video: {prices.video.duration}</p>}</div><p className="mt-6 text-3xl font-medium">{prices.video?.price}</p><a href={`${bookingUrl}?package=video`} className="mt-7 inline-flex rounded-full bg-black px-6 py-3 text-sm text-white dark:bg-stone-100 dark:text-neutral-900">Book Video ↗</a></div>
+          <div><p className="text-xs uppercase tracking-[0.25em] text-neutral-400">Customize your session</p><h2 className="mt-3 font-serif text-3xl md:text-4xl">{prices.serviceSections?.addons?.title || 'Add-ons'}</h2><div className="mt-7 divide-y divide-black/10 dark:divide-white/10">{prices.addons.map((item,i)=><div key={i} className="flex items-center justify-between gap-4 py-4 text-sm"><span>{item.name}</span><span className="font-medium">{item.price}</span></div>)}</div></div>
         </section>
         <div className="mt-20 border-t border-black/10 pt-10 text-center dark:border-white/10"><p className="text-sm text-neutral-500">Setiap momen, setiap cerita, layak untuk dikenang.</p><a href={bookingUrl} className="mt-5 inline-flex rounded-full bg-amber-700 px-8 py-4 text-sm text-white transition hover:bg-amber-800">Book Now via WhatsApp ↗</a></div>
       </section>
