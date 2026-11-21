@@ -28,10 +28,15 @@ const DEFAULT_PRICELIST = {
   addons: [{ name: 'Extra 60 menit', price: '+Rp 100K' }, { name: 'Extra lokasi', price: '+Rp 100K' }, { name: 'Extra 10 foto edited', price: '+Rp 50K' }, { name: 'Same Day Edit', price: '+Rp 300K' }, { name: 'Family >5 orang', price: '+Rp 50K/orang' }],
   video: { name: 'Shoot & Edit', price: 'Rp 600K', duration: '', description: 'Video dokumentasi graduation' },
   whatsappMessage: 'Halo kak, bisa booking foto graduation?',
+  serviceSections: {
+    packages: { title: 'Photo Packages', description: 'Pilihan paket fotografi yang tersedia.', showInService: true },
+    video: { title: 'Video Package', description: 'Layanan dokumentasi video.', showInService: true },
+    addons: { title: 'Add-ons', description: 'Layanan tambahan untuk melengkapi sesi foto.', showInService: true },
+  },
 };
 type PricePackage = { name: string; price: string; detail: string; duration: string; locations: string; photos: string; extras: string };
 type PriceAddon = { name: string; price: string };
-type PricelistData = { title: string; subtitle: string; packages: PricePackage[]; addons: PriceAddon[]; video: { name: string; price: string; duration?: string; description: string }; whatsappMessage: string };
+type ServiceSectionConfig = { title: string; description: string; showInService: boolean };\ntype PricelistData = { title: string; subtitle: string; packages: PricePackage[]; addons: PriceAddon[]; video: { name: string; price: string; duration?: string; description: string }; whatsappMessage: string; serviceSections: { packages: ServiceSectionConfig; video: ServiceSectionConfig; addons: ServiceSectionConfig } };
 
 // ─── Interface ────────────────────────────────────────────────────────────────
 interface FormDataState {
@@ -1049,6 +1054,18 @@ export default function HomePage() {
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div><h1 className="text-3xl font-serif text-gray-900 dark:text-white">Edit Pricelist</h1><p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Kelola paket, harga, add-ons, dan CTA booking. Perubahan tampil di halaman publik /pricelist.</p></div>
               <Link href="/pricelist" target="_blank" className={`rounded-lg px-4 py-2 text-sm ${BTN_SECONDARY}`}>Preview halaman ↗</Link>
+            </div>
+            <div className="space-y-4 rounded-xl border border-gray-200 dark:border-neutral-800 p-4">
+              <div><h2 className="font-semibold">Bagian yang ditampilkan di Service</h2><p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Pilih bagian Pricelist yang ingin ditampilkan pada section Service di homepage. Kontennya otomatis mengikuti data Pricelist.</p></div>
+              {(['packages', 'video', 'addons'] as const).map((sectionKey) => {
+                const section = pricelist.serviceSections?.[sectionKey] || DEFAULT_PRICELIST.serviceSections[sectionKey];
+                const labels = { packages: 'Photo Packages', video: 'Video Package', addons: 'Add-ons' };
+                return <div key={sectionKey} className="rounded-lg border border-gray-200 p-3 dark:border-neutral-800 space-y-2">
+                  <label className="flex items-center gap-2 text-sm font-medium"><input type="checkbox" checked={section.showInService} onChange={e=>setPricelist(p=>({...p,serviceSections:{...p.serviceSections,[sectionKey]:{...p.serviceSections[sectionKey],showInService:e.target.checked}}}))} />Tampilkan {labels[sectionKey]} di Service</label>
+                  <input aria-label={`Judul ${labels[sectionKey]}`} value={section.title} onChange={e=>setPricelist(p=>({...p,serviceSections:{...p.serviceSections,[sectionKey]:{...p.serviceSections[sectionKey],title:e.target.value}}}))} placeholder="Judul bagian" className={INPUT}/>
+                  <textarea aria-label={`Deskripsi ${labels[sectionKey]}`} rows={2} value={section.description} onChange={e=>setPricelist(p=>({...p,serviceSections:{...p.serviceSections,[sectionKey]:{...p.serviceSections[sectionKey],description:e.target.value}}}))} placeholder="Deskripsi bagian" className={INPUT}/>
+                </div>;
+              })}
             </div>
             <div className="space-y-4 rounded-xl border border-gray-200 dark:border-neutral-800 p-4">
               <h2 className="font-semibold">Konten utama</h2>
