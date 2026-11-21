@@ -68,7 +68,8 @@ export async function DELETE(request:Request){
   try { body=await request.json(); } catch { return NextResponse.json({error:'Request tidak valid.'},{status:400}); }
   const id=String(body.id||'');
   if(!id) return NextResponse.json({error:'ID booking wajib diisi.'},{status:400});
-  const {error}=await supabase.from('booking_requests').delete().eq('id',id);
+  const {data:deleted,error}=await supabase.from('booking_requests').delete().eq('id',id).select('id');
   if(error) return NextResponse.json({error:error.message},{status:500});
+  if(!deleted?.length) return NextResponse.json({error:'Booking tidak terhapus di database. Kemungkinan kebijakan RLS Supabase belum mengizinkan DELETE untuk admin.'},{status:409});
   return NextResponse.json({success:true});
 }
