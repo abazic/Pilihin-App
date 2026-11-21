@@ -21,10 +21,10 @@ export default function AppHeader({ navigation, actions }: AppHeaderProps) {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full border-b px-4 transition-all duration-300 sm:px-6 ${
+      className={`sticky top-0 z-50 w-full px-4 transition-all duration-300 sm:px-6 ${
         isScrolled
-          ? 'border-black/10 bg-[#faf9f6]/90 shadow-sm backdrop-blur-xl dark:border-white/10 dark:bg-[#11110f]/90'
-          : 'border-transparent bg-gradient-to-b from-[#faf9f6]/90 via-[#faf9f6]/55 to-transparent backdrop-blur-[2px] dark:from-[#11110f]/90 dark:via-[#11110f]/55 dark:to-transparent'
+          ? 'bg-[#faf9f6]/90 shadow-sm backdrop-blur-xl dark:bg-[#11110f]/90'
+          : 'bg-gradient-to-b from-[#faf9f6]/90 via-[#faf9f6]/55 to-transparent backdrop-blur-[2px] dark:from-[#11110f]/90 dark:via-[#11110f]/55 dark:to-transparent'
       }`}
     >
       <div className="mx-auto max-w-7xl">
@@ -49,11 +49,7 @@ export default function AppHeader({ navigation, actions }: AppHeaderProps) {
         </div>
 
         {navigation && (
-          <nav className={`flex min-h-11 w-full items-center justify-center gap-5 overflow-x-auto border-t px-1 py-2 text-xs whitespace-nowrap transition-colors duration-300 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-8 sm:text-sm ${
-            isScrolled
-              ? 'border-black/5 dark:border-white/10'
-              : 'border-transparent'
-          }`}>
+          <nav className="flex min-h-11 w-full items-center justify-center gap-2 overflow-x-auto px-1 py-2 text-xs whitespace-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-3 sm:text-sm [&>a]:rounded-full [&>a]:px-3 [&>a]:py-2 [&>a]:transition-colors [&>a:hover]:bg-black/5 dark:[&>a:hover]:bg-white/10 [&>span]:rounded-full [&>span]:bg-amber-700/10 [&>span]:px-3 [&>span]:py-2 [&>button]:rounded-full [&>button]:px-3 [&>button]:py-2 [&>button]:transition-colors [&>button:hover]:bg-black/5 dark:[&>button:hover]:bg-white/10"
             {navigation}
           </nav>
         )}
