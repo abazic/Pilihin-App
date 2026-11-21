@@ -22,13 +22,18 @@ const DEFAULT_PRICELIST = {
   ],
   video: { name: 'Shoot & Edit', price: 'Rp 600K', duration: '', description: 'Video dokumentasi graduation' },
   whatsappMessage: 'Halo kak, bisa booking foto graduation?',
+  serviceSections: {
+    packages: { title: 'Photo Packages', description: 'Pilihan paket fotografi yang tersedia.', showInService: true },
+    video: { title: 'Video Package', description: 'Layanan dokumentasi video.', showInService: true },
+    addons: { title: 'Add-ons', description: 'Layanan tambahan untuk melengkapi sesi foto.', showInService: true },
+  },
 };
 
 function parseValue(value) {
   if (!value) return DEFAULT_PRICELIST;
   try {
     const parsed = typeof value === 'string' ? JSON.parse(value) : value;
-    return { ...DEFAULT_PRICELIST, ...parsed };
+    return { ...DEFAULT_PRICELIST, ...parsed, serviceSections: { ...DEFAULT_PRICELIST.serviceSections, ...(parsed.serviceSections || {}) } };
   } catch {
     return DEFAULT_PRICELIST;
   }
