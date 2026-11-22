@@ -114,7 +114,6 @@ export default async function PricelistPage({ searchParams }) {
             {service.addons?.length>0&&<div className="mt-8 border-t border-black/10 pt-5 dark:border-white/10"><h3 className="mb-3 text-sm font-medium">Add-ons</h3><div className="flex flex-wrap gap-2">{service.addons.map((item,i)=><span key={i} className="rounded-full border border-black/10 px-4 py-2 text-xs dark:border-white/10">{item.name}{item.price?' · '+item.price:''}</span>)}</div></div>}
           </section>)}
         </div>
-        <div className="mt-20 border-t border-black/10 pt-10 text-center dark:border-white/10"><p className="text-sm text-neutral-500">Setiap momen, setiap cerita, layak untuk dikenang.</p><a href={bookingUrl} className="mt-5 inline-flex rounded-full bg-amber-700 px-8 py-4 text-sm text-white transition hover:bg-amber-800">Book Now via WhatsApp ↗</a></div>
       </section>
     </main>
   );
