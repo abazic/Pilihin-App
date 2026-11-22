@@ -21,15 +21,6 @@
   --font-mono: var(--font-geist-mono);
 }
 
-/* Sitewide typography hierarchy. !important ensures Tailwind font utilities cannot override it. */
-:where(h1, h1 *) {
-  font-family: var(--font-serif) !important;
-}
-
-:where(h2, h2 *) {
-  font-family: var(--font-geist-sans) !important;
-}
-
 /* Reveal content smoothly as it enters the viewport. */
 .scroll-reveal {
   opacity: 0;
