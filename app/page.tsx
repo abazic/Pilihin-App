@@ -234,11 +234,6 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
         </span>
       </Link>
 
-      <a href={whatsappContactUrl} target="_blank" rel="noopener noreferrer"
-        aria-label="Chat melalui WhatsApp" title="Chat melalui WhatsApp"
-        className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#25D366] transition hover:bg-[#1ebe5d]">
-        <img src="https://cdn.simpleicons.org/whatsapp/ffffff" alt="WhatsApp" width="25" height="25" className="h-[25px] w-[25px]" />
-      </a>
     </div>
 
     <div className="mt-8 flex flex-col items-start gap-4">
@@ -277,6 +272,12 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
     </div>
   </div>
 </footer>
+
+      <a href={whatsappContactUrl} target="_blank" rel="noopener noreferrer"
+        aria-label="Chat melalui WhatsApp" title="Chat melalui WhatsApp"
+        className="fixed bottom-6 right-6 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] shadow-lg shadow-black/20 transition hover:scale-105 hover:bg-[#1ebe5d] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#25D366]/40">
+        <img src="https://cdn.simpleicons.org/whatsapp/ffffff" alt="" aria-hidden="true" width="28" height="28" className="h-7 w-7" />
+      </a>
 
     </main>
   );
