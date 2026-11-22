@@ -4,16 +4,16 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 const REVEAL_SELECTOR = [
-  "main h1",
-  "main h2",
-  "main h3",
-  "main p",
-  "main li",
-  "main article",
-  "main section",
-  "main form",
-  "main figure",
-  "main blockquote",
+  "h1",
+  "h2",
+  "h3",
+  "p",
+  "li",
+  "article",
+  "section",
+  "form",
+  "figure",
+  "blockquote",
   "main [data-scroll-reveal]",
 ].join(",");
 
