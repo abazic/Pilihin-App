@@ -52,7 +52,7 @@ export default function AppHeader({ navigation, actions }: AppHeaderProps) {
     <header
       className={`sticky top-0 z-50 w-full px-4 transition-all duration-300 sm:px-6 ${
         isScrolled
-          ? 'bg-[#faf9f6]/90 shadow-sm backdrop-blur-xl dark:bg-[#11110f]/90'
+          ? 'border-b border-black/5 bg-[#faf9f6]/65 shadow-sm backdrop-blur-2xl backdrop-saturate-150 dark:border-white/10 dark:bg-[#11110f]/65'
           : 'bg-gradient-to-b from-[#faf9f6]/90 via-[#faf9f6]/55 to-transparent backdrop-blur-[2px] dark:from-[#11110f]/90 dark:via-[#11110f]/55 dark:to-transparent'
       }`}
     >
