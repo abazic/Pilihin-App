@@ -57,6 +57,7 @@ function normalizePricelist(value) {
     title: String((service && service.title) || 'Service ' + (index + 1)),
     description: String((service && service.description) || ''),
     showInService: !service || service.showInService !== false,
+    headerImageUrl: String((service && service.headerImageUrl) || ''),
     photoPackages: Array.isArray(service && service.photoPackages) ? service.photoPackages : (Array.isArray(service && service.items) ? service.items : []),
     videoPackages: Array.isArray(service && service.videoPackages) ? service.videoPackages : [],
     addons: Array.isArray(service && service.addons) ? service.addons : []
