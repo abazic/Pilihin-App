@@ -61,7 +61,7 @@ export default function AppHeader({ navigation, actions }: AppHeaderProps) {
           <Link href="/" className="flex w-fit shrink-0 items-center gap-2 leading-tight">
             <img src="/instories.svg" alt="Logo inStories creative" className="h-10 w-7 shrink-0 object-contain transition-[filter] duration-200 dark:invert" />
             <span className="flex flex-col">
-              <span className="font-raleway text-xl not-italic tracking-tight text-amber-700 dark:text-amber-400 sm:text-2xl">in<span className="font-bold not-italic">Stories</span> creative</span>
+              <span className="font-raleway text-xl not-italic tracking-tight text-amber-700 dark:text-amber-400 sm:text-2xl">in<span className="font-bold not-italic">Stories</span> <span className="text-gray-900 dark:text-white">creative</span></span>
             </span>
           </Link>
           <div className="flex shrink-0 items-center justify-end gap-1.5 sm:gap-3">
