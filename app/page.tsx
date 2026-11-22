@@ -6,6 +6,7 @@ import { getPhotosPageFromGDrive } from '@/lib/gdrive';
 import HeroSlideshow from '@/components/HeroSlideshow';
 import PortfolioImage from '@/components/PortfolioImage';
 import { Globe } from 'lucide-react';
+import ScrollReveal from '@/components/ScrollReveal';
 export default async function HomePage() {
   const supabase = await createClient();
 
@@ -119,6 +120,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
         </div>
 
         <div className="relative z-10 flex min-h-[520px] items-center md:min-h-[570px]">
+          <ScrollReveal className="w-full">
           <div className="max-w-2xl md:w-[62%]">
             <p className="mb-6 text-xs uppercase tracking-[0.3em] text-amber-800 dark:text-amber-400">
               Photography & Visual Storytelling
@@ -136,6 +138,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
 
             <div className="mt-8 flex flex-wrap gap-3"><Link href="/booking" className="inline-block rounded-full bg-amber-700 px-7 py-4 text-sm text-white transition hover:bg-amber-800">Book a Session ↗</Link><a href="#portfolio" className="inline-block rounded-full border border-black/15 px-7 py-4 text-sm transition hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/5">Explore Portfolio</a></div>
           </div>
+          </ScrollReveal>
         </div>
         <p className="absolute bottom-6 right-8 z-10 text-right text-xs tracking-widest text-neutral-500 dark:text-neutral-300">
           MOMENTS · STORIES · MEMORIES
@@ -145,7 +148,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
       
 <section id="portfolio" className="border-t border-black/10 dark:border-white/10 px-6 py-24">
   <div className="mx-auto max-w-7xl">
-    <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+    <ScrollReveal><div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
       <div>
         <p className="text-xs uppercase tracking-[0.25em] text-neutral-400">
           Selected Works
@@ -158,14 +161,14 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
       <p className="max-w-xs text-sm leading-6 text-neutral-500">
         A collection of moments, emotions, and stories captured through our lens.
       </p>
-    </div>
+    </div></ScrollReveal>
 
     {portfolioCategoriesWithPhotos.length > 0 ? (
       <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {portfolioCategoriesWithPhotos.map((category, index) => {
           const cover = category.photos[0];
           return (
-            <Link key={category.slug} href={`/portfolio/${category.slug}`} className="group block overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-white/10 dark:bg-[#1b1b18]">
+            <ScrollReveal key={category.slug} delay={index * 90}><Link href={`/portfolio/${category.slug}`} className="group block overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-white/10 dark:bg-[#1b1b18]">
               <div className="relative overflow-hidden bg-neutral-200 dark:bg-neutral-800">
                 {cover ? (
                   <PortfolioImage src={cover.url} alt={category.title} loading="lazy"
@@ -186,7 +189,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
                 </div>
                 <p className="mt-2 text-xs tracking-wide text-neutral-400">Explore collection</p>
               </div>
-            </Link>
+            </Link></ScrollReveal>
           );
         })}
       </div>
@@ -201,13 +204,15 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
 
       
 <section id="services" className="bg-[#f1efe9] dark:bg-[#1c1c19] px-6 py-24">
-  <div className="mx-auto max-w-7xl"><p className="text-xs uppercase tracking-[0.25em] text-neutral-400">What We Do</p>
-    <div className="mt-4 flex flex-col justify-between gap-6 md:flex-row md:items-end"><h2 className="max-w-xl text-4xl font-medium leading-tight md:text-6xl">Photography for every chapter of your story.</h2><p className="max-w-sm text-sm leading-7 text-neutral-500">Explore our photography and videography services.</p></div>
+  <div className="mx-auto max-w-7xl"><ScrollReveal><div><p className="text-xs uppercase tracking-[0.25em] text-neutral-400">What We Do</p>
+    <div className="mt-4 flex flex-col justify-between gap-6 md:flex-row md:items-end"><h2 className="max-w-xl text-4xl font-medium leading-tight md:text-6xl">Photography for every chapter of your story.</h2><p className="max-w-sm text-sm leading-7 text-neutral-500">Explore our photography and videography services.</p></div></div></ScrollReveal>
     <div className="mt-16 grid gap-5 border-t border-black/15 pt-8 sm:grid-cols-2 lg:grid-cols-3 dark:border-white/15">
-      {normalizedPricelist.filter((service:any)=>service.showInService!==false).map((service:any,index:number)=><Link key={service.id} href={`/pricelist?service=${encodeURIComponent(service.id)}`} className="group flex min-h-48 flex-col justify-between rounded-2xl border border-black/10 bg-white/50 p-6 transition duration-300 hover:-translate-y-1 hover:border-amber-700/50 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]">
-        <div><p className="text-xs uppercase tracking-[0.25em] text-neutral-400">Service {String(index+1).padStart(2,'0')}</p><h3 className="mt-4 text-2xl font-medium transition-colors group-hover:text-amber-800 dark:group-hover:text-amber-400">{service.title}</h3>{service.description&&<p className="mt-3 text-sm leading-7 text-neutral-500">{service.description}</p>}</div>
-        <span className="mt-8 inline-flex items-center gap-2 text-sm font-medium text-amber-800 dark:text-amber-400">Explore Service <span aria-hidden="true">↗</span></span>
-      </Link>)}
+      {normalizedPricelist.filter((service:any)=>service.showInService!==false).map((service:any,index:number)=><ScrollReveal key={service.id} delay={index*100}><Link href={`/pricelist?service=${encodeURIComponent(service.id)}`} className="group relative isolate flex min-h-64 flex-col justify-between overflow-hidden rounded-2xl border border-black/10 bg-neutral-800 p-6 text-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-white/10">
+        {service.headerImageUrl&&<img src={service.headerImageUrl} alt="" aria-hidden="true" loading="lazy" className="absolute inset-0 -z-20 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"/>}
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-black/85 via-black/45 to-black/15"/>
+        <div><p className="text-xs uppercase tracking-[0.25em] text-white/70">Service {String(index+1).padStart(2,'0')}</p><h3 className="mt-4 text-2xl font-medium transition-colors group-hover:text-amber-200">{service.title}</h3>{service.description&&<p className="mt-3 text-sm leading-7 text-white/80">{service.description}</p>}</div>
+        <span className="mt-8 inline-flex items-center gap-2 text-sm font-medium text-amber-200">Explore Service <span aria-hidden="true">↗</span></span>
+      </Link></ScrollReveal>)}
     </div>
   </div>
 </section>
@@ -275,6 +280,12 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
     </div>
   </div>
 </footer>
+
+      <a href={whatsappContactUrl} target="_blank" rel="noopener noreferrer"
+        aria-label="Chat melalui WhatsApp" title="Chat melalui WhatsApp"
+        className="fixed bottom-6 right-6 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] shadow-lg shadow-black/20 transition hover:scale-105 hover:bg-[#1ebe5d] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#25D366]/40">
+        <img src="https://cdn.simpleicons.org/whatsapp/ffffff" alt="" aria-hidden="true" width="28" height="28" className="h-7 w-7" />
+      </a>
 
     </main>
   );

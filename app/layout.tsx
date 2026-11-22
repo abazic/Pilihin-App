@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Playfair_Display, Raleway } from "next/font/google";
+import PublicPageAnimations from "@/components/PublicPageAnimations";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -51,6 +52,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col bg-[#f6f6f6] dark:bg-[#0f0f0f] font-sans text-stone-800 dark:text-stone-200">
+        <PublicPageAnimations />
         {children}
       </body>
     </html>
