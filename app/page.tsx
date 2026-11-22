@@ -204,13 +204,13 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
 
       
 <section id="services" className="bg-[#f1efe9] dark:bg-[#1c1c19] px-6 py-24">
-  <div className="mx-auto max-w-7xl"><p className="text-xs uppercase tracking-[0.25em] text-neutral-400">What We Do</p>
-    <div className="mt-4 flex flex-col justify-between gap-6 md:flex-row md:items-end"><h2 className="max-w-xl text-4xl font-medium leading-tight md:text-6xl">Photography for every chapter of your story.</h2><p className="max-w-sm text-sm leading-7 text-neutral-500">Explore our photography and videography services.</p></div>
+  <div className="mx-auto max-w-7xl"><ScrollReveal><div><p className="text-xs uppercase tracking-[0.25em] text-neutral-400">What We Do</p>
+    <div className="mt-4 flex flex-col justify-between gap-6 md:flex-row md:items-end"><h2 className="max-w-xl text-4xl font-medium leading-tight md:text-6xl">Photography for every chapter of your story.</h2><p className="max-w-sm text-sm leading-7 text-neutral-500">Explore our photography and videography services.</p></div></div></ScrollReveal>
     <div className="mt-16 grid gap-5 border-t border-black/15 pt-8 sm:grid-cols-2 lg:grid-cols-3 dark:border-white/15">
-      {normalizedPricelist.filter((service:any)=>service.showInService!==false).map((service:any,index:number)=><Link key={service.id} href={`/pricelist?service=${encodeURIComponent(service.id)}`} className="group flex min-h-48 flex-col justify-between rounded-2xl border border-black/10 bg-white/50 p-6 transition duration-300 hover:-translate-y-1 hover:border-amber-700/50 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]">
+      {normalizedPricelist.filter((service:any)=>service.showInService!==false).map((service:any,index:number)=><ScrollReveal key={service.id} delay={index*100}><Link href={`/pricelist?service=${encodeURIComponent(service.id)}`} className="group flex min-h-48 flex-col justify-between rounded-2xl border border-black/10 bg-white/50 p-6 transition duration-300 hover:-translate-y-1 hover:border-amber-700/50 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]">
         <div><p className="text-xs uppercase tracking-[0.25em] text-neutral-400">Service {String(index+1).padStart(2,'0')}</p><h3 className="mt-4 text-2xl font-medium transition-colors group-hover:text-amber-800 dark:group-hover:text-amber-400">{service.title}</h3>{service.description&&<p className="mt-3 text-sm leading-7 text-neutral-500">{service.description}</p>}</div>
         <span className="mt-8 inline-flex items-center gap-2 text-sm font-medium text-amber-800 dark:text-amber-400">Explore Service <span aria-hidden="true">↗</span></span>
-      </Link>)}
+      </Link></ScrollReveal>)}
     </div>
   </div>
 </section>
