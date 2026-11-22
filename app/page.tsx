@@ -260,8 +260,6 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
       })}
     </div>
 
-      </div>
-
       <a href={whatsappContactUrl} target="_blank" rel="noopener noreferrer"
       aria-label="Chat melalui WhatsApp" title="Chat melalui WhatsApp"
       className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#25D366] transition hover:bg-[#1ebe5d]">
