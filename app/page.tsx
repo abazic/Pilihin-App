@@ -119,7 +119,8 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
           <div className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-[#faf9f6] to-transparent dark:from-[#11110f]" />
         </div>
 
-        <div className="relative z-10 flex min-h-[520px] items-center md:min-h-[570px]">\n          <ScrollReveal className="w-full">
+        <div className="relative z-10 flex min-h-[520px] items-center md:min-h-[570px]">
+          <ScrollReveal className="w-full">
           <div className="max-w-2xl md:w-[62%]">
             <p className="mb-6 text-xs uppercase tracking-[0.3em] text-amber-800 dark:text-amber-400">
               Photography & Visual Storytelling
@@ -137,6 +138,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
 
             <div className="mt-8 flex flex-wrap gap-3"><Link href="/booking" className="inline-block rounded-full bg-amber-700 px-7 py-4 text-sm text-white transition hover:bg-amber-800">Book a Session ↗</Link><a href="#portfolio" className="inline-block rounded-full border border-black/15 px-7 py-4 text-sm transition hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/5">Explore Portfolio</a></div>
           </div>
+          </ScrollReveal>
         </div>
         <p className="absolute bottom-6 right-8 z-10 text-right text-xs tracking-widest text-neutral-500 dark:text-neutral-300">
           MOMENTS · STORIES · MEMORIES
@@ -159,7 +161,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
       <p className="max-w-xs text-sm leading-6 text-neutral-500">
         A collection of moments, emotions, and stories captured through our lens.
       </p>
-    </div>
+    </div></ScrollReveal>
 
     {portfolioCategoriesWithPhotos.length > 0 ? (
       <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -187,7 +189,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
                 </div>
                 <p className="mt-2 text-xs tracking-wide text-neutral-400">Explore collection</p>
               </div>
-            </Link>
+            </Link></ScrollReveal>
           );
         })}
       </div>
