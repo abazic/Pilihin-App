@@ -18,20 +18,17 @@ import {
 const DEFAULT_PRICELIST = {
   title: 'Graduation Photoshoot 2026',
   subtitle: 'Rayakan perjalanan panjangmu lewat foto yang layak untuk dikenang.',
-  packages: [
-    { name: 'Solo Graduate', price: 'Rp 250K', detail: '1 Graduate', duration: '1 jam', locations: '1 lokasi', photos: '20 foto edited', extras: 'Unlimited shots' },
-    { name: 'Duo Graduate', price: 'Rp 400K', detail: '2 Graduates', duration: '2 jam', locations: '2 lokasi', photos: '30 foto edited', extras: 'Unlimited shots' },
-    { name: 'Group Session', price: 'Rp 700K', detail: '3–5 Graduates', duration: '2 jam', locations: '2 lokasi', photos: '60 foto edited', extras: 'Unlimited shots' },
-    { name: 'Large Group', price: 'Rp 900K', detail: '6–10 Graduates', duration: '2 jam', locations: '2 lokasi', photos: '100 foto edited', extras: 'Unlimited shots' },
-    { name: 'Extended Group', price: 'Rp 100K/person', detail: '>10 Graduates', duration: '3–4 jam', locations: '1 lokasi', photos: '100 foto edited', extras: 'Unlimited shots' },
-  ],
-  addons: [{ name: 'Extra 60 menit', price: '+Rp 100K' }, { name: 'Extra lokasi', price: '+Rp 100K' }, { name: 'Extra 10 foto edited', price: '+Rp 50K' }, { name: 'Same Day Edit', price: '+Rp 300K' }, { name: 'Family >5 orang', price: '+Rp 50K/orang' }],
+  packages: [{"name":"Solo Graduate","price":"Rp 250K","detail":"1 Graduate","duration":"1 jam","locations":"1 lokasi","photos":"20 foto edited","extras":"Unlimited shots"},{"name":"Duo Graduate","price":"Rp 400K","detail":"2 Graduates","duration":"2 jam","locations":"2 lokasi","photos":"30 foto edited","extras":"Unlimited shots"},{"name":"Group Session","price":"Rp 700K","detail":"3–5 Graduates","duration":"2 jam","locations":"2 lokasi","photos":"60 foto edited","extras":"Unlimited shots"},{"name":"Large Group","price":"Rp 900K","detail":"6–10 Graduates","duration":"2 jam","locations":"2 lokasi","photos":"100 foto edited","extras":"Unlimited shots"},{"name":"Extended Group","price":"Rp 100K/person","detail":">10 Graduates","duration":"3–4 jam","locations":"1 lokasi","photos":"100 foto edited","extras":"Unlimited shots"}],
+  addons: [{"name":"Extra 60 menit","price":"+Rp 100K"},{"name":"Extra lokasi","price":"+Rp 100K"},{"name":"Extra 10 foto edited","price":"+Rp 50K"},{"name":"Same Day Edit","price":"+Rp 300K"},{"name":"Family >5 orang","price":"+Rp 50K/orang"}],
   video: { name: 'Shoot & Edit', price: 'Rp 600K', duration: '', description: 'Video dokumentasi graduation' },
   whatsappMessage: 'Halo kak, bisa booking foto graduation?',
+  services: [{"id":"graduation","title":"Graduation Photography","description":"Sesi foto dan video untuk merayakan kelulusan.","showInService":true,"photoPackages":[{"name":"Solo Graduate","price":"Rp 250K","detail":"1 Graduate","duration":"1 jam","locations":"1 lokasi","photos":"20 foto edited","extras":"Unlimited shots"},{"name":"Duo Graduate","price":"Rp 400K","detail":"2 Graduates","duration":"2 jam","locations":"2 lokasi","photos":"30 foto edited","extras":"Unlimited shots"},{"name":"Group Session","price":"Rp 700K","detail":"3–5 Graduates","duration":"2 jam","locations":"2 lokasi","photos":"60 foto edited","extras":"Unlimited shots"},{"name":"Large Group","price":"Rp 900K","detail":"6–10 Graduates","duration":"2 jam","locations":"2 lokasi","photos":"100 foto edited","extras":"Unlimited shots"},{"name":"Extended Group","price":"Rp 100K/person","detail":">10 Graduates","duration":"3–4 jam","locations":"1 lokasi","photos":"100 foto edited","extras":"Unlimited shots"}],"videoPackages":[{"name":"Shoot & Edit","price":"Rp 600K","detail":"Video dokumentasi graduation"}],"addons":[{"name":"Extra 60 menit","price":"+Rp 100K"},{"name":"Extra lokasi","price":"+Rp 100K"},{"name":"Extra 10 foto edited","price":"+Rp 50K"},{"name":"Same Day Edit","price":"+Rp 300K"},{"name":"Family >5 orang","price":"+Rp 50K/orang"}]},{"id":"wedding-events","title":"Wedding & Events","description":"Dokumentasi foto dan video untuk pernikahan serta berbagai acara.","showInService":true,"photoPackages":[],"videoPackages":[],"addons":[]},{"id":"personal-projects","title":"Personal Projects","description":"Sesi fotografi dan videografi untuk kebutuhan personal maupun kreatif.","showInService":true,"photoPackages":[],"videoPackages":[],"addons":[]}],
 };
 type PricePackage = { name: string; price: string; detail: string; duration: string; locations: string; photos: string; extras: string };
 type PriceAddon = { name: string; price: string };
-type PricelistData = { title: string; subtitle: string; packages: PricePackage[]; addons: PriceAddon[]; video: { name: string; price: string; duration?: string; description: string }; whatsappMessage: string };
+type PriceServiceItem = { name: string; price: string; detail?: string; duration?: string; locations?: string; photos?: string; extras?: string };
+type PriceService = { id: string; title: string; description: string; showInService: boolean; photoPackages: PriceServiceItem[]; videoPackages: PriceServiceItem[]; addons: PriceAddon[] };
+type PricelistData = { title: string; subtitle: string; packages: PricePackage[]; addons: PriceAddon[]; video: { name: string; price: string; duration?: string; description: string }; whatsappMessage: string; services: PriceService[] };
 
 // ─── Interface ────────────────────────────────────────────────────────────────
 interface FormDataState {
@@ -95,6 +92,7 @@ function AdminBookingsPanel() {
   const [message, setMessage] = useState('');
   const [syncingSheets, setSyncingSheets] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const syncSheets = async () => {
     setSyncingSheets(true);
     try {
@@ -161,6 +159,16 @@ function AdminBookingsPanel() {
       setDeletingId(null);
     }
   };
+  const confirmedBookings = items.filter(item => item.status === 'confirmed');
+  const calendarYear = calendarMonth.getFullYear();
+  const calendarMonthIndex = calendarMonth.getMonth();
+  const calendarDays = new Date(calendarYear, calendarMonthIndex + 1, 0).getDate();
+  const calendarOffset = new Date(calendarYear, calendarMonthIndex, 1).getDay();
+  const bookingsByDate = confirmedBookings.reduce<Record<string, AdminBooking[]>>((groups, booking) => {
+    const dateKey = booking.session_date?.slice(0, 10);
+    if (dateKey) groups[dateKey] = [...(groups[dateKey] || []), booking];
+    return groups;
+  }, {});
   const money = (amount: number) => 'Rp ' + Number(amount || 0).toLocaleString('id-ID');
   const pill = (status: string) => 'rounded-full px-3 py-1 text-xs font-medium ' +
     (status === 'confirmed' ? 'bg-green-100 text-green-700' : status === 'rejected' ? 'bg-red-100 text-red-700' : status === 'completed' ? 'bg-neutral-200 text-neutral-700' : 'bg-amber-100 text-amber-800');
@@ -173,6 +181,35 @@ function AdminBookingsPanel() {
       <div className="grid gap-3 sm:grid-cols-4">
         {(['pending','confirmed','rejected','completed'] as const).map(status => <div key={status} className={`${CARD} rounded-xl p-4`}><p className="text-xs uppercase text-gray-500 dark:text-gray-400">{bookingStatusText[status]}</p><p className="mt-1 font-serif text-3xl">{items.filter(item => item.status === status).length}</p></div>)}
       </div>
+      <section className={`${CARD} rounded-2xl p-4 sm:p-5 space-y-4`}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div><h2 className="text-lg font-semibold text-gray-900 dark:text-white">Kalender Booking Terkonfirmasi</h2><p className="text-xs text-gray-500 dark:text-gray-400">Menampilkan jadwal booking dengan status Confirmed.</p></div>
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={() => setCalendarMonth(new Date(calendarYear, calendarMonthIndex - 1, 1))} className={`rounded-lg px-3 py-2 text-sm ${BTN_SECONDARY}`} aria-label="Bulan sebelumnya">‹</button>
+            <span className="min-w-32 text-center text-sm font-medium text-gray-800 dark:text-gray-200">{calendarMonth.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}</span>
+            <button type="button" onClick={() => setCalendarMonth(new Date(calendarYear, calendarMonthIndex + 1, 1))} className={`rounded-lg px-3 py-2 text-sm ${BTN_SECONDARY}`} aria-label="Bulan berikutnya">›</button>
+          </div>
+        </div>
+        <div className="grid grid-cols-7 gap-1 text-center">
+          {["Min","Sen","Sel","Rab","Kam","Jum","Sab"].map(day => <div key={day} className="py-2 text-[11px] font-semibold uppercase text-gray-400">{day}</div>)}
+          {Array.from({ length: calendarOffset }, (_, index) => <div key={`empty-${index}`} className="min-h-16 rounded-lg bg-gray-50/60 dark:bg-neutral-950/40 sm:min-h-24" />)}
+          {Array.from({ length: calendarDays }, (_, index) => {
+            const day = index + 1;
+            const dateKey = `${calendarYear}-${String(calendarMonthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+            const dayBookings = bookingsByDate[dateKey] || [];
+            const today = new Date();
+            const isToday = today.getFullYear() === calendarYear && today.getMonth() === calendarMonthIndex && today.getDate() === day;
+            return <div key={dateKey} className={`min-h-16 rounded-lg border p-1 text-left sm:min-h-24 sm:p-2 ${isToday ? "border-amber-500 bg-amber-50/60 dark:bg-amber-950/20" : "border-gray-100 dark:border-neutral-800"}`}>
+              <div className={`text-xs font-medium ${isToday ? "text-amber-700 dark:text-amber-400" : "text-gray-600 dark:text-gray-300"}`}>{day}</div>
+              <div className="mt-1 space-y-1">
+                {dayBookings.slice(0, 2).map(booking => <div key={booking.id} title={`${booking.customer_name} · ${booking.session_time}`} className="truncate rounded bg-green-100 px-1 py-1 text-[9px] leading-tight text-green-800 dark:bg-green-950/60 dark:text-green-300 sm:text-[11px]">{booking.session_time} {booking.customer_name}</div>)}
+                {dayBookings.length > 2 && <p className="px-1 text-[9px] text-gray-500">+{dayBookings.length - 2} lainnya</p>}
+              </div>
+            </div>;
+          })}
+        </div>
+        <p className="text-xs text-gray-500 dark:text-gray-400">{confirmedBookings.length} booking confirmed · Jadwal ditampilkan berdasarkan tanggal sesi.</p>
+      </section>
       <div className="flex flex-wrap gap-3">
         <input value={search} onChange={event => setSearch(event.target.value)} placeholder="Cari nama, kode booking, WhatsApp" className={`${INPUT} min-w-[220px] flex-1`} />
         <select value={filter} onChange={event => setFilter(event.target.value)} className={`${INPUT} sm:w-52`}><option value="all">Semua status</option>{Object.entries(bookingStatusText).map(([value,label]) => <option value={value} key={value}>{label}</option>)}</select>
@@ -211,7 +248,7 @@ export default function HomePage() {
   const [isNotifOpen, setIsNotifOpen]       = useState<boolean>(false);
   const [notifications, setNotifications]   = useState<NotificationItem[]>([]);
   const [isBroadcastOpen, setIsBroadcastOpen] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<'clients' | 'portfolio' | 'pricelist' | 'contact' | 'bookings'>('clients');
+  const [activeTab, setActiveTab] = useState<'clients' | 'portfolio' | 'pricelist' | 'contact' | 'bookings'>('bookings');
   useEffect(() => { if (new URLSearchParams(window.location.search).get('section') === 'bookings') setActiveTab('bookings'); }, []);
   const [portfolioCategories, setPortfolioCategories] = useState<PortfolioCategory[]>([]);
   const [portfolioTitle, setPortfolioTitle] = useState('');
@@ -275,7 +312,7 @@ export default function HomePage() {
       const response = await fetch('/api/admin/pricelist');
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Gagal memuat pricelist.');
-      setPricelist({ ...DEFAULT_PRICELIST, ...result.pricelist });
+      setPricelist({ ...DEFAULT_PRICELIST, ...result.pricelist, services: Array.isArray(result.pricelist?.services) ? result.pricelist.services : DEFAULT_PRICELIST.services });
     } catch (error) { setPricelistMessage(error instanceof Error ? error.message : 'Gagal memuat pricelist.'); }
   }, []);
 
@@ -287,7 +324,7 @@ export default function HomePage() {
       const response = await fetch('/api/admin/pricelist', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pricelist }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Gagal menyimpan pricelist.');
-      setPricelist({ ...DEFAULT_PRICELIST, ...result.pricelist });
+      setPricelist({ ...DEFAULT_PRICELIST, ...result.pricelist, services: Array.isArray(result.pricelist?.services) ? result.pricelist.services : DEFAULT_PRICELIST.services });
       setPricelistMessage('Pricelist berhasil disimpan dan halaman publik diperbarui.');
     } catch (error) { setPricelistMessage(error instanceof Error ? error.message : 'Gagal menyimpan pricelist.'); }
     finally { setPricelistSaving(false); }
@@ -1044,29 +1081,20 @@ export default function HomePage() {
             </div>
           </section>
         )}
+
         {activeTab === 'pricelist' && (
           <section className={`${CARD} rounded-2xl p-6 sm:p-8 space-y-8`}>
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div><h1 className="text-3xl font-serif text-gray-900 dark:text-white">Edit Pricelist</h1><p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Kelola paket, harga, add-ons, dan CTA booking. Perubahan tampil di halaman publik /pricelist.</p></div>
-              <Link href="/pricelist" target="_blank" className={`rounded-lg px-4 py-2 text-sm ${BTN_SECONDARY}`}>Preview halaman ↗</Link>
-            </div>
-            <div className="space-y-4 rounded-xl border border-gray-200 dark:border-neutral-800 p-4">
-              <h2 className="font-semibold">Konten utama</h2>
-              <label className="block text-sm">Judul<input value={pricelist.title} onChange={e=>setPricelist(p=>({...p,title:e.target.value}))} className={`${INPUT} mt-2`} /></label>
-              <label className="block text-sm">Subjudul<textarea rows={2} value={pricelist.subtitle} onChange={e=>setPricelist(p=>({...p,subtitle:e.target.value}))} className={`${INPUT} mt-2`} /></label>
-              <label className="block text-sm">Pesan WhatsApp booking<textarea rows={2} value={pricelist.whatsappMessage} onChange={e=>setPricelist(p=>({...p,whatsappMessage:e.target.value}))} className={`${INPUT} mt-2`} /></label>
-            </div>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between"><h2 className="text-xl font-semibold">Photo Packages</h2><button type="button" onClick={()=>setPricelist(p=>({...p,packages:[...p.packages,{name:'Paket Baru',price:'',detail:'',duration:'',locations:'',photos:'',extras:''}]}))} className={`rounded-lg px-3 py-2 text-sm ${BTN_SECONDARY}`}><Plus size={14} className="inline mr-1"/>Tambah paket</button></div>
-              {pricelist.packages.map((item,i)=><div key={i} className="rounded-xl border border-gray-200 dark:border-neutral-800 p-4 space-y-3">
-                <div className="flex justify-between"><span className="text-xs font-semibold text-gray-400">PAKET {i+1}</span><button type="button" onClick={()=>setPricelist(p=>({...p,packages:p.packages.filter((_,j)=>j!==i)}))} className="text-xs text-red-500">Hapus</button></div>
-                <div className="grid gap-3 sm:grid-cols-2"><label className="text-xs">Nama paket<input value={item.name} onChange={e=>updatePricePackage(i,'name',e.target.value)} className={`${INPUT} mt-1`}/></label><label className="text-xs">Harga<input value={item.price} onChange={e=>updatePricePackage(i,'price',e.target.value)} className={`${INPUT} mt-1`}/></label><label className="text-xs">Target peserta<input value={item.detail} onChange={e=>updatePricePackage(i,'detail',e.target.value)} className={`${INPUT} mt-1`}/></label><label className="text-xs">Durasi<input value={item.duration} onChange={e=>updatePricePackage(i,'duration',e.target.value)} className={`${INPUT} mt-1`}/></label><label className="text-xs">Lokasi<input value={item.locations} onChange={e=>updatePricePackage(i,'locations',e.target.value)} className={`${INPUT} mt-1`}/></label><label className="text-xs">Foto edited<input value={item.photos} onChange={e=>updatePricePackage(i,'photos',e.target.value)} className={`${INPUT} mt-1`}/></label><label className="text-xs sm:col-span-2">Keterangan tambahan<input value={item.extras} onChange={e=>updatePricePackage(i,'extras',e.target.value)} className={`${INPUT} mt-1`}/></label></div>
+            <div className="flex flex-wrap items-start justify-between gap-4"><div><h1 className="text-3xl font-serif text-gray-900 dark:text-white">Kelola Pricelist & Service</h1><p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Service adalah jenis pekerjaan fotografi. Di dalamnya, atur paket foto, paket video, dan add-on.</p></div><Link href="/pricelist" target="_blank" className={`${BTN_SECONDARY} rounded-lg px-4 py-2 text-sm`}>Preview halaman ↗</Link></div>
+            <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-xl font-semibold">Jenis Service</h2><p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Contoh: Graduation Photography, Wedding & Events, Personal Projects.</p></div><button type="button" onClick={()=>setPricelist(p=>({...p,services:[...(p.services||[]),{id:'service-'+Date.now(),title:'Service Baru',description:'',showInService:true,photoPackages:[],videoPackages:[],addons:[]}]}))} className={`rounded-lg px-4 py-2 text-sm ${BTN_SECONDARY}`}><Plus size={14} className="mr-1 inline"/>Tambah Jenis Service</button></div>
+            {(pricelist.services||[]).map((service,si)=><article key={service.id} className="space-y-5 rounded-xl border border-gray-200 p-4 dark:border-neutral-800">
+              <div className="flex items-center justify-between"><span className="text-xs font-semibold uppercase tracking-wider text-gray-400">SERVICE {si+1}</span><button type="button" onClick={()=>{if(window.confirm('Hapus service '+service.title+' beserta semua paketnya?'))setPricelist(p=>({...p,services:p.services.filter(s=>s.id!==service.id)}));}} className="text-xs text-red-500">Hapus Service</button></div>
+              <div className="grid gap-3 sm:grid-cols-2"><label className="text-sm">Nama Jenis Service<input value={service.title} onChange={e=>setPricelist(p=>({...p,services:p.services.map(s=>s.id===service.id?{...s,title:e.target.value}:s)}))} placeholder="Contoh: Wedding & Events" className={`${INPUT} mt-1`}/></label><label className="flex items-center gap-2 self-end pb-3 text-sm"><input type="checkbox" checked={service.showInService!==false} onChange={e=>setPricelist(p=>({...p,services:p.services.map(s=>s.id===service.id?{...s,showInService:e.target.checked}:s)}))}/>Tampilkan di homepage Service</label><label className="text-sm sm:col-span-2">Deskripsi<textarea rows={2} value={service.description||''} onChange={e=>setPricelist(p=>({...p,services:p.services.map(s=>s.id===service.id?{...s,description:e.target.value}:s)}))} placeholder="Deskripsi jenis layanan..." className={`${INPUT} mt-1`}/></label></div>
+              {([['photoPackages','Photo Packages'],['videoPackages','Video Packages']] as const).map(([field,heading])=><div className="space-y-3 rounded-lg bg-gray-50 p-4 dark:bg-neutral-950" key={field}><div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-semibold">{heading}</h3><button type="button" onClick={()=>setPricelist(p=>({...p,services:p.services.map(s=>s.id===service.id?{...s,[field]:[...(s[field]||[]),{name:'Paket Baru',price:'',detail:'',duration:'',locations:'',photos:'',extras:''}]}:s)}))} className={`rounded-lg px-3 py-2 text-xs ${BTN_SECONDARY}`}><Plus size={13} className="mr-1 inline"/>Tambah Paket</button></div>
+                {(service[field]||[]).length===0&&<p className="text-xs text-gray-500">Belum ada {heading.toLowerCase()}.</p>}
+                {(service[field]||[]).map((item,ii)=><div key={ii} className="space-y-3 rounded-lg border border-gray-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900"><div className="flex items-center justify-between"><span className="text-xs font-semibold text-gray-400">PAKET {ii+1}</span><button type="button" onClick={()=>setPricelist(p=>({...p,services:p.services.map(s=>s.id===service.id?{...s,[field]:s[field].filter((_,i)=>i!==ii)}:s)}))} className="text-xs text-red-500">Hapus Paket</button></div><div className="grid gap-3 sm:grid-cols-2">{([['name','Nama Paket'],['price','Harga'],['detail','Keterangan'],['duration','Durasi'],['locations','Lokasi'],['photos','Jumlah foto'],['extras','Fasilitas / detail tambahan']] as const).map(([key,label])=><label key={key} className="text-xs">{label}<input value={item[key]||''} onChange={e=>setPricelist(p=>({...p,services:p.services.map(s=>s.id===service.id?{...s,[field]:s[field].map((it,i)=>i===ii?{...it,[key]:e.target.value}:it)}:s)}))} className={`${INPUT} mt-1`}/></label>)}</div></div>)}
               </div>)}
-            </div>
-            <div className="space-y-4 rounded-xl border border-gray-200 dark:border-neutral-800 p-4"><h2 className="text-xl font-semibold">Video Package</h2><div className="grid gap-3 sm:grid-cols-2"><label className="text-sm">Nama<input value={pricelist.video.name} onChange={e=>setPricelist(p=>({...p,video:{...p.video,name:e.target.value}}))} className={`${INPUT} mt-1`}/></label><label className="text-sm">Harga<input value={pricelist.video.price} onChange={e=>setPricelist(p=>({...p,video:{...p.video,price:e.target.value}}))} className={`${INPUT} mt-1`}/></label><label className="text-sm">Durasi video<input value={pricelist.video.duration || ''} onChange={e=>setPricelist(p=>({...p,video:{...p.video,duration:e.target.value}}))} placeholder="Contoh: 1–3 menit" className={`${INPUT} mt-1`}/></label><label className="text-sm sm:col-span-2">Deskripsi<input value={pricelist.video.description} onChange={e=>setPricelist(p=>({...p,video:{...p.video,description:e.target.value}}))} className={`${INPUT} mt-1`}/></label></div></div>
-            <div className="space-y-4"><div className="flex items-center justify-between"><h2 className="text-xl font-semibold">Add-ons</h2><button type="button" onClick={()=>setPricelist(p=>({...p,addons:[...p.addons,{name:'Add-on baru',price:''}]}))} className={`rounded-lg px-3 py-2 text-sm ${BTN_SECONDARY}`}><Plus size={14} className="inline mr-1"/>Tambah add-on</button></div>
-              {pricelist.addons.map((item,i)=><div key={i} className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]"><input aria-label="Nama add-on" value={item.name} onChange={e=>updatePriceAddon(i,'name',e.target.value)} className={INPUT}/><input aria-label="Harga add-on" value={item.price} onChange={e=>updatePriceAddon(i,'price',e.target.value)} className={INPUT}/><button type="button" onClick={()=>setPricelist(p=>({...p,addons:p.addons.filter((_,j)=>j!==i)}))} className="rounded-lg px-3 text-sm text-red-500">Hapus</button></div>)}
-            </div>
+              <div className="space-y-3 rounded-lg border border-dashed border-gray-300 p-4 dark:border-neutral-700"><div className="flex items-center justify-between"><h3 className="font-semibold">Add-ons (opsional)</h3><button type="button" onClick={()=>setPricelist(p=>({...p,services:p.services.map(s=>s.id===service.id?{...s,addons:[...(s.addons||[]),{name:'Add-on Baru',price:''}]}:s)}))} className={`rounded-lg px-3 py-2 text-xs ${BTN_SECONDARY}`}><Plus size={13} className="mr-1 inline"/>Tambah Add-on</button></div>{(service.addons||[]).map((item,ii)=><div key={ii} className="grid grid-cols-[1fr_1fr_auto] items-end gap-2"><label className="text-xs">Nama<input value={item.name} onChange={e=>setPricelist(p=>({...p,services:p.services.map(s=>s.id===service.id?{...s,addons:s.addons.map((it,i)=>i===ii?{...it,name:e.target.value}:it)}:s)}))} className={`${INPUT} mt-1`}/></label><label className="text-xs">Harga<input value={item.price} onChange={e=>setPricelist(p=>({...p,services:p.services.map(s=>s.id===service.id?{...s,addons:s.addons.map((it,i)=>i===ii?{...it,price:e.target.value}:it)}:s)}))} className={`${INPUT} mt-1`}/></label><button type="button" onClick={()=>setPricelist(p=>({...p,services:p.services.map(s=>s.id===service.id?{...s,addons:s.addons.filter((_,i)=>i!==ii)}:s)}))} className="pb-2 text-xs text-red-500">Hapus</button></div>)}</div>
+            </article>)}
             <div className="flex flex-wrap items-center gap-3 border-t border-gray-100 pt-5 dark:border-neutral-800"><button type="button" onClick={savePricelist} disabled={pricelistSaving} className="rounded-xl bg-gray-900 px-6 py-3 text-sm font-semibold text-white disabled:opacity-50 dark:bg-white dark:text-gray-900">{pricelistSaving?'Menyimpan...':'Simpan Pricelist'}</button>{pricelistMessage&&<p className="text-sm text-gray-600 dark:text-gray-300">{pricelistMessage}</p>}</div>
           </section>
         )}

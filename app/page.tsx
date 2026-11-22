@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { getPhotosPageFromGDrive } from '@/lib/gdrive';
 import HeroSlideshow from '@/components/HeroSlideshow';
 import PortfolioImage from '@/components/PortfolioImage';
-import { Globe, MessageCircle } from 'lucide-react';
+import { Globe } from 'lucide-react';
 export default async function HomePage() {
   const supabase = await createClient();
 
@@ -20,6 +20,23 @@ const whatsappNumber = (
 ).replace(/\D/g, '');
 
 const whatsappUrl = `https://wa.me/${whatsappNumber}`;
+const { data: pricelistSetting } = await supabase.from('settings').select('value').eq('key', 'pricelist_content').maybeSingle();
+const normalizedPricelist = (() => {
+  let parsed: any = {};
+  try { parsed = typeof pricelistSetting?.value === 'string' ? JSON.parse(pricelistSetting.value) : (pricelistSetting?.value || {}); } catch {}
+  const current = Array.isArray(parsed.services) ? parsed.services : [];
+  if (current.some((service:any) => Array.isArray(service?.photoPackages) || Array.isArray(service?.videoPackages))) {
+    return current.map((service:any,index:number)=>({...service,id:service.id||'service-'+index,photoPackages:service.photoPackages||[],videoPackages:service.videoPackages||[],addons:service.addons||[]}));
+  }
+  const label = (service:any) => String(service?.id||'')+' '+String(service?.title||'');
+  const oldPhoto = current.find((service:any)=>/photo|package/i.test(label(service))&&!/video/i.test(label(service)));
+  const oldVideo = current.find((service:any)=>/video/i.test(label(service)));
+  const oldAddons = current.find((service:any)=>/addon/i.test(label(service)));
+  return [{id:'graduation',title:'Graduation Photography',description:'Sesi foto dan video untuk merayakan kelulusan.',showInService:true,
+    photoPackages:oldPhoto?.items||parsed.packages||[{"name":"Solo Graduate","price":"Rp 250K","detail":"1 Graduate","duration":"1 jam","locations":"1 lokasi","photos":"20 foto edited","extras":"Unlimited shots"},{"name":"Duo Graduate","price":"Rp 400K","detail":"2 Graduates","duration":"2 jam","locations":"2 lokasi","photos":"30 foto edited","extras":"Unlimited shots"},{"name":"Group Session","price":"Rp 700K","detail":"3–5 Graduates","duration":"2 jam","locations":"2 lokasi","photos":"60 foto edited","extras":"Unlimited shots"},{"name":"Large Group","price":"Rp 900K","detail":"6–10 Graduates","duration":"2 jam","locations":"2 lokasi","photos":"100 foto edited","extras":"Unlimited shots"},{"name":"Extended Group","price":"Rp 100K/person","detail":">10 Graduates","duration":"3–4 jam","locations":"1 lokasi","photos":"100 foto edited","extras":"Unlimited shots"}],
+    videoPackages:oldVideo?.items||(parsed.video?.name?[{name:parsed.video.name,price:parsed.video.price,detail:parsed.video.description,duration:parsed.video.duration}]:[{"name":"Shoot & Edit","price":"Rp 600K","detail":"Video dokumentasi graduation"}]),
+    addons:oldAddons?.items||parsed.addons||[{"name":"Extra 60 menit","price":"+Rp 100K"},{"name":"Extra lokasi","price":"+Rp 100K"},{"name":"Extra 10 foto edited","price":"+Rp 50K"},{"name":"Same Day Edit","price":"+Rp 300K"},{"name":"Family >5 orang","price":"+Rp 50K/orang"}]}, {id:"wedding-events",title:"Wedding & Events",description:"Dokumentasi foto dan video untuk pernikahan serta berbagai acara.",showInService:true,photoPackages:[],videoPackages:[],addons:[]}, {id:"personal-projects",title:"Personal Projects",description:"Sesi fotografi dan videografi untuk kebutuhan personal maupun kreatif.",showInService:true,photoPackages:[],videoPackages:[],addons:[]}];
+})();
   const whatsappMessage = encodeURIComponent(
   'Halo inStories creative, saya ingin bertanya tentang layanan fotografi.'
 );
@@ -91,7 +108,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
         }
       />
 
-      <section className="relative isolate mx-auto max-w-7xl overflow-hidden px-6 py-16 md:min-h-[720px] md:py-24">
+      <section className="relative isolate mx-auto -mt-[8.25rem] max-w-7xl overflow-hidden px-6 pt-[calc(4rem+8.25rem)] pb-16 md:min-h-[720px] md:pt-[calc(6rem+8.25rem)] md:pb-24">
         <div className="absolute inset-y-0 right-0 w-full md:w-[72%]">
           <div className="absolute inset-0">
             <HeroSlideshow images={heroPhotos} interval={12000} />
@@ -184,58 +201,42 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
 
       
 <section id="services" className="bg-[#f1efe9] dark:bg-[#1c1c19] px-6 py-24">
-  <div className="mx-auto max-w-7xl">
-    <p className="text-xs uppercase tracking-[0.25em] text-neutral-400">
-      What We Do
-    </p>
-
-    <div className="mt-4 flex flex-col justify-between gap-6 md:flex-row md:items-end">
-      <h2 className="max-w-xl text-4xl font-medium leading-tight md:text-6xl">
-        Photography for every chapter of your story.
-      </h2>
-
-      <p className="max-w-sm text-sm leading-7 text-neutral-500">
-        From intimate celebrations to meaningful milestones,
-        we capture every moment with intention.
-      </p>
-    </div>
-
-    <div className="mt-16 grid gap-10 border-t border-black/15 dark:border-white/15 pt-8 md:grid-cols-3">
-      <div>
-        <span className="text-xs text-neutral-400">01 / GRADUATION</span>
-        <h3 className="mt-5 text-2xl font-medium">Graduation Photography</h3>
-        <p className="mt-4 text-sm leading-7 text-neutral-500">
-          Mengabadikan momen kelulusan, mulai dari potret wisuda
-          hingga kebersamaan bersama keluarga dan sahabat.
-        </p>
-      </div>
-
-      <div>
-        <span className="text-xs text-neutral-400">02 / WEDDING</span>
-        <h3 className="mt-5 text-2xl font-medium">Wedding Photography</h3>
-        <p className="mt-4 text-sm leading-7 text-neutral-500">
-          Mengabadikan setiap momen pernikahan, mulai dari detail kecil
-          hingga momen paling berharga.
-        </p>
-      </div>
-
-      <div>
-        <span className="text-xs text-neutral-400">03 / EVENT</span>
-        <h3 className="mt-5 text-2xl font-medium">Event Photography</h3>
-        <p className="mt-4 text-sm leading-7 text-neutral-500">
-          Dokumentasi acara dan perayaan dengan pendekatan visual
-          yang natural dan bercerita.
-        </p>
-      </div>
+  <div className="mx-auto max-w-7xl"><p className="text-xs uppercase tracking-[0.25em] text-neutral-400">What We Do</p>
+    <div className="mt-4 flex flex-col justify-between gap-6 md:flex-row md:items-end"><h2 className="max-w-xl text-4xl font-medium leading-tight md:text-6xl">Photography for every chapter of your story.</h2><p className="max-w-sm text-sm leading-7 text-neutral-500">Explore our photography and videography services.</p></div>
+    <div className="mt-16 grid gap-5 border-t border-black/15 pt-8 sm:grid-cols-2 lg:grid-cols-3 dark:border-white/15">
+      {normalizedPricelist.filter((service:any)=>service.showInService!==false).map((service:any,index:number)=><Link key={service.id} href={`/pricelist?service=${encodeURIComponent(service.id)}`} className="group flex min-h-48 flex-col justify-between rounded-2xl border border-black/10 bg-white/50 p-6 transition duration-300 hover:-translate-y-1 hover:border-amber-700/50 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.06]">
+        <div><p className="text-xs uppercase tracking-[0.25em] text-neutral-400">Service {String(index+1).padStart(2,'0')}</p><h3 className="mt-4 text-2xl font-medium transition-colors group-hover:text-amber-800 dark:group-hover:text-amber-400">{service.title}</h3>{service.description&&<p className="mt-3 text-sm leading-7 text-neutral-500">{service.description}</p>}</div>
+        <span className="mt-8 inline-flex items-center gap-2 text-sm font-medium text-amber-800 dark:text-amber-400">Explore Service <span aria-hidden="true">↗</span></span>
+      </Link>)}
     </div>
   </div>
 </section>
 
 
       
-<footer id="contact" className="border-t border-black/10 px-6 py-12 dark:border-white/10">
-  <div className="mx-auto flex max-w-7xl flex-col gap-8 md:flex-row md:items-center md:justify-between">
-    <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
+<footer id="contact" className="border-t border-black/10 px-6 py-10 dark:border-white/10">
+  <div className="mx-auto max-w-7xl">
+    <div className="flex items-center justify-between gap-6">
+      <Link href="/" className="flex w-fit shrink-0 items-center gap-3 leading-none">
+        <img
+          src="/instories.svg"
+          alt="Logo inStories creative"
+          className="h-14 w-10 shrink-0 object-contain transition-[filter] duration-200 dark:invert sm:h-16 sm:w-11"
+        />
+        <span className="flex flex-col gap-0.5">
+          <span className="font-raleway text-2xl tracking-tight text-gray-900 dark:text-white sm:text-3xl">in<span className="font-bold">Stories</span></span>
+          <span className="font-raleway text-base tracking-tight text-gray-900 dark:text-white sm:text-lg">creative</span>
+        </span>
+      </Link>
+
+      <a href={whatsappContactUrl} target="_blank" rel="noopener noreferrer"
+        aria-label="Chat melalui WhatsApp" title="Chat melalui WhatsApp"
+        className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#25D366] transition hover:bg-[#1ebe5d]">
+        <img src="https://cdn.simpleicons.org/whatsapp/ffffff" alt="WhatsApp" width="25" height="25" className="h-[25px] w-[25px]" />
+      </a>
+    </div>
+
+    <div className="mt-8 flex flex-col items-start gap-4">
       {socialLinks.map((social, index) => {
         let host = '';
         try { host = new URL(social.url).hostname.toLowerCase().replace(/^www\\./, ''); } catch {}
@@ -253,7 +254,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
         return (
           <a key={`${social.url}-${index}`} href={social.url} target="_blank" rel="noopener noreferrer"
             aria-label={accountName} title={accountName}
-            className="inline-flex items-center gap-2 text-sm text-neutral-600 transition hover:text-amber-700 dark:text-neutral-300 dark:hover:text-amber-400">
+            className="inline-flex items-center gap-3 text-sm text-neutral-600 transition hover:text-amber-700 dark:text-neutral-300 dark:hover:text-amber-400">
             {iconSlug ? (
               <img src={`https://cdn.simpleicons.org/${iconSlug}`} alt="" aria-hidden="true" width="19" height="19" className="h-[19px] w-[19px] object-contain dark:brightness-0 dark:invert" />
             ) : <Globe size={19} strokeWidth={1.8} />}
@@ -263,17 +264,11 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
       })}
     </div>
 
-    <a href={whatsappContactUrl} target="_blank" rel="noopener noreferrer"
-      className="inline-flex items-center gap-2 self-start text-sm font-medium text-green-700 transition hover:text-green-800 md:self-auto dark:text-green-400 dark:hover:text-green-300">
-      <MessageCircle size={20} strokeWidth={1.8} />
-      <span>Chat Admin WhatsApp</span>
-      <span aria-hidden="true">↗</span>
-    </a>
-  </div>
-  <div className="mx-auto mt-10 max-w-7xl border-t border-black/10 pt-5 text-xs text-neutral-500 dark:border-white/10">
-    <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
-      <p>© {new Date().getFullYear()} inStories creative</p>
-      <p>Capturing moments, preserving memories.</p>
+    <div className="mt-9 border-t border-black/10 pt-5 text-xs text-neutral-500 dark:border-white/10">
+      <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
+        <p>© {new Date().getFullYear()} inStories creative</p>
+        <p>Capturing moments, preserving memories.</p>
+      </div>
     </div>
   </div>
 </footer>
