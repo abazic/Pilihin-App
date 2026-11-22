@@ -6,6 +6,7 @@ import { getPhotosPageFromGDrive } from '@/lib/gdrive';
 import HeroSlideshow from '@/components/HeroSlideshow';
 import PortfolioImage from '@/components/PortfolioImage';
 import { Globe } from 'lucide-react';
+import ScrollReveal from '@/components/ScrollReveal';
 export default async function HomePage() {
   const supabase = await createClient();
 
@@ -118,7 +119,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
           <div className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-[#faf9f6] to-transparent dark:from-[#11110f]" />
         </div>
 
-        <div className="relative z-10 flex min-h-[520px] items-center md:min-h-[570px]">
+        <div className="relative z-10 flex min-h-[520px] items-center md:min-h-[570px]">\n          <ScrollReveal className="w-full">
           <div className="max-w-2xl md:w-[62%]">
             <p className="mb-6 text-xs uppercase tracking-[0.3em] text-amber-800 dark:text-amber-400">
               Photography & Visual Storytelling
@@ -145,7 +146,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
       
 <section id="portfolio" className="border-t border-black/10 dark:border-white/10 px-6 py-24">
   <div className="mx-auto max-w-7xl">
-    <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+    <ScrollReveal><div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
       <div>
         <p className="text-xs uppercase tracking-[0.25em] text-neutral-400">
           Selected Works
@@ -165,7 +166,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
         {portfolioCategoriesWithPhotos.map((category, index) => {
           const cover = category.photos[0];
           return (
-            <Link key={category.slug} href={`/portfolio/${category.slug}`} className="group block overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-white/10 dark:bg-[#1b1b18]">
+            <ScrollReveal key={category.slug} delay={index * 90}><Link href={`/portfolio/${category.slug}`} className="group block overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-white/10 dark:bg-[#1b1b18]">
               <div className="relative overflow-hidden bg-neutral-200 dark:bg-neutral-800">
                 {cover ? (
                   <PortfolioImage src={cover.url} alt={category.title} loading="lazy"
