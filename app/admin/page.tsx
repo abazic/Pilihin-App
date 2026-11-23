@@ -73,6 +73,21 @@ function formatTimeAgo(dateStr: string): string {
   return `${Math.floor(diff / 86400)} hari lalu`;
 }
 
+function toDateInputDisplay(value: string | null | undefined): string {
+  if (!value) return '';
+  const match = value.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);
+  return match ? `${match[3]}/${match[2]}/${match[1]}` : value;
+}
+
+function toIsoDate(value: string): string | null {
+  const match = value.trim().match(/^(\\d{2})\\/(\\d{2})\\/(\\d{4})$/);
+  if (!match) return null;
+  const [, day, month, year] = match;
+  const date = new Date(Number(year), Number(month) - 1, Number(day));
+  if (date.getFullYear() !== Number(year) || date.getMonth() !== Number(month) - 1 || date.getDate() !== Number(day)) return null;
+  return `${year}-${month}-${day}`;
+}
+
 
 type AdminBooking = {
   id: string; booking_code: string; customer_name: string; whatsapp: string;
@@ -545,9 +560,9 @@ export default function HomePage() {
   const handleEditClient = (client: ClientItem) => {
     setEditingId(client.id);
     setFormData({
-      clientName: client.client_name || '', eventDate: client.event_date || '',
+      clientName: client.client_name || '', eventDate: toDateInputDisplay(client.event_date),
       gdriveUrl: client.folder_id ? `https://drive.google.com/drive/folders/${client.folder_id}` : '',
-      maxPhotos: client.max_photos || '', expireDate: client.expire_date || '', notes: client.notes || ''
+      maxPhotos: client.max_photos || '', expireDate: toDateInputDisplay(client.expire_date), notes: client.notes || ''
     });
     setCreatedSlug(client.slug);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -569,10 +584,10 @@ export default function HomePage() {
     try {
       const folderId = extractFolderId(formData.gdriveUrl);
       const generatedSlug = createdSlug || `${formData.clientName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
-      const payload = {
+      if ((formData.eventDate && !toIsoDate(formData.eventDate)) || (formData.expireDate && !toIsoDate(formData.expireDate))) { alert('Format tanggal harus dd/mm/yyyy dan tanggal harus valid.'); setLoading(false); return; }\n      const payload = {
         client_name: formData.clientName, folder_id: folderId, slug: generatedSlug,
         max_photos: formData.maxPhotos ? Number(formData.maxPhotos) : null,
-        event_date: formData.eventDate || null, expire_date: formData.expireDate || null, notes: formData.notes || null
+        event_date: formData.eventDate ? toIsoDate(formData.eventDate) : null, expire_date: formData.expireDate ? toIsoDate(formData.expireDate) : null, notes: formData.notes || null
       };
       if (editingId) {
         const { error } = await supabase.from('galleries').update(payload).eq('id', editingId);
@@ -774,7 +789,7 @@ export default function HomePage() {
                 <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">Tanggal Acara</label>
                 <div className="relative">
                   <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" />
-                  <input type="date" name="eventDate" value={formData.eventDate} onChange={handleInputChange} className={`${INPUT} pl-9 pr-4 py-2.5 dark:scheme-dark`} />
+                  <input type="text" name="eventDate" inputMode="numeric" value={formData.eventDate} onChange={handleInputChange} placeholder="dd/mm/yyyy" maxLength={10} className={`${INPUT} pl-9 pr-4 py-2.5`} />
                 </div>
               </div>
             </div>
@@ -815,7 +830,7 @@ export default function HomePage() {
                 <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">Masa Berlaku Link</label>
                 <div className="relative">
                   <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" />
-                  <input type="date" name="expireDate" value={formData.expireDate} onChange={handleInputChange} className={`${INPUT} pl-9 pr-4 py-2.5 dark:scheme-dark`} />
+                  <input type="text" name="expireDate" inputMode="numeric" value={formData.expireDate} onChange={handleInputChange} placeholder="dd/mm/yyyy" maxLength={10} className={`${INPUT} pl-9 pr-4 py-2.5`} />
                 </div>
                 <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1">Tanggal akses galeri ditutup.</p>
               </div>
