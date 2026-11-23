@@ -101,7 +101,7 @@ export default async function PricelistPage({ searchParams }) {
         {selectedServiceId && <div className="mt-8 text-center"><a href="/pricelist" className="text-sm text-amber-800 underline underline-offset-4 dark:text-amber-400">← Lihat semua service</a></div>}
         <div className="mt-14 space-y-16">
           {(selectedServiceId ? prices.services.filter(service => service.id === selectedServiceId) : prices.services).map((service,serviceIndex)=><section id={service.id} key={service.id||serviceIndex}>
-            <header className="relative left-1/2 isolate mb-8 flex min-h-56 w-screen -translate-x-1/2 items-end overflow-hidden bg-neutral-800 px-7 py-8 text-white shadow-lg sm:min-h-72 sm:px-10 sm:py-10">
+            <header className="relative left-1/2 isolate mb-8 flex h-[32vw] min-h-40 max-h-[480px] w-screen -translate-x-1/2 items-end overflow-hidden bg-neutral-800 px-7 py-8 text-white shadow-lg sm:h-[24vw] sm:min-h-56 sm:max-h-[420px] sm:px-10 sm:py-10">
               {service.headerImageUrl ? <img src={service.headerImageUrl} alt="" aria-hidden="true" className="absolute inset-0 -z-20 h-full w-full object-cover" loading="lazy" /> : <div aria-hidden="true" className="absolute inset-0 -z-20 bg-gradient-to-br from-stone-700 via-neutral-800 to-black" />}
               <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-black/80 via-black/35 to-black/10" />
               <div className="max-w-3xl">
