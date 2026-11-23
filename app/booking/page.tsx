@@ -72,6 +72,7 @@ export default function BookingPage() {
   }, []);
   const [participants, setParticipants] = useState(1);
   const [selected, setSelected] = useState<string[]>([]);
+  const [addonQuantities, setAddonQuantities] = useState<Record<string, number>>({ extra_hour: 0, extra_photos: 0 });
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -84,7 +85,8 @@ export default function BookingPage() {
     setSelected((items) => extraLocationCount > 0 ? (items.includes('extra_location') ? items : [...items, 'extra_location']) : items.filter((item) => item !== 'extra_location'));
   }, [extraLocationCount]);
   const base = useMemo(() => pkg === 'extended' ? chosen.price * participants : chosen.price, [pkg, chosen.price, participants]);
-  const addonTotal = addons.filter((a) => selected.includes(a.id)).reduce((sum, a) => sum + (a.id === 'extra_location' ? a.price * extraLocationCount : a.price), 0);
+  const addonQuantity = (id: string) => id === 'extra_hour' || id === 'extra_photos' ? (addonQuantities[id] || 0) : selected.includes(id) ? 1 : 0;
+  const addonTotal = addons.reduce((sum, a) => sum + a.price * (a.id === 'extra_location' ? extraLocationCount : addonQuantity(a.id)), 0);
   const total = base + addonTotal;
   const field = 'mt-2 w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm outline-none focus:border-amber-700 dark:border-white/10 dark:bg-[#171714] dark:text-white';
 
@@ -110,7 +112,7 @@ export default function BookingPage() {
       const response = await fetch('/api/booking', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, whatsapp: `${normalizedCountryCode}${wa}`, date, time, locations: locationsArray, moodboardLinks: moodboardLinks.map((link) => link.trim()).filter(Boolean), package: pkg, participants, addons: selected, notes }),
+        body: JSON.stringify({ name, whatsapp: `${normalizedCountryCode}${wa}`, date, time, locations: locationsArray, moodboardLinks: moodboardLinks.map((link) => link.trim()).filter(Boolean), package: pkg, participants, addons: selected, addonQuantities, notes }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Booking gagal');
@@ -307,12 +309,18 @@ export default function BookingPage() {
             <section className="rounded-2xl border border-black/10 bg-white p-6 dark:border-white/10 dark:bg-[#1b1b18]">
               <h2 className="font-serif text-2xl">03 · Add-ons</h2>
               <div className="mt-4 space-y-3">
-                {addons.map((a) => (
-                  <label key={a.id} className={'flex items-center justify-between gap-3 rounded-xl border border-black/10 p-4 text-sm dark:border-white/10 ' + (a.id === 'extra_location' && extraLocationCount > 0 ? 'bg-amber-50 dark:bg-amber-950/20' : '')}>
-                    <span className="flex gap-3"><input type="checkbox" checked={selected.includes(a.id)} disabled={a.id === 'extra_location' && extraLocationCount > 0} onChange={(e) => setSelected((s) => e.target.checked ? [...s, a.id] : s.filter((k) => k !== a.id))} />{a.name}{a.id === 'extra_location' && extraLocationCount > 0 ? <span className="text-xs text-amber-700 dark:text-amber-400">(otomatis · {extraLocationCount} lokasi)</span> : null}</span>
-                    <span className="font-medium">+{money(a.id === 'extra_location' && extraLocationCount > 0 ? a.price * extraLocationCount : a.price)}</span>
-                  </label>
-                ))}
+                {addons.map((a) => {
+                  const isRepeatable = a.id === 'extra_hour' || a.id === 'extra_photos';
+                  const quantity = a.id === 'extra_location' ? extraLocationCount : addonQuantity(a.id);
+                  return (
+                    <div key={a.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-black/10 p-4 text-sm dark:border-white/10">
+                      <div className="min-w-0"><p className="font-medium">{a.name}</p><p className="mt-1 text-xs text-neutral-500">{money(a.price)}{isRepeatable ? ' / unit' : ''}{a.id === 'extra_location' && extraLocationCount > 0 ? ' · otomatis dari jumlah lokasi' : ''}</p></div>
+                      {isRepeatable ? <div className="flex items-center gap-3"><button type="button" aria-label={`Kurangi ${a.name}`} disabled={quantity <= 0} onClick={() => setAddonQuantities((q) => ({ ...q, [a.id]: Math.max(0, (q[a.id] || 0) - 1) }))} className="h-9 w-9 rounded-full border border-black/10 text-lg disabled:opacity-30 dark:border-white/10">−</button><span className="w-6 text-center font-semibold tabular-nums">{quantity}</span><button type="button" aria-label={`Tambah ${a.name}`} disabled={quantity >= 20} onClick={() => setAddonQuantities((q) => ({ ...q, [a.id]: Math.min(20, (q[a.id] || 0) + 1) }))} className="h-9 w-9 rounded-full border border-black/10 text-lg dark:border-white/10">+</button></div>
+                      : a.id === 'extra_location' ? <span className="font-medium">{quantity > 0 ? `× ${quantity} · ${money(a.price * quantity)}` : '—'}</span>
+                      : <label className="flex items-center gap-2"><input type="checkbox" checked={selected.includes(a.id)} onChange={(e) => setSelected((s) => e.target.checked ? [...s, a.id] : s.filter((k) => k !== a.id))} /><span className="font-medium">+{money(a.price)}</span></label>}
+                    </div>
+                  );
+                })}
               </div>
               <label className="mt-5 block text-sm">Catatan tambahan
                 <textarea className={field} rows={3} maxLength={1000} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Request, referensi, atau detail lainnya" />
@@ -325,7 +333,7 @@ export default function BookingPage() {
             <h2 className="mt-2 font-serif text-2xl">{chosen.name}</h2>
             <div className="mt-5 space-y-3 border-t border-black/10 pt-4 text-sm dark:border-white/10">
               <div className="flex justify-between gap-3"><span>Package</span><span>{money(base)}</span></div>
-              {addons.filter((a) => selected.includes(a.id)).map((a) => <div className="flex justify-between gap-3" key={a.id}><span>{a.name}{a.id === 'extra_location' && extraLocationCount > 0 ? ` × ${extraLocationCount}` : ''}</span><span>{money(a.id === 'extra_location' ? a.price * extraLocationCount : a.price)}</span></div>)}
+              {addons.filter((a) => addonQuantity(a.id) > 0 || (a.id === 'extra_location' && extraLocationCount > 0)).map((a) => { const qty = a.id === 'extra_location' ? extraLocationCount : addonQuantity(a.id); return <div className="flex justify-between gap-3" key={a.id}><span>{a.name}{qty > 1 ? ` × ${qty}` : ''}</span><span>{money(a.price * qty)}</span></div>; })}
             </div>
             <div className="mt-5 flex justify-between border-t border-black/10 pt-4 dark:border-white/10"><span className="font-medium">Total estimate</span><strong className="font-serif text-2xl">{money(total)}</strong></div>
             <p className="mt-3 text-xs leading-5 text-neutral-500">Harga final dan ketersediaan jadwal dikonfirmasi admin. Extended Group dihitung per peserta.</p>
