@@ -584,7 +584,8 @@ export default function HomePage() {
     try {
       const folderId = extractFolderId(formData.gdriveUrl);
       const generatedSlug = createdSlug || `${formData.clientName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
-      if ((formData.eventDate && !toIsoDate(formData.eventDate)) || (formData.expireDate && !toIsoDate(formData.expireDate))) { alert('Format tanggal harus dd/mm/yyyy dan tanggal harus valid.'); setLoading(false); return; }\n      const payload = {
+      if ((formData.eventDate && !toIsoDate(formData.eventDate)) || (formData.expireDate && !toIsoDate(formData.expireDate))) { alert('Format tanggal harus dd/mm/yyyy dan tanggal harus valid.'); setLoading(false); return; }
+      const payload = {
         client_name: formData.clientName, folder_id: folderId, slug: generatedSlug,
         max_photos: formData.maxPhotos ? Number(formData.maxPhotos) : null,
         event_date: formData.eventDate ? toIsoDate(formData.eventDate) : null, expire_date: formData.expireDate ? toIsoDate(formData.expireDate) : null, notes: formData.notes || null
