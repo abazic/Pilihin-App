@@ -48,12 +48,14 @@ export async function POST(request: Request) {
     const storedNotes = [notes, validMoodboardLinks.length ? 'Referensi moodboard / photo:\n' + validMoodboardLinks.map((link, index) => `${index + 1}. ${link}`).join('\n') : '']
       .filter(Boolean).join('\n\n');
     const addonKeys: string[] = Array.isArray(body.addons) ? Array.from(new Set((body.addons as unknown[]).filter((x): x is string => typeof x === 'string' && Object.prototype.hasOwnProperty.call(ADDONS, x)))) : [];
+    const rawAddonQuantities = body.addonQuantities && typeof body.addonQuantities === 'object' ? body.addonQuantities as Record<string, unknown> : {};
+    const addonQuantities: Record<string, number> = { extra_hour: Math.max(0, Math.min(20, Math.floor(Number(rawAddonQuantities.extra_hour) || 0))), extra_photos: Math.max(0, Math.min(20, Math.floor(Number(rawAddonQuantities.extra_photos) || 0))) };
     if(name.length<2 || whatsapp.length<8 || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time) || locations.length===0 || !PACKAGES[packageKey]) return NextResponse.json({error:'Periksa kembali data nama, WhatsApp, jadwal, lokasi, dan paket.'},{status:400});
     const selected = PACKAGES[packageKey];
     const base = packageKey==='extended' ? selected.price*participants : selected.price;
     const includedLocations: Record<string, number> = { solo: 1, duo: 2, group: 2, large: 2, extended: 1, video: 1 };
     const extraLocationCount = Math.max(0, locations.length - (includedLocations[packageKey] ?? 1));
-    const addonsPrice = addonKeys.reduce((sum:number,key:string)=>sum + (key==='extra_location' ? ADDONS[key].price*extraLocationCount : ADDONS[key].price),0);
+    const addonsPrice = addonKeys.reduce((sum:number,key:string)=>sum + (key==='extra_location' ? ADDONS[key].price*extraLocationCount : ADDONS[key].price),0) + addonQuantities.extra_hour * ADDONS.extra_hour.price + addonQuantities.extra_photos * ADDONS.extra_photos.price;
     const total = base+addonsPrice;
     const bookingCode = 'PF-'+Date.now().toString().slice(-8);
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -64,7 +66,7 @@ export async function POST(request: Request) {
     });
     const {error} = await supabase.from('booking_requests').insert({
       booking_code:bookingCode,customer_name:name,whatsapp,session_date:date,session_time:time,
-      locations,package_key:packageKey,package_name:selected.name,participants,addons:addonKeys.map((key:string)=>({...ADDONS[key],key})),
+      locations,package_key:packageKey,package_name:selected.name,participants,addons:[...addonKeys.map((key:string)=>({...ADDONS[key],key,quantity:key==='extra_location'?extraLocationCount:1})), ...Object.entries(addonQuantities).filter(([,quantity])=>quantity>0).map(([key,quantity])=>({...ADDONS[key],key,quantity}))],
       base_price:base,addons_price:addonsPrice,total_price:total,notes:storedNotes,status:'pending'
     });
     if(error) { console.error('Booking insert failed',error); return NextResponse.json({error:'Booking belum dapat disimpan. Coba lagi beberapa saat.'},{status:500}); }
@@ -74,7 +76,7 @@ export async function POST(request: Request) {
         booking_code: bookingCode, created_at: new Date().toISOString(),
         customer_name: name, whatsapp, session_date: date, session_time: time,
         package_name: selected.name, participants, locations,
-        addons: addonKeys.map((key:string) => ({ name: ADDONS[key].name })),
+        addons: [...addonKeys.map((key:string) => ({ name: ADDONS[key].name, quantity: key === 'extra_location' ? extraLocationCount : 1 })), ...Object.entries(addonQuantities).filter(([,quantity]) => quantity > 0).map(([key,quantity]) => ({ name: ADDONS[key].name, quantity }))],
         moodboard_links: validMoodboardLinks, notes: storedNotes,
         total_price: total, status: 'pending', admin_notes: ''
       }]);
@@ -84,11 +86,7 @@ export async function POST(request: Request) {
     const {data:waSetting}=await supabase.from('settings').select('value').eq('key','whatsapp_number').maybeSingle();
     const wa=digits(String(waSetting?.value||DEFAULT_WHATSAPP_NUMBER));
     const fmt=(n:number)=>'Rp '+n.toLocaleString('id-ID');
-    const addonLines = addonKeys.map((key:string) => {
-      const quantity = key === 'extra_location' ? extraLocationCount : 1;
-      const lineTotal = ADDONS[key].price * quantity;
-      return key === 'extra_location' && quantity > 0 ? `${ADDONS[key].name} (×${quantity}): ${fmt(lineTotal)}` : `${ADDONS[key].name}: ${fmt(lineTotal)}`;
-    }).filter((line:string) => !line.startsWith('Extra lokasi (×0)'));
+    const addonLines = [...addonKeys.map((key:string) => ({ key, quantity: key === 'extra_location' ? extraLocationCount : 1 })), ...Object.entries(addonQuantities).filter(([,quantity]) => quantity > 0).map(([key,quantity]) => ({ key, quantity }))].filter(({key,quantity}) => key !== 'extra_location' || quantity > 0).map(({key,quantity}) => `${ADDONS[key].name}${quantity > 1 ? ` (×${quantity})` : ''}: ${fmt(ADDONS[key].price * quantity)}`);
     const message=[`BOOKING REQUEST · ${bookingCode}`,`Nama: ${name}`,`WhatsApp: ${whatsapp}`,`Tanggal: ${date}`,`Jam: ${time}`,`Lokasi (${locations.length}):\n${locations.map((location:string,index:number)=>`${index+1}. ${location}`).join('\n')}`,`Paket: ${selected.name}`,`Peserta: ${participants}`,`Harga paket: ${fmt(base)}`,`Add-on:\n${addonLines.join('\n')||'-'}`,`Total add-on: ${fmt(addonsPrice)}`,`TOTAL ESTIMASI: ${fmt(total)}`,`Catatan: ${notes||'-'}`,...(validMoodboardLinks.length ? [`Referensi moodboard / photo:\n${validMoodboardLinks.map((link:string,index:number)=>`${index+1}. ${link}`).join('\n')}`] : []),`Status: Menunggu konfirmasi admin`].join('\n');
     return NextResponse.json({bookingCode,total,whatsappUrl:`https://wa.me/${wa}?text=${encodeURIComponent(message)}`});
   } catch { return NextResponse.json({error:'Permintaan tidak valid.'},{status:400}); }
