@@ -4,12 +4,13 @@ import { useState } from 'react';
 
 const inputClass = 'w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm text-gray-900 dark:border-neutral-700 dark:bg-neutral-950 dark:text-gray-100';
 
+type ImportItem = { name: string; price: string; detail?: string; duration?: string; locations?: string; photos?: string; extras?: string };
 type ImportedService = {
   id: string; title: string; description: string; showInService: boolean;
-  photoPackages: Record<string, string>[]; videoPackages: Record<string, string>[]; addons: Record<string, string>[];
+  photoPackages: ImportItem[]; videoPackages: ImportItem[]; addons: { name: string; price: string }[];
 };
 
-function mergeByName<T extends Record<string, any>>(current: T[], incoming: T[]) {
+function mergeByName<T extends { name: string }>(current: T[], incoming: T[]) {
   const result = [...current];
   incoming.forEach(item => {
     const index = result.findIndex(existing => String(existing.name || '').trim().toLowerCase() === String(item.name || '').trim().toLowerCase());
