@@ -31,6 +31,12 @@ export const metadata: Metadata = {
   icons: {
     icon: "/instories.svg",
   },
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "Pilihin",
+    statusBarStyle: "default",
+  },
 };
 
 export default function RootLayout({
