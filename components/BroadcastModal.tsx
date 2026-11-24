@@ -55,8 +55,8 @@ export default function BroadcastModal({
 
   // Default template
   const defaultTemplate: BroadcastTemplate = {
-    greeting: 'Halo Kak, foto-foto hasil sesi kemarin sudah bisa dipilih yaa! 📸\\n\\nSilakan buka link sesuai nama masing-masing:',
-    instruction: '\\n\\n*Cara memilih foto:*\\n\\n1. Buka link sesuai nama masing-masing.\\n2. Pilih foto yang ingin diedit dengan menekan tanda pilih.\\n3. Maksimal pemilihan foto pada *[tanggal]*.\\n4. Setelah selesai, pastikan pilihan foto sudah tersimpan/terkirim.\\n\\n*Note saat memilih foto:*\\n\\n- Pilih foto terbaik menurut kalian.\\n- Utamakan foto yang minim gangguan objek di sekitar, agar fokus tetap pada subjek.\\n- Pilih foto dengan raut wajah atau ekspresi terbaik.\\n- Perhatikan pose yang paling bagus, natural, dan terlihat menarik.\\n\\n✨ *Ingin menambah jumlah foto yang diedit?*\\nBisa langsung hubungi admin yaa! Ada tambahan kuota dengan biaya *Rp50.000 per 10 foto*.\\n\\nKalau ada foto yang ingin ditanyakan atau ada kendala saat memilih, langsung chat saya yaa.\\n\\nTerima kasih! 🙏',
+    greeting: 'Halo Kak, foto-foto hasil sesi kemarin sudah bisa dipilih yaa! 📸\n\nSilakan buka link sesuai nama masing-masing:',
+    instruction: '\n\n*Cara memilih foto:*\n\n1. Buka link sesuai nama masing-masing.\n2. Pilih foto yang ingin diedit dengan menekan tanda pilih.\n3. Maksimal pemilihan foto pada *[tanggal]*.\n4. Setelah selesai, pastikan pilihan foto sudah tersimpan/terkirim.\n\n*Note saat memilih foto:*\n\n- Pilih foto terbaik menurut kalian.\n- Utamakan foto yang minim gangguan objek di sekitar, agar fokus tetap pada subjek.\n- Pilih foto dengan raut wajah atau ekspresi terbaik.\n- Perhatikan pose yang paling bagus, natural, dan terlihat menarik.\n\n✨ *Ingin menambah jumlah foto yang diedit?*\nBisa langsung hubungi admin yaa! Ada tambahan kuota dengan biaya *Rp50.000 per 10 foto*.\n\nKalau ada foto yang ingin ditanyakan atau ada kendala saat memilih, langsung chat saya yaa.\n\nTerima kasih! 🙏',
     closing: ''
   };
 
@@ -93,14 +93,14 @@ export default function BroadcastModal({
       return 'Silakan pilih minimal 1 klien terlebih dahulu.';
     }
 
-    let message = defaultTemplate.greeting + '\\n';
+    let message = defaultTemplate.greeting + '\n';
 
     // Add links
     selected.forEach(client => {
       const galleryUrl = `${appBaseUrl}/gallery/${client.slug}`;
-      message += `\\n📸 *${client.client_name}*\\n${galleryUrl}`;
+      message += `\n📸 *${client.client_name}*\n${galleryUrl}`;
       if (client.max_photos !== null && client.max_photos !== undefined && Number.isFinite(Number(client.max_photos))) {
-        message += `\\nMaksimal *${Number(client.max_photos)} foto*`;
+        message += `\nMaksimal *${Number(client.max_photos)} foto*`;
       }
     });
 
