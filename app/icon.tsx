@@ -7,7 +7,7 @@ export default function AppleIcon() {
   return new ImageResponse(
     (
       <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#f5f3ee" }}>
-        <svg width="116" height="148" viewBox="-24.361 -22.122 161.276 252.757" fill="none">
+        <svg width="330" height="420" viewBox="0 0 161.27643 252.75681" fill="none">
           <g transform="translate(-24.361778,-22.121613)">
             <g transform="matrix(0.49795492,0,0,0.49795492,612.55981,-159.28709)" fill="#171715">
               <path d="m -967.05053,670.33996 a 73.87561,73.87561 0 0 1 -52.23817,21.63796 73.87561,73.87561 0 0 1 -52.2381,-21.63744 l -42.2988,42.29871 c -28.8502,-28.85022 -28.8502,-75.62557 0,-104.47579 l -32.3603,-32.3603 c -46.7221,46.72223 -46.7221,122.47416 0,169.19639 L -1019.2882,871.89717 -892.39101,745 l -5.1e-4,-5.1e-4 -53.63291,-53.6329 z" />
