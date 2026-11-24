@@ -11,12 +11,14 @@ function decodeXml(value = '') {
 }
 
 function parseCsv(text) {
+  const firstLine = text.split(/\\r?\\n/, 1)[0] || '';
+  const delimiter = (firstLine.match(/;/g) || []).length > (firstLine.match(/,/g) || []).length ? ';' : ',';
   const rows = []; let row = []; let cell = ''; let quoted = false;
   for (let i = 0; i < text.length; i++) {
     const char = text[i];
     if (char === '"' && quoted && text[i + 1] === '"') { cell += '"'; i++; }
     else if (char === '"') quoted = !quoted;
-    else if (char === ',' && !quoted) { row.push(cell); cell = ''; }
+    else if (char === delimiter && !quoted) { row.push(cell); cell = ''; }
     else if ((char === '\n' || char === '\r') && !quoted) {
       if (char === '\r' && text[i + 1] === '\n') i++;
       row.push(cell); cell = '';
@@ -136,7 +138,9 @@ export async function POST(request) {
       const id = parsed.pathname.match(/^\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/)[1];
       const gid = parsed.searchParams.get('gid') || '0';
       const exportUrl = 'https://docs.google.com/spreadsheets/d/' + id + '/export?format=csv&gid=' + encodeURIComponent(gid);
-      const response = await fetch(exportUrl, { signal: AbortSignal.timeout(12000), redirect: 'error' });
+      const response = await fetch(exportUrl, { signal: AbortSignal.timeout(12000), redirect: 'follow' });
+      const finalHost = new URL(response.url).hostname;
+      if (!['docs.google.com'].includes(finalHost) && !finalHost.endsWith('.googleusercontent.com')) throw new Error('Tujuan redirect Google Sheets tidak diizinkan.');
       if (!response.ok) throw new Error('Google Sheets tidak dapat diakses. Pastikan akses Anyone with the link – Viewer aktif.');
       const csv = await response.text();
       if (Buffer.byteLength(csv, 'utf8') > MAX_BYTES) throw new Error('Ukuran spreadsheet maksimal 5 MB.');
