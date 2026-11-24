@@ -55,8 +55,8 @@ export default function BroadcastModal({
 
   // Default template
   const defaultTemplate: BroadcastTemplate = {
-    greeting: 'Halo Kak, foto-foto hasil sesi kemarin sudah bisa dipilih yaa! 📸\n\nSilakan buka link sesuai nama masing-masing:',
-    instruction: '\n\n*Cara memilih foto:*\n\n1. Buka link sesuai nama masing-masing.\n2. Pilih foto yang ingin diedit dengan menekan tanda pilih.\n3. Maksimal *13 foto*.\n4. Setelah selesai, pastikan pilihan foto sudah tersimpan/terkirim.\n\n*Note saat memilih foto:*\n\n- Pilih foto terbaik menurut kalian.\n- Utamakan foto yang minim gangguan objek di sekitar, agar fokus tetap pada subjek.\n- Pilih foto dengan raut wajah atau ekspresi terbaik.\n- Perhatikan pose yang paling bagus, natural, dan terlihat menarik.\n\nKalau ada foto yang ingin ditanyakan atau ada kendala saat memilih, langsung chat saya yaa.\n\nTerima kasih! 🙏',
+    greeting: 'Halo Kak, foto-foto hasil sesi kemarin sudah bisa dipilih yaa! 📸\\n\\nSilakan buka link sesuai nama masing-masing:',
+    instruction: '\\n\\n*Cara memilih foto:*\\n\\n1. Buka link sesuai nama masing-masing.\\n2. Pilih foto yang ingin diedit dengan menekan tanda pilih.\\n3. Maksimal pemilihan foto pada *[tanggal]*.\\n4. Setelah selesai, pastikan pilihan foto sudah tersimpan/terkirim.\\n\\n*Note saat memilih foto:*\\n\\n- Pilih foto terbaik menurut kalian.\\n- Utamakan foto yang minim gangguan objek di sekitar, agar fokus tetap pada subjek.\\n- Pilih foto dengan raut wajah atau ekspresi terbaik.\\n- Perhatikan pose yang paling bagus, natural, dan terlihat menarik.\\n\\n✨ *Ingin menambah jumlah foto yang diedit?*\\nBisa langsung hubungi admin yaa! Ada tambahan kuota dengan biaya *Rp50.000 per 10 foto*.\\n\\nKalau ada foto yang ingin ditanyakan atau ada kendala saat memilih, langsung chat saya yaa.\\n\\nTerima kasih! 🙏',
     closing: ''
   };
 
@@ -93,14 +93,14 @@ export default function BroadcastModal({
       return 'Silakan pilih minimal 1 klien terlebih dahulu.';
     }
 
-    let message = defaultTemplate.greeting + '\n';
+    let message = defaultTemplate.greeting + '\\n';
 
     // Add links
     selected.forEach(client => {
       const galleryUrl = `${appBaseUrl}/gallery/${client.slug}`;
-      message += `\n📸 *${client.client_name}*\n${galleryUrl}`;
+      message += `\\n📸 *${client.client_name}*\\n${galleryUrl}`;
       if (client.max_photos !== null && client.max_photos !== undefined && Number.isFinite(Number(client.max_photos))) {
-        message += `\nMaksimal *${Number(client.max_photos)} foto*`;
+        message += `\\nMaksimal *${Number(client.max_photos)} foto*`;
       }
     });
 
@@ -128,22 +128,9 @@ export default function BroadcastModal({
     setIsSending(true);
 
     try {
-      if (selectedClients.length === 1) {
-        // Send to single client
-        const selected = clientsList.find(c => c.id === selectedClients[0]);
-        if (selected) {
-          const message = messageToSend;
-          const encodedMessage = encodeURIComponent(message);
-          const whatsappUrl = `https://wa.me/${adminWhatsapp}?text=${encodedMessage}`;
-          window.open(whatsappUrl, '_blank');
-        }
-      } else {
-        // For multiple clients, open WhatsApp and user dapat copy-paste message
-        const message = messageToSend;
-        const encodedMessage = encodeURIComponent(message);
-        const whatsappUrl = `https://wa.me/${adminWhatsapp}?text=${encodedMessage}`;
-        window.open(whatsappUrl, '_blank');
-      }
+      const encodedMessage = encodeURIComponent(messageToSend);
+      const whatsappUrl = `https://wa.me/${adminWhatsapp}?text=${encodedMessage}`;
+      window.open(whatsappUrl, '_blank');
 
       alert(`Broadcast message siap dikirim ke ${selectedClients.length} klien!`);
       setSelectedClients([]);
