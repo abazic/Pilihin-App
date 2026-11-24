@@ -8,6 +8,7 @@ import { extractFolderId } from '@/lib/gdrive';
 import { DEFAULT_WHATSAPP_NUMBER } from '@/lib/constants';
 import BroadcastModal from '@/components/BroadcastModal';
 import AppHeader from '@/components/AppHeader';
+import PricelistImportPanel from '@/components/PricelistImportPanel';
 import {
   FileText, Bell, ChevronDown, User as UserIcon, Calendar,
   Link as LinkIcon, ExternalLink, Trash2, Copy, Check, Plus,
@@ -1101,6 +1102,8 @@ export default function HomePage() {
         {activeTab === 'pricelist' && (
           <section className={`${CARD} rounded-2xl p-6 sm:p-8 space-y-8`}>
             <div className="flex flex-wrap items-start justify-between gap-4"><div><h1 className="text-3xl font-serif text-gray-900 dark:text-white">Kelola Pricelist & Service</h1><p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Service adalah jenis pekerjaan fotografi. Di dalamnya, atur paket foto, paket video, dan add-on.</p></div><Link href="/pricelist" target="_blank" className={`${BTN_SECONDARY} rounded-lg px-4 py-2 text-sm`}>Preview halaman ↗</Link></div>
+            <PricelistImportPanel current={pricelist} onApply={services => setPricelist(previous => ({ ...previous, services: services as PriceService[] }))} />
+
             <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-xl font-semibold">Jenis Service</h2><p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Contoh: Graduation Photography, Wedding & Events, Personal Projects.</p></div></div>
             {(pricelist.services||[]).map((service,si)=><article key={service.id} className="space-y-5 rounded-xl border border-gray-200 p-4 dark:border-neutral-800">
               <div className="flex items-center justify-between"><span className="text-xs font-semibold uppercase tracking-wider text-gray-400">SERVICE {si+1}</span><button type="button" onClick={()=>{if(window.confirm('Hapus service '+service.title+' beserta semua paketnya?'))setPricelist(p=>({...p,services:p.services.filter(s=>s.id!==service.id)}));}} className="text-xs text-red-500">Hapus Service</button></div>
