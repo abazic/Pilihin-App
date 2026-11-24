@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { DEFAULT_WHATSAPP_NUMBER } from '@/lib/constants';
+import { getGoogleSheetsPricelist } from '@/lib/google-sheets-pricelist';
 import AppHeader from '@/components/AppHeader';
 import Link from 'next/link';
 import { getPhotosPageFromGDrive } from '@/lib/gdrive';
@@ -21,23 +22,8 @@ const whatsappNumber = (
 ).replace(/\D/g, '');
 
 const whatsappUrl = `https://wa.me/${whatsappNumber}`;
-const { data: pricelistSetting } = await supabase.from('settings').select('value').eq('key', 'pricelist_content').maybeSingle();
-const normalizedPricelist = (() => {
-  let parsed: any = {};
-  try { parsed = typeof pricelistSetting?.value === 'string' ? JSON.parse(pricelistSetting.value) : (pricelistSetting?.value || {}); } catch {}
-  const current = Array.isArray(parsed.services) ? parsed.services : [];
-  if (current.some((service:any) => Array.isArray(service?.photoPackages) || Array.isArray(service?.videoPackages))) {
-    return current.map((service:any,index:number)=>({...service,id:service.id||'service-'+index,photoPackages:service.photoPackages||[],videoPackages:service.videoPackages||[],addons:service.addons||[]}));
-  }
-  const label = (service:any) => String(service?.id||'')+' '+String(service?.title||'');
-  const oldPhoto = current.find((service:any)=>/photo|package/i.test(label(service))&&!/video/i.test(label(service)));
-  const oldVideo = current.find((service:any)=>/video/i.test(label(service)));
-  const oldAddons = current.find((service:any)=>/addon/i.test(label(service)));
-  return [{id:'graduation',title:'Graduation Photography',description:'Sesi foto dan video untuk merayakan kelulusan.',showInService:true,
-    photoPackages:oldPhoto?.items||parsed.packages||[{"name":"Solo Graduate","price":"Rp 250K","detail":"1 Graduate","duration":"1 jam","locations":"1 lokasi","photos":"20 foto edited","extras":"Unlimited shots"},{"name":"Duo Graduate","price":"Rp 400K","detail":"2 Graduates","duration":"2 jam","locations":"2 lokasi","photos":"30 foto edited","extras":"Unlimited shots"},{"name":"Group Session","price":"Rp 700K","detail":"3–5 Graduates","duration":"2 jam","locations":"2 lokasi","photos":"60 foto edited","extras":"Unlimited shots"},{"name":"Large Group","price":"Rp 900K","detail":"6–10 Graduates","duration":"2 jam","locations":"2 lokasi","photos":"100 foto edited","extras":"Unlimited shots"},{"name":"Extended Group","price":"Rp 100K/person","detail":">10 Graduates","duration":"3–4 jam","locations":"1 lokasi","photos":"100 foto edited","extras":"Unlimited shots"}],
-    videoPackages:oldVideo?.items||(parsed.video?.name?[{name:parsed.video.name,price:parsed.video.price,detail:parsed.video.description,duration:parsed.video.duration}]:[{"name":"Shoot & Edit","price":"Rp 600K","detail":"Video dokumentasi graduation"}]),
-    addons:oldAddons?.items||parsed.addons||[{"name":"Extra 60 menit","price":"+Rp 100K"},{"name":"Extra lokasi","price":"+Rp 100K"},{"name":"Extra 10 foto edited","price":"+Rp 50K"},{"name":"Same Day Edit","price":"+Rp 300K"},{"name":"Family >5 orang","price":"+Rp 50K/orang"}]}, {id:"wedding-events",title:"Wedding & Events",description:"Dokumentasi foto dan video untuk pernikahan serta berbagai acara.",showInService:true,photoPackages:[],videoPackages:[],addons:[]}, {id:"personal-projects",title:"Personal Projects",description:"Sesi fotografi dan videografi untuk kebutuhan personal maupun kreatif.",showInService:true,photoPackages:[],videoPackages:[],addons:[]}];
-})();
+const pricelistSource = await getGoogleSheetsPricelist();
+const normalizedPricelist = pricelistSource.services;
   const whatsappMessage = encodeURIComponent(
   'Halo inStories creative, saya ingin bertanya tentang layanan fotografi.'
 );
