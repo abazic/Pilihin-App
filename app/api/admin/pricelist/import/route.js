@@ -139,14 +139,46 @@ export async function POST(request) {
       if (parsed.hostname !== 'docs.google.com' || !parsed.pathname.match(/^\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/)) return NextResponse.json({ error: 'Gunakan link Google Sheets dari docs.google.com.' }, { status: 400 });
       const id = parsed.pathname.match(/^\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/)[1];
       const gid = parsed.searchParams.get('gid') || '0';
-      const exportUrl = 'https://docs.google.com/spreadsheets/d/' + id + '/export?format=csv&gid=' + encodeURIComponent(gid);
-      const response = await fetch(exportUrl, { signal: AbortSignal.timeout(12000), redirect: 'follow' });
-      const finalHost = new URL(response.url).hostname;
-      if (!['docs.google.com'].includes(finalHost) && !finalHost.endsWith('.googleusercontent.com')) throw new Error('Tujuan redirect Google Sheets tidak diizinkan.');
-      if (!response.ok) throw new Error('Google Sheets tidak dapat diakses. Pastikan akses Anyone with the link – Viewer aktif.');
-      const csv = await response.text();
-      if (Buffer.byteLength(csv, 'utf8') > MAX_BYTES) throw new Error('Ukuran spreadsheet maksimal 5 MB.');
-      if (!csv || csv.trimStart().startsWith('<')) throw new Error('Google Sheets tidak mengembalikan CSV. Periksa izin berbagi sheet.');
+      const urls = [
+        'https://docs.google.com/spreadsheets/d/' + id + '/export?format=csv&gid=' + encodeURIComponent(gid),
+        'https://docs.google.com/spreadsheets/d/' + id + '/gviz/tq?tqx=out:csv&gid=' + encodeURIComponent(gid),
+      ];
+      let csv = '';
+      let lastStatus = 0;
+      let lastIssue = '';
+      for (const exportUrl of urls) {
+        try {
+          const response = await fetch(exportUrl, {
+            signal: AbortSignal.timeout(12000),
+            redirect: 'follow',
+            headers: { 'Accept': 'text/csv,text/plain,*/*' },
+          });
+          const finalHost = new URL(response.url).hostname;
+          if (finalHost !== 'docs.google.com' && !finalHost.endsWith('.googleusercontent.com')) {
+            lastIssue = 'Redirect Google Sheets menuju host yang tidak dikenal.';
+            continue;
+          }
+          lastStatus = response.status;
+          const body = await response.text();
+          if (Buffer.byteLength(body, 'utf8') > MAX_BYTES) throw new Error('Ukuran spreadsheet maksimal 5 MB.');
+          if (response.ok && body.trim() && !body.trimStart().startsWith('<') && !body.includes('google.accounts')) {
+            csv = body;
+            break;
+          }
+          lastIssue = body.trimStart().startsWith('<')
+            ? 'Google mengembalikan halaman HTML, bukan CSV. Spreadsheet mungkin meminta login atau belum bisa diekspor.'
+            : 'Google Sheets merespons HTTP ' + response.status + '.';
+        } catch (error) {
+          if (error instanceof Error && error.message.includes('maksimal 5 MB')) throw error;
+          lastIssue = error instanceof Error ? error.message : 'Koneksi ke Google Sheets gagal.';
+        }
+      }
+      if (!csv) {
+        if (lastStatus === 401 || lastStatus === 403) {
+          throw new Error('Google menolak ekspor (HTTP ' + lastStatus + '). Pastikan link yang dimasukkan adalah link /edit dari spreadsheet yang benar, lalu cek kembali akses umum Viewer. Jika akun Google Workspace membatasi berbagi ke luar organisasi, admin Workspace perlu mengizinkannya.');
+        }
+        throw new Error('Gagal mengambil CSV dari Google Sheets' + (lastStatus ? ' (HTTP ' + lastStatus + ')' : '') + '. ' + (lastIssue || 'Periksa link dan akses spreadsheet.'));
+      }
       rows = parseCsv(csv);
     } else return NextResponse.json({ error: 'Pilih file atau masukkan link Google Sheets.' }, { status: 400 });
 
