@@ -39,6 +39,7 @@ function parseXlsx(buffer) {
   }
   if (eocd < 0) throw new Error('File Excel tidak valid atau rusak.');
   const count = bytes.readUInt16LE(eocd + 10);
+  if (count > 2000) throw new Error('File Excel memiliki terlalu banyak komponen.');
   let cursor = bytes.readUInt32LE(eocd + 16);
   const entries = new Map();
   for (let i = 0; i < count; i++) {
@@ -54,7 +55,7 @@ function parseXlsx(buffer) {
     const localExtraLength = bytes.readUInt16LE(localOffset + 28);
     const start = localOffset + 30 + localNameLength + localExtraLength;
     const compressed = bytes.subarray(start, start + compressedSize);
-    const content = method === 0 ? compressed : method === 8 ? inflateRawSync(compressed) : null;
+    const content = method === 0 ? compressed : method === 8 ? inflateRawSync(compressed, { maxOutputLength: 20 * 1024 * 1024 }) : null;
     if (!content) throw new Error('Metode kompresi Excel tidak didukung.');
     entries.set(name, content.toString('utf8'));
     cursor += 46 + nameLength + extraLength + commentLength;
@@ -79,6 +80,7 @@ function parseXlsx(buffer) {
 }
 
 function normalizeRows(rows) {
+  if (rows.length > 3001) throw new Error('Maksimal 3.000 baris data per impor.');
   if (rows.length < 2) throw new Error('Spreadsheet harus memiliki header dan minimal satu baris data.');
   const normalize = value => String(value || '').trim().toLowerCase().replace(/[ _-]+/g, '');
   const headers = rows[0].map(normalize);
