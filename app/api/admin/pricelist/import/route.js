@@ -11,7 +11,7 @@ function decodeXml(value = '') {
 }
 
 function parseCsv(text) {
-  const firstLine = text.split(/\\r?\\n/, 1)[0] || '';
+  const firstLine = text.split(/\r?\n/, 1)[0] || '';
   const delimiter = (firstLine.match(/;/g) || []).length > (firstLine.match(/,/g) || []).length ? ';' : ',';
   const rows = []; let row = []; let cell = ''; let quoted = false;
   for (let i = 0; i < text.length; i++) {
@@ -137,15 +137,15 @@ export async function POST(request) {
       let parsed;
       try { parsed = new URL(sheetUrl); } catch { return NextResponse.json({ error: 'Link Google Sheets tidak valid.' }, { status: 400 }); }
       if (!['https:', 'http:'].includes(parsed.protocol)) return NextResponse.json({ error: 'Gunakan link Google Sheets yang diawali http:// atau https://.' }, { status: 400 });
-      const pathMatch = parsed.pathname.match(/^\\/spreadsheets\\/(?:u\\/\\d+\\/)?d\\/([a-zA-Z0-9_-]+)/);
-      const driveId = parsed.hostname === 'drive.google.com' && /^\\/(?:open|file\\/d\\/)/.test(parsed.pathname)
-        ? (parsed.searchParams.get('id') || parsed.pathname.match(/^\\/file\\/d\\/([a-zA-Z0-9_-]+)/)?.[1])
+      const pathMatch = parsed.pathname.match(/^\/spreadsheets\/(?:u\/\d+\/)?d\/([a-zA-Z0-9_-]+)/);
+      const driveId = parsed.hostname === 'drive.google.com' && /^\/(?:open|file\/d\/)/.test(parsed.pathname)
+        ? (parsed.searchParams.get('id') || parsed.pathname.match(/^\/file\/d\/([a-zA-Z0-9_-]+)/)?.[1])
         : null;
       if (!['docs.google.com', 'drive.google.com'].includes(parsed.hostname) || (!pathMatch && !driveId)) {
         return NextResponse.json({ error: 'Link tidak dikenali. Salin link spreadsheet dari Google Sheets melalui tombol Bagikan, lalu tempelkan link lengkapnya.' }, { status: 400 });
       }
       const id = pathMatch?.[1] || driveId;
-      const hashGid = parsed.hash.match(/(?:^#|&)gid=(\\d+)/)?.[1];
+      const hashGid = parsed.hash.match(/(?:^#|&)gid=(\d+)/)?.[1];
       const gid = parsed.searchParams.get('gid') || hashGid || '0';
       const urls = [
         'https://docs.google.com/spreadsheets/d/' + id + '/export?format=csv&gid=' + encodeURIComponent(gid),
