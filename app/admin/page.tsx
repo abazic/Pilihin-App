@@ -75,17 +75,24 @@ function formatTimeAgo(dateStr: string): string {
 
 function toDateInputDisplay(value: string | null | undefined): string {
   if (!value) return '';
-  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  return match ? `${match[3]}/${match[2]}/${match[1]}` : value;
+  // Native date inputs require YYYY-MM-DD.
+  const match = String(value).match(/^(\\d{4}-\\d{2}-\\d{2})/);
+  return match ? match[1] : '';
 }
 
 function toIsoDate(value: string): string | null {
-  const match = value.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  const normalized = value.trim();
+  if (!normalized) return null;
+  const match = normalized.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);
   if (!match) return null;
-  const [, day, month, year] = match;
+  const [, year, month, day] = match;
   const date = new Date(Number(year), Number(month) - 1, Number(day));
-  if (date.getFullYear() !== Number(year) || date.getMonth() !== Number(month) - 1 || date.getDate() !== Number(day)) return null;
-  return `${year}-${month}-${day}`;
+  if (
+    date.getFullYear() !== Number(year) ||
+    date.getMonth() !== Number(month) - 1 ||
+    date.getDate() !== Number(day)
+  ) return null;
+  return normalized;
 }
 
 
@@ -584,7 +591,7 @@ export default function HomePage() {
     try {
       const folderId = extractFolderId(formData.gdriveUrl);
       const generatedSlug = createdSlug || `${formData.clientName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
-      if ((formData.eventDate && !toIsoDate(formData.eventDate)) || (formData.expireDate && !toIsoDate(formData.expireDate))) { alert('Format tanggal harus dd/mm/yyyy dan tanggal harus valid.'); setLoading(false); return; }
+      if ((formData.eventDate && !toIsoDate(formData.eventDate)) || (formData.expireDate && !toIsoDate(formData.expireDate))) { alert('Pilih tanggal yang valid dari kalender.'); setLoading(false); return; }
       const payload = {
         client_name: formData.clientName, folder_id: folderId, slug: generatedSlug,
         max_photos: formData.maxPhotos ? Number(formData.maxPhotos) : null,
@@ -788,10 +795,14 @@ export default function HomePage() {
               </div>
               <div>
                 <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">Tanggal Acara</label>
-                <div className="relative">
-                  <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" />
-                  <input type="text" name="eventDate" inputMode="numeric" value={formData.eventDate} onChange={handleInputChange} placeholder="dd/mm/yyyy" maxLength={10} className={`${INPUT} pl-9 pr-4 py-2.5`} />
-                </div>
+                <input
+                  type="date"
+                  name="eventDate"
+                  value={formData.eventDate}
+                  onChange={handleInputChange}
+                  aria-label="Tanggal Acara"
+                  className={`${INPUT} py-2.5`}
+                />
               </div>
             </div>
           </div>
@@ -829,10 +840,14 @@ export default function HomePage() {
               </div>
               <div>
                 <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">Masa Berlaku Link</label>
-                <div className="relative">
-                  <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" />
-                  <input type="text" name="expireDate" inputMode="numeric" value={formData.expireDate} onChange={handleInputChange} placeholder="dd/mm/yyyy" maxLength={10} className={`${INPUT} pl-9 pr-4 py-2.5`} />
-                </div>
+                <input
+                  type="date"
+                  name="expireDate"
+                  value={formData.expireDate}
+                  onChange={handleInputChange}
+                  aria-label="Masa Berlaku Link"
+                  className={`${INPUT} py-2.5`}
+                />
                 <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1">Tanggal akses galeri ditutup.</p>
               </div>
             </div>
