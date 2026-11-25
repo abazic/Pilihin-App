@@ -76,14 +76,14 @@ function formatTimeAgo(dateStr: string): string {
 function toDateInputDisplay(value: string | null | undefined): string {
   if (!value) return '';
   // Native date inputs require YYYY-MM-DD.
-  const match = String(value).match(/^(\\d{4}-\\d{2}-\\d{2})/);
+  const match = String(value).match(/^(\d{4}-\d{2}-\d{2})/);
   return match ? match[1] : '';
 }
 
 function toIsoDate(value: string): string | null {
   const normalized = value.trim();
   if (!normalized) return null;
-  const match = normalized.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);
+  const match = normalized.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (!match) return null;
   const [, year, month, day] = match;
   const date = new Date(Number(year), Number(month) - 1, Number(day));
