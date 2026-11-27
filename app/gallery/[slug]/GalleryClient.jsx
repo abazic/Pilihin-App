@@ -8,6 +8,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import AppHeader from "@/components/AppHeader";
+import Image from "next/image";
 
 export default function GalleryClient({ galleryData, initialPhotos, initialPageToken, folderId, existingSelection }) {
   const [selectedPhotos, setSelectedPhotos] = useState(() => {
