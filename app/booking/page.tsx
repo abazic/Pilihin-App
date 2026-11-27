@@ -127,7 +127,7 @@ export default function BookingPage() {
   return (
     <main className="relative isolate min-h-screen bg-[#faf9f6] text-[#1c1c1c] dark:bg-[#11110f] dark:text-stone-100">
       <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.92)_0%,rgba(250,249,246,0.72)_34%,rgba(250,249,246,0.94)_72%,rgba(250,249,246,0.98)_100%)] dark:bg-[radial-gradient(ellipse_at_center,rgba(255,236,205,0.13)_0%,rgba(17,17,15,0.55)_36%,rgba(17,17,15,0.88)_72%,rgba(17,17,15,0.96)_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_90%_75%_at_50%_15%,rgba(255,255,255,0.95)_0%,rgba(255,255,255,0.55)_38%,rgba(255,255,255,0)_78%)] dark:bg-[radial-gradient(ellipse_90%_75%_at_50%_15%,rgba(255,220,170,0.12)_0%,rgba(255,220,170,0.05)_42%,rgba(255,220,170,0)_80%)]" />
       </div>
       <AppHeader
         navigation={
