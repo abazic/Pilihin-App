@@ -340,10 +340,10 @@ export default function GalleryClient({ galleryData, initialPhotos, initialPageT
             <Image
               src={previewPhoto.fullUrl || previewPhoto.url}
               alt={previewPhoto.name}
-              width={1600}
-              height={1200}
+              width={previewPhoto.width || 1080}
+              height={previewPhoto.height || 810}
               sizes="(max-width: 768px) 100vw, 768px"
-              quality={85}
+              quality={75}
               className="max-h-[75vh] w-auto rounded-lg object-contain"
 />
             <div className="flex items-center gap-4">
