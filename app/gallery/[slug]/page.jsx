@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import GalleryClient from './GalleryClient'
 import { notFound } from 'next/navigation'
-import { getPhotosFromGDrive } from '@/lib/gdrive' 
+import { getPhotosPageFromGDrive } from '@/lib/gdrive'
 import { isGalleryExpired } from '@/lib/gallery-expiry'
 import { DEFAULT_WHATSAPP_NUMBER } from '@/lib/constants' // ◄ Import Konstanta Terpusat
 
@@ -52,7 +52,7 @@ export default async function GalleryPage({ params }) {
   }
 
   // 4. Panggil GDrive API di Server-Side
-  const photos = await getPhotosFromGDrive(client.folder_id);
+  const { photos, nextPageToken } = await getPhotosPageFromGDrive(client.folder_id, { pageSize: 24, imageSize: 500 });
 
   // 5. ← BARU: Ambil pilihan foto yang sudah ada (jika klien pernah simpan sebelumnya)
   const { data: existingSelection } = await supabase
@@ -62,5 +62,5 @@ export default async function GalleryPage({ params }) {
     .maybeSingle()
   
   // Oper data ke Client Component
-  return <GalleryClient galleryData={{ ...client, admin_whatsapp: adminWhatsApp }} initialPhotos={photos} existingSelection={existingSelection} />
+  return <GalleryClient galleryData={{ ...client, admin_whatsapp: adminWhatsApp }} initialPhotos={photos} initialPageToken={nextPageToken} folderId={client.folder_id} existingSelection={existingSelection} />
 }
