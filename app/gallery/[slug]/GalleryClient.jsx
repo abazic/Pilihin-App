@@ -224,12 +224,14 @@ export default function GalleryClient({ galleryData, initialPhotos, initialPageT
                     (isDisabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer")
                   }
                 >
-                  <img
+                  <Image
                     src={photo.url}
                     alt={photo.name}
-                    loading="lazy"
-                    className="w-full h-full object-cover transition duration-300 group-hover:scale-105"
-                  />
+                    fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                    quality={75}
+                    className="object-cover transition duration-300 group-hover:scale-105"
+/>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 opacity-80" />
                   <div className="absolute top-3 left-3">
                     <div className={
@@ -335,11 +337,15 @@ export default function GalleryClient({ galleryData, initialPhotos, initialPageT
             className="max-w-3xl w-full flex flex-col items-center gap-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <img
+            <Image
               src={previewPhoto.fullUrl || previewPhoto.url}
               alt={previewPhoto.name}
+              width={1600}
+              height={1200}
+              sizes="(max-width: 768px) 100vw, 768px"
+              quality={85}
               className="max-h-[75vh] w-auto rounded-lg object-contain"
-            />
+/>
             <div className="flex items-center gap-4">
               <p className="text-white/80 text-sm">{previewPhoto.name.replace(/\.[^/.]+$/, "")}</p>
               <button
