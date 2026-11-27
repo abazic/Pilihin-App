@@ -34,6 +34,7 @@ export default async function PricelistPage({ searchParams }) {
       <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <HeroSlideshow images={backgroundPhotos} interval={12000} />
         <div className="absolute inset-0 bg-[#faf9f6]/80 backdrop-blur-[5px] dark:bg-[#11110f]/80" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.92)_0%,rgba(250,249,246,0.72)_34%,rgba(250,249,246,0.94)_72%,rgba(250,249,246,0.98)_100%)] dark:bg-[radial-gradient(ellipse_at_center,rgba(255,236,205,0.13)_0%,rgba(17,17,15,0.55)_36%,rgba(17,17,15,0.88)_72%,rgba(17,17,15,0.96)_100%)]" />
       </div>
       <AppHeader navigation={<><a href="/" className="hover:text-amber-700">Home</a><a href="/pricelist" className="text-amber-700 dark:text-amber-400">Pricelist</a><a href="/booking" className="hover:text-amber-700">Booking</a><a href="/#portfolio" className="hover:text-amber-700">Portfolio</a><a href="/#services" className="hover:text-amber-700">Service</a><a href="/#contact" className="hover:text-amber-700">Contact</a></>} actions={<a href="/admin" className="rounded-full bg-black px-4 py-2 text-sm text-white dark:bg-stone-100 dark:text-neutral-900">Dashboard</a>} />
       <section className="mx-auto max-w-7xl px-6 pb-16 pt-20 md:pt-28">
