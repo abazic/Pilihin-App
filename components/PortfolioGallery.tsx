@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import PortfolioImage from '@/components/PortfolioImage';
 
-type Photo = { id: string; url: string; fullUrl?: string; name: string };
+type Photo = { id: string; url: string; fullUrl?: string; name: string; width?: number | null; height?: number | null };
 
 export default function PortfolioGallery({
   photos: initialPhotos,
@@ -76,6 +76,8 @@ export default function PortfolioGallery({
               <PortfolioImage
                 src={photo.url}
                 alt={photo.name.replace(/\.[^/.]+$/, '')}
+                width={photo.width}
+                height={photo.height}
                 loading="lazy"
                 className="block h-auto w-full object-contain transition duration-700 hover:scale-[1.02]"
               />
