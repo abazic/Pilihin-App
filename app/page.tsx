@@ -76,7 +76,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
   }
 
   const heroPhotos = portfolioHeroPhotos.length > 0
-    ? portfolioHeroPhotos.map((photo) => photo.url.replace(/=s\\d+/, '=s1600'))
+    ? portfolioHeroPhotos.map((photo) => photo.url.replace(/=s\d+/, '=s1600'))
     : ['https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&h=1600&q=85'];
   return (
     <main className="min-h-screen bg-[#faf9f6] text-[#1c1c1c] transition-colors duration-300 dark:bg-[#11110f] dark:text-stone-100">
