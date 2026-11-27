@@ -3,7 +3,7 @@ import { DEFAULT_WHATSAPP_NUMBER } from '@/lib/constants';
 import { getGoogleSheetsPricelist } from '@/lib/google-sheets-pricelist';
 import AppHeader from '@/components/AppHeader';
 import Link from 'next/link';
-import { getPhotosPageFromGDrive, getPortraitPhotosFromGDrive } from '@/lib/gdrive';
+import { getPhotosPageFromGDrive } from '@/lib/gdrive';
 import HeroSlideshow from '@/components/HeroSlideshow';
 import PortfolioImage from '@/components/PortfolioImage';
 import { Globe } from 'lucide-react';
@@ -60,14 +60,13 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
   const portfolioCategoriesWithPhotos = await Promise.all(
     portfolioCategories.map(async (category) => ({
       ...category,
-      photos: (await getPhotosPageFromGDrive(category.folderId, { pageSize: 5, imageSize: 900 })).photos,
+      photos: (await getPhotosPageFromGDrive(category.folderId, { pageSize: 3, imageSize: 700 })).photos,
     }))
   );
 
-  // Hero uses portrait photos only; category covers above are unaffected.
-  const portfolioHeroPhotos = (await Promise.all(
-    portfolioCategories.map((category) => getPortraitPhotosFromGDrive(category.folderId, { limit: 5, imageSize: 1600 }))
-  )).flat();
+  // Reuse the already-fetched category thumbnails for the hero slideshow.
+  // This avoids a second, much larger Google Drive scan on every homepage render.
+  const portfolioHeroPhotos = portfolioCategoriesWithPhotos.flatMap((category) => category.photos);
 
   // Shuffle once per server render so the opening hero image is random.
   for (let i = portfolioHeroPhotos.length - 1; i > 0; i--) {
@@ -158,7 +157,7 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
             <ScrollReveal key={category.slug} delay={index * 90}><Link href={`/portfolio/${category.slug}`} className="group block overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-white/10 dark:bg-[#1b1b18]">
               <div className="relative overflow-hidden bg-neutral-200 dark:bg-neutral-800">
                 {cover ? (
-                  <PortfolioImage src={cover.url} alt={category.title} loading="lazy"
+                  <PortfolioImage src={cover.url} alt={category.title} width={cover.width} height={cover.height} loading="lazy"
                     className="aspect-[4/3] w-full object-cover transition duration-700 group-hover:scale-105" />
                 ) : (
                   <div className="flex aspect-[3/4] items-center justify-center p-6 text-center text-neutral-500 dark:text-neutral-400">
