@@ -52,21 +52,27 @@ export default function HeroSlideshow({ images, interval = 12000 }: HeroSlidesho
       aria-label="inStories creative portfolio slideshow"
     >
       {previousIndex !== null && images[previousIndex] && (
-        <img
+        <Image
           src={images[previousIndex]}
           alt=""
+          fill
+          sizes="100vw"
+          quality={75}
           draggable={false}
           aria-hidden="true"
-          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-[1800ms] ease-in-out ${isFading ? 'opacity-0' : 'opacity-100'}`}
-        />
+          className={`object-cover transition-opacity duration-[1800ms] ease-in-out ${isFading ? 'opacity-0' : 'opacity-100'}`}
+/>
       )}
-      <img
+      <Image
         key={image}
         src={image}
         alt="inStories creative portfolio photography"
+        fill
+        sizes="100vw"
+        quality={75}
         draggable={false}
-        className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-[1800ms] ease-in-out ${previousIndex !== null && !isFading ? 'opacity-0' : 'opacity-100'}`}
-      />
+        className={`object-cover transition-opacity duration-[1800ms] ease-in-out ${previousIndex !== null && !isFading ? 'opacity-0' : 'opacity-100'}`}
+/>
     </div>
   );
 }
