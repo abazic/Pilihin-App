@@ -106,6 +106,22 @@ type AdminBooking = {
 const bookingStatusText: Record<string, string> = {
   pending: 'Pending', confirmed: 'Confirmed', rejected: 'Rejected', completed: 'Completed',
 };
+function HeaderImagePreview({ url, title }: { url?: string; title: string }) {
+  const [failed, setFailed] = useState(false);
+  const boxClass = 'flex min-h-40 items-center justify-center rounded-lg border border-dashed border-gray-300 p-4 text-center text-sm text-gray-500 dark:border-neutral-700 dark:text-gray-400';
+
+  if (!url) return <div className={boxClass}>Belum ada foto header. Isi headerImageUrl di Google Sheets.</div>;
+  if (failed) {
+    return (
+      <div className={`${boxClass} flex-col gap-2`}>
+        <p>Foto header gagal dimuat. Pastikan link mengarah ke satu file gambar dan aksesnya “Anyone with the link”.</p>
+        <a href={url} target="_blank" rel="noopener noreferrer" className="break-all text-xs underline">{url}</a>
+      </div>
+    );
+  }
+  return <img src={url} alt={`Foto header ${title}`} onError={() => setFailed(true)} className="aspect-[4/1] min-h-40 w-full rounded-lg object-cover" />;
+}
+
 function AdminBookingsPanel() {
   const [items, setItems] = useState<AdminBooking[]>([]);
   const [filter, setFilter] = useState('all');
@@ -1132,6 +1148,7 @@ export default function HomePage() {
                   <h2 className="mt-1 text-xl font-semibold text-gray-900 dark:text-white">{service.title}</h2>
                   {service.description && <p className="mt-1 text-sm text-gray-500">{service.description}</p>}
                 </div>
+                <HeaderImagePreview key={service.headerImageUrl} url={service.headerImageUrl} title={service.title} />
                 {([['photoPackages', 'Photo Packages'], ['videoPackages', 'Video Packages']] as const).map(([field, heading]) => (
                   <div key={field}>
                     <h3 className="mb-2 font-semibold text-gray-800 dark:text-gray-200">{heading}</h3>
