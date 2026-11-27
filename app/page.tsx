@@ -65,9 +65,11 @@ const whatsappContactUrl = `${whatsappUrl}?text=${whatsappMessage}`;
     }))
   );
 
-  // Reuse the already-fetched category thumbnails for the hero slideshow.
-  // This avoids a second, much larger Google Drive scan on every homepage render.
-  const portfolioHeroPhotos = portfolioCategoriesWithPhotos.flatMap((category) => category.photos);
+  // Reuse already-fetched category thumbnails and keep portrait photos only.
+  // This avoids a second Google Drive scan and prevents landscape crops in the hero.
+  const portfolioHeroPhotos = portfolioCategoriesWithPhotos
+    .flatMap((category) => category.photos)
+    .filter((photo) => photo.width && photo.height && photo.height > photo.width);
 
   // Shuffle once per server render so the opening hero image is random.
   for (let i = portfolioHeroPhotos.length - 1; i > 0; i--) {
