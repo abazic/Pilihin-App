@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import AppHeader from "@/components/AppHeader";
 
-export default function GalleryClient({ galleryData, initialPhotos, existingSelection }) {
+export default function GalleryClient({ galleryData, initialPhotos, initialPageToken, folderId, existingSelection }) {
   const [selectedPhotos, setSelectedPhotos] = useState(() => {
     if (existingSelection?.selected_photos?.length > 0) {
       return existingSelection.selected_photos;
@@ -23,13 +23,35 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
   const skipInitialAutoSave = useRef(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [previewIndex, setPreviewIndex] = useState(null);
+  const [photos, setPhotos] = useState(initialPhotos);
+  const [pageToken, setPageToken] = useState(initialPageToken);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [loadMoreError, setLoadMoreError] = useState("");
 
-  const maxPhotos = galleryData?.max_photos ?? initialPhotos.length;
+  const maxPhotos = galleryData?.max_photos ?? 1000;
   const isLimitReached = selectedPhotos.length >= maxPhotos;
 
-  const filteredPhotos = initialPhotos.filter((p) =>
+  const filteredPhotos = photos.filter((p) =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const loadMorePhotos = async () => {
+    if (!pageToken || isLoadingMore) return;
+    setIsLoadingMore(true);
+    setLoadMoreError("");
+    try {
+      const params = new URLSearchParams({ folderId, pageToken, pageSize: "24" });
+      const response = await fetch("/api/portfolio-photos?" + params.toString());
+      if (!response.ok) throw new Error("Gagal memuat foto berikutnya.");
+      const data = await response.json();
+      setPhotos((current) => [...current, ...(data.photos || [])]);
+      setPageToken(data.nextPageToken || null);
+    } catch (error) {
+      setLoadMoreError(error instanceof Error ? error.message : "Gagal memuat foto berikutnya.");
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
 
   const toggleSelectPhoto = (photo) => {
     setSelectedPhotos((prev) => {
@@ -183,7 +205,7 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
 
         {filteredPhotos.length === 0 ? (
           <p className="text-center text-sm text-gray-400 dark:text-gray-500 py-16">
-            {initialPhotos.length === 0
+            {photos.length === 0
               ? "Belum ada foto di galeri ini."
               : "Tidak ada foto yang cocok dengan pencarian."}
           </p>
@@ -236,6 +258,20 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
             })}
           </div>
         )}
+
+        {pageToken && (
+          <div className="mt-8 flex flex-col items-center gap-3">
+            {loadMoreError && <p role="alert" className="text-sm text-red-600">{loadMoreError}</p>}
+            <button
+              type="button"
+              onClick={loadMorePhotos}
+              disabled={isLoadingMore}
+              className="rounded-full border border-gray-300 px-6 py-3 text-sm font-medium transition hover:bg-gray-100 disabled:cursor-wait disabled:opacity-60 dark:border-neutral-700 dark:hover:bg-neutral-800"
+            >
+              {isLoadingMore ? "Memuat foto..." : "Muat foto lainnya"}
+            </button>
+          </div>
+        )}
       </main>
 
       <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-neutral-900 border-t border-gray-200 dark:border-neutral-800 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
@@ -243,7 +279,7 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
           <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-300">
             <div className="flex items-center gap-1.5">
               <Camera size={16} className="text-gray-400 dark:text-gray-500" />
-              {initialPhotos.length} foto
+              {photos.length} foto dimuat
             </div>
             <div className="flex items-center gap-1.5">
               <CheckCircle size={16} className="text-gray-400 dark:text-gray-500" />
@@ -299,7 +335,7 @@ export default function GalleryClient({ galleryData, initialPhotos, existingSele
             onClick={(e) => e.stopPropagation()}
           >
             <img
-              src={previewPhoto.url}
+              src={previewPhoto.fullUrl || previewPhoto.url}
               alt={previewPhoto.name}
               className="max-h-[75vh] w-auto rounded-lg object-contain"
             />
